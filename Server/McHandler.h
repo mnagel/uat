@@ -31,6 +31,7 @@ class McHandler {
 		void addMc(opt_mc_t* mc);
 		bool isMcInNeighborhood(opt_mc_t* mc, int len);
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
+		int setNextNotMeasuredConfig();
 
 	private:
 		std::vector<struct opt_mc_t*> mcs;

@@ -1,5 +1,7 @@
 #include "HeuristicOptimizer.h"
 
+#include <stdio.h>
+
 
 HeuristicOptimizer::HeuristicOptimizer(McHandler* handler):
 	Optimizer(handler),
@@ -17,7 +19,8 @@ void HeuristicOptimizer::chooseNewValues() {
 	switch(optState) {
 		case RANDOM_SEARCH:
 			if(randSearch->doRandSearch()>0) {
-				this->optState = LOCAL_SEARCH;
+				//this->optState = LOCAL_SEARCH;
+				this->optState = FULLY_OPTIMIZED;
 			}
 			break;
 		case LOCAL_SEARCH:
@@ -26,6 +29,7 @@ void HeuristicOptimizer::chooseNewValues() {
 			}
 			break;
 		case FULLY_OPTIMIZED:
+			printf("set best config\n");
 			mcHandler->setBestMcAsConfig();
 			break;
 		default:

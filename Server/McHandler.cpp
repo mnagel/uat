@@ -217,14 +217,31 @@ list<struct opt_param_t*>* McHandler::getParams() {
 	return &currentConfig;
 }
 
-/**
-  *	Uses the config of the fastest Mc, even if the params aren't identical with the currentConfig list 
-  */
 void McHandler::setBestMcAsConfig() {
 	if(bestMc == NULL) return;
 	setMcAsConfig(bestMc);
 }
 
+/**
+  * TODO !!WARNING!!
+  * setMcAsConfig tries to merge the given mc into the currentConfig list, if they are not identical 
+  * the not measured mc won't be retrieved by getMcForCurrentConfigOrCreate and WILL NEVER GET A MEASURE.
+  * DANGER of an endless loop, for example in RandomSearch, as there will always be a not measured config
+  */
+int McHandler::setNextNotMeasuredConfig() {
+	vector<struct opt_mc_t*>::iterator mcIt;
+	for(mcIt = mcs.begin(); mcIt != mcs.end(); mcIt++) {
+		if((*mcIt)->measurements.size() == 0) {
+			setMcAsConfig(*mcIt);
+			return 0;
+		}
+	}
+	return -1;
+}
+
+/**
+  *	Uses the config of the given mc, even if the params aren't identical with the currentConfig list 
+  */
 void McHandler::setMcAsConfig(opt_mc_t* mc) {
 	list<struct opt_param_t*>::iterator paramsIt;
 	vector<struct opt_param_t>::iterator configIt;

@@ -8,7 +8,6 @@ RandomSearch::RandomSearch(McHandler* handler, double relCov, int nHopNH):
 	relCov(relCov),
 	nHopNH(nHopNH),
 	optState(FIRST_RUN) {
-	calcNumNeededConfigs();
 }
 
 RandomSearch::~RandomSearch() {
@@ -19,14 +18,19 @@ RandomSearch::~RandomSearch() {
 int RandomSearch::doRandSearch() {
 	switch(this->optState) {
 		case FIRST_RUN:
-			break;
-
+			calcNumNeededConfigs();
+			generateRandomConfigs();
+			this->optState = LATER_RUN;
+			//no break wanted
 		case LATER_RUN:
+			if(mcHandler->setNextNotMeasuredConfig() != 0) {
+				this->optState = FINISHED;
+				return 1;
+			}
 			break;
-
 		case FINISHED:
+			return 1;
 			break;
-
 		default:
 			break;
 	}
