@@ -17,11 +17,11 @@ int main(int argc, char *argv[]) {
 	myTuner->tRegisterParameter(nameAsChar, &testVariable, 5, 7, 1); 
 	//myTuner->tRegisterParameter(nameAsChar, &fourth, 6, 8, 1); 
 	//myTuner->tRegisterParameter(nameAsChar, &third, 5, 7, 1); 
-	myTuner->tRegisterParameter(nameAsChar, &second, 6, 8, 1, TYPE_NUMBER_THREADS); 
+	myTuner->tRegisterParameter(nameAsChar, &second, 1, 8, 1, TYPE_NUMBER_THREADS); 
 	myTuner->tGetInitialValues();
 	for(int i=0; i<10; i++) {
 		myTuner->tStart();
-		usleep(500*1000);
+		usleep(3000*1000);
 		myTuner->tStop();
 	}
 	myTuner->tFinishTuning();

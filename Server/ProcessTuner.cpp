@@ -95,6 +95,7 @@ void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 	newParam.step = msg->step;
 	newParam.type = msg->type;
 	newParam.changed = false;
+	newParam.newHint = false;
 
 	struct opt_param_t* insertedParam = mcHandler->addParam(&newParam);
 	mcHandler->printCurrentConfig();

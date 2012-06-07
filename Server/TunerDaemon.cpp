@@ -70,5 +70,5 @@ void TunerDaemon::tuningFinished(ProcessTuner* tuner) {
 }
 
 void TunerDaemon::tuningParamAdded(opt_param_t* param) {
-
+	globalConfigurator->createHintsForType(param->type);
 }
