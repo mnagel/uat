@@ -60,6 +60,7 @@ void ProcessTuner::run() {
 	while(this->runLoop) {
 		udsComm->receiveMsgHead(&msgHead);
 		printf("received message from tid: %d\n", msgHead.tid);
+		this->lastTid = msgHead.tid;
 		switch(msgHead.msgType) {
 			case TMSG_ADD_PARAM:
 				struct tmsgAddParam msg;
@@ -155,7 +156,7 @@ void ProcessTuner::sendAllChangedParams() {
 
 		if((*param_iterator)->changed && !param_changed) {
 			param_changed = true;
-			udsComm->send(TMSG_SET_VALUE);
+			udsComm->sendMsgHead(TMSG_SET_VALUE, this->lastTid);
 		} 
 
 		// set msg to be sent in one of the next iterations or after the for loop
@@ -171,7 +172,7 @@ void ProcessTuner::sendAllChangedParams() {
 		setMsg.lastMsg = true;
 		udsComm->send((const char*) &setMsg, sizeof(struct tmsgSetValue));
 	} else {
-		udsComm->send(TMSG_DONT_SET_VALUE);
+		udsComm->sendMsgHead(TMSG_DONT_SET_VALUE, this->lastTid);
 	}
 
 

@@ -3,6 +3,7 @@
 #include <string>
 #include <semaphore.h>
 #include <pthread.h>
+#include <map>
 
 #include "../UDSCommunicator.h"
 
@@ -28,11 +29,20 @@ class Tuner {
 	private:
 	UDSCommunicator* udsComm;
 	pthread_t receiveThread;
-	sem_t startMutex;
 	void receiveLoop();
 	void handleSetValueMessage(struct tmsgSetValue* msg);
 	void handleDontSetValueMessage();
-	void postOnStartMutex();
 
+	sem_t* initStartMutex(pid_t tid);
+	threadControlBlock_t* getOrCreateTcb();
+	void waitForStartMutex();
+	void postOnStartMutex(pid_t tid);
 
+	std::map<pid_t, threadControlBlock_t*> tcbMap;
 };
+
+struct threadControlBlock_t {
+	pid_t tid;
+	sem_t sem;
+	struct timespec tsMeasureStart;
+}

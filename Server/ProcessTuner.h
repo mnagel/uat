@@ -41,5 +41,6 @@ class ProcessTuner {
 	std::vector<ProcessTunerListener*> processTunerListener;
 	bool runLoop;
 	struct timespec tsMeasureStart;
+	pid_t lastTid;
 
 };

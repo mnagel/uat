@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/types.h>
+#include <sys/syscall.h> 
 #include <string>
 #include <stdlib.h>
 #include <iostream>
@@ -17,7 +19,6 @@ using namespace std;
 
 Tuner::Tuner() 
 	:udsComm(new UDSCommunicator()) {
-		sem_init(&(this->startMutex), 1, 1);
 		// create receive thread
 		// pthread_create doesn't work with class methods, as the this pointer always is a hidden argument
 		// workaround with static threadCreator method instead
@@ -27,7 +28,9 @@ Tuner::Tuner()
 
 Tuner::~Tuner() {
 	delete udsComm;
-	sem_destroy(&(this->startMutex));
+
+	//TODO iterate over semMap and destroy and delete semaphores
+	//sem_destroy(&(this->startMutex));
 }
 
 void* Tuner::threadCreator(void* context) {
@@ -36,19 +39,19 @@ void* Tuner::threadCreator(void* context) {
 }
 
 void Tuner::receiveLoop() {
-	MsgType msgType;
+	tmsgHead msgHead;
 	while(1) {
-		udsComm->receiveMsgType(&msgType);
-		switch(msgType) {
+		udsComm->receiveMsgHead(&msgHead);
+		switch(msgHead.msgType) {
 			case TMSG_SET_VALUE:
 				struct tmsgSetValue msg; 
 				udsComm->receiveSetValueMessage(&msg);
 				this->handleSetValueMessage(&msg);
-				this->postOnStartMutex();
+				this->postOnStartMutex(msgHead.tid);
 				break;
 			case TMSG_DONT_SET_VALUE:
 				this->handleDontSetValueMessage();
-				this->postOnStartMutex();
+				this->postOnStartMutex(msgHead.tid);
 				break;
 			default:
 				break;
@@ -56,11 +59,35 @@ void Tuner::receiveLoop() {
 	}
 }
 
-void Tuner::postOnStartMutex() {
-	if(sem_post(&(this->startMutex))!=0) {
-		errorExit("unable to post on startMutex");
+sem_t* Tuner::initStartMutex(pid_t tid) {
+		sem_t* sem = new sem_t;
+		sem_init(sem, 1, 1);
+		semMap.insert(pair<pid_t, sem_t*>(tid, sem));
+		return sem;
+}
+
+void Tuner::waitForStartMutex() {
+	pid_t tid = syscall(SYS_gettid);  
+	map<pid_t, sem_t*>::iterator mapit;
+	mapit = semMap.find(tid);
+	if(mapit != semMap.end()) {
+		sem_wait(mapit->second);
+	} else {
+		sem_t* sem = initStartMutex(tid);
+		sem_wait(sem);
 	}
 }
+
+void Tuner::postOnStartMutex(pid_t tid) {
+	map<pid_t, sem_t*>::iterator mapit;
+	mapit = semMap.find(tid);
+	if(mapit != semMap.end()) {
+		if(sem_post(mapit->second)!=0) {
+			errorExit("unable to post on startMutex");
+		}
+	}
+}
+
 
 void Tuner::handleSetValueMessage(struct tmsgSetValue* msg) {
 	printf("handleSetValueMessage: pointer: %p new value: %d\n", msg->parameter, msg->value);
@@ -98,13 +125,13 @@ int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to
 }
 
 int Tuner::tGetInitialValues() {
-	sem_wait(&(this->startMutex));
+	waitForStartMutex();
 	udsComm->sendMsgHead(TMSG_GET_INITIAL_VALUES);
 	return 0;
 }
 
 int Tuner::tStart() {
-	sem_wait(&(this->startMutex));
+	waitForStartMutex();
 	udsComm->sendMsgHead(TMSG_START_MEASSURE);
 	return 0;
 }
