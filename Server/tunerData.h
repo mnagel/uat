@@ -30,6 +30,8 @@ struct opt_param_t {
 
 	/* param has been changed by optimizer*/
 	bool changed;
+
+	ParameterType type;	
 };
 
 struct opt_mc_t {

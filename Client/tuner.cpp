@@ -36,9 +36,9 @@ void* Tuner::threadCreator(void* context) {
 }
 
 void Tuner::receiveLoop() {
-	int msgType;
+	MsgType msgType;
 	while(1) {
-		udsComm->receiveInt(&msgType);
+		udsComm->receiveMsgType(&msgType);
 		switch(msgType) {
 			case TMSG_SET_VALUE:
 				struct tmsgSetValue msg; 
@@ -81,12 +81,17 @@ void Tuner::handleDontSetValueMessage() {
 }
 
 int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to, int step) {
+	return this->tRegisterParameter(name, parameter, from, to, step, TYPE_DEFAULT);
+}
+
+int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to, int step, ParameterType type) {
 	struct tmsgAddParam msg;
 	msg.parameter = parameter;
 	msg.value = *parameter;
 	msg.min = from;
 	msg.max = to;
 	msg.step = step;
+	msg.type = type;
 	udsComm->send(TMSG_ADD_PARAM);
 	udsComm->send((const char*) &msg, sizeof(tmsgAddParam));
 	return 0;

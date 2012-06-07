@@ -1,12 +1,20 @@
 #pragma once
 #define SOCKET_PATH "/home/markus/mysocket"
 
-const int TMSG_ADD_PARAM = 1;
-const int TMSG_START_MEASSURE = 2;
-const int TMSG_STOP_MEASSURE = 3;
-const int TMSG_SET_VALUE = 4;
-const int TMSG_DONT_SET_VALUE = 5;
-const int TMSG_GET_INITIAL_VALUES = 6;
+enum MsgType {
+	TMSG_ADD_PARAM,
+	TMSG_START_MEASSURE,
+	TMSG_STOP_MEASSURE,
+	TMSG_SET_VALUE,
+	TMSG_DONT_SET_VALUE,
+	TMSG_GET_INITIAL_VALUES
+};
+
+enum ParameterType {
+	TYPE_DEFAULT,
+	TYPE_NUMBER_THREADS,
+	TYPE_DATA_BLOCK_SIZE
+};
 
 struct tmsgAddParam {
 	int *parameter; 
@@ -14,6 +22,7 @@ struct tmsgAddParam {
 	int min; 
 	int max; 
 	int step;
+	ParameterType type;
 };
 
 struct tmsgSetValue {

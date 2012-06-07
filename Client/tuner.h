@@ -14,6 +14,7 @@ class Tuner {
 	Tuner();
 	~Tuner();
 	int tRegisterParameter(const char *name, int *parameter, int from, int to, int step);
+	int tRegisterParameter(const char *name, int *parameter, int from, int to, int step, ParameterType type);
 	int tGetInitialValues();
 	int tStart();
 	int tStop();

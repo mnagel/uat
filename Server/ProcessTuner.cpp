@@ -30,9 +30,9 @@ ProcessTuner::~ProcessTuner() {
 }
 
 int ProcessTuner::run() {
-	int msgType;
+	MsgType msgType;
 	while(1) {
-		udsComm->receiveInt(&msgType);
+		udsComm->receiveMsgType(&msgType);
 		switch(msgType) {
 			case TMSG_ADD_PARAM:
 				struct tmsgAddParam msg;
@@ -58,7 +58,7 @@ int ProcessTuner::run() {
 }
 
 void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
-	printf("add param: parameterpointer: %p from: %d to: %d step: %d\n",msg->parameter, msg->min, msg->max, msg->step);
+	printf("add param: parameterpointer: %p from: %d to: %d step: %d type: %d\n",msg->parameter, msg->min, msg->max, msg->step, msg->type);
 	struct opt_param_t newParam;
 	newParam.address = msg->parameter;
 	newParam.curval = msg->value;
@@ -66,6 +66,7 @@ void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 	newParam.min = msg->min;
 	newParam.max = msg->max;
 	newParam.step = msg->step;
+	newParam.type = msg->type;
 	newParam.changed = false;
 
 	mcHandler->addParam(&newParam);

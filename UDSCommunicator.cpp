@@ -63,6 +63,14 @@ void UDSCommunicator::receiveInt(int* o_msg) {
 	}
 }
 
+void UDSCommunicator::receiveMsgType(MsgType* o_msg) {
+	int iCount;
+	iCount=read(this->fdConn, o_msg, sizeof(int));
+	if(iCount!=sizeof(MsgType)) {
+		errorExit("receiveMsgType");
+	}
+}
+
 void UDSCommunicator::send(const char* msg, int length) {
 	if (write(this->fdConn, msg, length)!=length) {
 		errorExit("send struct");
