@@ -1,4 +1,6 @@
-#include "ThreadObserver.h"
+#include "ProcessTunerListener.h"
 
-void ThreadObserver::threadFinished(void* context) {
-};
+void ProcessTunerListener::tuningFinished(ProcessTuner* tuner) {
+}
+void ProcessTunerListener::tuningParamAdded(opt_param_t* param) {
+}

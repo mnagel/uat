@@ -5,16 +5,18 @@
 #include <vector>
 
 #include "ProcessTuner.h"
+#include "ProcessTunerListener.h"
 #include "GlobalMcHandler.h"
+#include "GlobalConfigurator.h"
 
-class TunerDaemon : public ThreadObserver {
+class TunerDaemon : public ProcessTunerListener {
 	public:
 		TunerDaemon();
 		~TunerDaemon();
 		void start();
 		void stop();
-		void processTunerFinishListener(ProcessTuner* tuner);
-		void threadFinished(void* context);
+		void tuningFinished(ProcessTuner* tuner);
+		void tuningParamAdded(struct opt_param_t* param);
 
 	private:
 		struct sockaddr_un strAddr;
@@ -22,14 +24,10 @@ class TunerDaemon : public ThreadObserver {
 		int fdSock;
 
 		GlobalMcHandler* globalMcHandler;
+		GlobalConfigurator* globalConfigurator;
 
 		void run();
 
 
-};
-
-struct threadCreateParams_t {
-	TunerDaemon* daemon;
-	int fdNewConn;
 };
 

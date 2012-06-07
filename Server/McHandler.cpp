@@ -89,14 +89,13 @@ void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
  * position, as binary search doesn't work well on doubly linked lists and list should
  * be small
  */
-void McHandler::addParam(struct opt_param_t* param) {
+struct opt_param_t* McHandler::addParam(struct opt_param_t* param) {
 	struct opt_param_t* heapParam = new struct opt_param_t;
 	*heapParam = *param;
 
 	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
 		if((*param_iterator)->address > heapParam->address) {
-			/* param has to be copied, as its memory space may be freed in the near future */
 			currentConfig.insert(param_iterator, heapParam);
 			break;
 		}
@@ -104,6 +103,7 @@ void McHandler::addParam(struct opt_param_t* param) {
 	if(param_iterator==currentConfig.end()) {
 		currentConfig.push_back(heapParam);
 	}
+	return heapParam;
 }
 
 // params have to have same order

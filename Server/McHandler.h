@@ -15,7 +15,7 @@ class McHandler {
 		struct opt_mc_t* getMcForCurrentConfigOrCreate();
 		struct opt_mc_t* addMcForCurrentConfig(unsigned long currentConfigHash);
 		void addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts);
-		void addParam(struct opt_param_t* param);
+		struct opt_param_t* addParam(struct opt_param_t* param);
 		void printCurrentConfig();
 		void printAllMc();
 		void printConfig(struct opt_mc_t* mc);

@@ -21,7 +21,7 @@ ProcessTuner::ProcessTuner(int fdConn):
 	udsComm(new UDSCommunicator(fdConn)),
 	mcHandler(new McHandler()),
 	optimizer(new Optimizer(mcHandler)),
-	threadListener(0),
+	processTunerListener(0),
 	runLoop(true) {
 }
 
@@ -36,8 +36,8 @@ McHandler* ProcessTuner::getMcHandler() {
 	return mcHandler;
 }
 
-void ProcessTuner::addThreadListener(ThreadObserver* listener) {
-	threadListener.push_back(listener);
+void ProcessTuner::addProcessTunerListener(ProcessTunerListener* listener) {
+	processTunerListener.push_back(listener);
 }
 
 void ProcessTuner::runInNewThread() {
@@ -49,8 +49,8 @@ void ProcessTuner::runInNewThread() {
 void* ProcessTuner::threadCreator(void* context) {
 	ProcessTuner* thisTuner = (ProcessTuner*) context;
 	thisTuner->run();
-	for(unsigned int i=0; i<thisTuner->threadListener.size(); i++) {
-		((thisTuner->threadListener)[i])->threadFinished((void*) thisTuner);
+	for(unsigned int i=0; i<thisTuner->processTunerListener.size(); i++) {
+		((thisTuner->processTunerListener)[i])->tuningFinished(thisTuner);
 	}
 	return NULL;
 }
@@ -96,8 +96,13 @@ void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 	newParam.type = msg->type;
 	newParam.changed = false;
 
-	mcHandler->addParam(&newParam);
+	struct opt_param_t* insertedParam = mcHandler->addParam(&newParam);
 	mcHandler->printCurrentConfig();
+
+	// notify listener
+	for(unsigned int i=0; i<this->processTunerListener.size(); i++) {
+		((this->processTunerListener)[i])->tuningParamAdded(insertedParam);
+	}
 }
 
 void ProcessTuner::handleGetInitialValuesMessage() {

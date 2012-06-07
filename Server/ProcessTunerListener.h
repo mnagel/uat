@@ -1,6 +1,10 @@
 #pragma once
 
-class ThreadObserver {
+#include "ProcessTuner.h"
+class ProcessTuner;
+
+class ProcessTunerListener {
 	public:
-		virtual void threadFinished(void* context);
+		virtual void tuningFinished(ProcessTuner* tuner);
+		virtual void tuningParamAdded(opt_param_t* param);
 };

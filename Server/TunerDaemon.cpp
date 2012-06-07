@@ -10,15 +10,18 @@
 #include "../utils.h"
 #include "TunerDaemon.h"
 #include "GlobalMcHandler.h"
+#include "GlobalConfigurator.h"
 
 using namespace std;
 
 TunerDaemon::TunerDaemon():
-	globalMcHandler(new GlobalMcHandler) {
+	globalMcHandler(new GlobalMcHandler),
+	globalConfigurator(new GlobalConfigurator(globalMcHandler)) {
 
 }
 
 TunerDaemon::~TunerDaemon() {
+	delete globalConfigurator;
 	delete globalMcHandler;
 }
 
@@ -50,7 +53,7 @@ void TunerDaemon::run() {
 		printf("\nConnection !!! receiving data ...\n");
 		ProcessTuner* tuner = new ProcessTuner(fdConn);
 		globalMcHandler->addTuner(tuner);
-		tuner->addThreadListener((ThreadObserver*) this);
+		tuner->addProcessTunerListener((ProcessTunerListener*) this);
 		tuner->runInNewThread();
 	}
 }
@@ -60,9 +63,12 @@ void TunerDaemon::stop() {
 	close(fdSock);
 }
 
-void TunerDaemon::threadFinished(void* context) {
+void TunerDaemon::tuningFinished(ProcessTuner* tuner) {
 	printf("thread finished in TunerDaemon has been called\n");
-	ProcessTuner* tuner = (ProcessTuner*) context;
 	globalMcHandler->removeTuner(tuner);
 	delete tuner;
+}
+
+void TunerDaemon::tuningParamAdded(opt_param_t* param) {
+
 }
