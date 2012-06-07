@@ -70,11 +70,13 @@ void ProcessTuner::run() {
 			case TMSG_GET_INITIAL_VALUES:
 				this->handleGetInitialValuesMessage();
 				break;
-			case TMSG_START_MEASSURE:
-				this->handleStartMeassureMessage();
+			case TMSG_REQUEST_START_MEASUREMENT:
+				this->handleRequestStartMeasurementMessage();
 				break;
-			case TMSG_STOP_MEASSURE:
-				this->handleStopMeassureMessage();
+			case TMSG_STOP_MEASUREMENT:
+				struct tmsgStopMeas smsg;
+				udsComm->receiveStopMeasMessage(&smsg);
+				this->handleStopMeasurementMessage(&smsg);
 				break;
 			case TMSG_FINISH_TUNING:
 				this->handleFinishTuningMessage();
@@ -116,18 +118,14 @@ void ProcessTuner::handleGetInitialValuesMessage() {
 	this->sendAllChangedParams();
 }
 
-void ProcessTuner::handleStartMeassureMessage() {
+void ProcessTuner::handleRequestStartMeasurementMessage() {
 	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStart);
+	udsComm->sendMsgHead(TMSG_GRANT_START_MEASUREMENT, this->lastTid);
 }
 
-void ProcessTuner::handleStopMeassureMessage() {
-	timespec tsMeasureStop;
-	timespec tsMeasureDiff;
-	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStop);
-	diff(&tsMeasureStart, &tsMeasureStop, &tsMeasureDiff);
-
+void ProcessTuner::handleStopMeasurementMessage(tmsgStopMeas* msg) {
 	struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
-	mcHandler->addMeasurementToMc(mc, tsMeasureDiff);
+	mcHandler->addMeasurementToMc(mc, msg->tsMeasureDiff);
 	mcHandler->printAllMc(false);
 	optimizer->chooseNewValues();
 

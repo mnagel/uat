@@ -9,6 +9,7 @@
 #include <iostream>
 #include <semaphore.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "tuner.h"
 #include "../protocolData.h"
@@ -19,6 +20,7 @@ using namespace std;
 
 Tuner::Tuner() 
 	:udsComm(new UDSCommunicator()) {
+		sem_init(&sendSem,1,1);
 		// create receive thread
 		// pthread_create doesn't work with class methods, as the this pointer always is a hidden argument
 		// workaround with static threadCreator method instead
@@ -47,45 +49,41 @@ void Tuner::receiveLoop() {
 				struct tmsgSetValue msg; 
 				udsComm->receiveSetValueMessage(&msg);
 				this->handleSetValueMessage(&msg);
-				this->postOnStartMutex(msgHead.tid);
 				break;
 			case TMSG_DONT_SET_VALUE:
 				this->handleDontSetValueMessage();
-				this->postOnStartMutex(msgHead.tid);
 				break;
+			case TMSG_GRANT_START_MEASUREMENT:
+				this->postOnStartMutex(msgHead.tid);
 			default:
 				break;
 		}
 	}
 }
 
-sem_t* Tuner::initStartMutex(pid_t tid) {
-		sem_t* sem = new sem_t;
-		sem_init(sem, 1, 1);
-		semMap.insert(pair<pid_t, sem_t*>(tid, sem));
-		return sem;
-}
-
-void Tuner::waitForStartMutex() {
-	pid_t tid = syscall(SYS_gettid);  
-	map<pid_t, sem_t*>::iterator mapit;
-	mapit = semMap.find(tid);
-	if(mapit != semMap.end()) {
-		sem_wait(mapit->second);
+threadControlBlock_t* Tuner::getOrCreateTcb(pid_t tid) {
+	map<pid_t, threadControlBlock_t*>::iterator mapit;
+	mapit = tcbMap.find(tid);
+	if(mapit != tcbMap.end()) {
+		return mapit->second;
 	} else {
-		sem_t* sem = initStartMutex(tid);
-		sem_wait(sem);
+		threadControlBlock_t* tcb = new threadControlBlock_t;
+		tcb->tid = tid;
+		sem_init(&(tcb->sem), 1, 0);
+		tcbMap.insert(pair<pid_t, threadControlBlock_t*>(tid, tcb));
+		return tcb;
 	}
 }
+
+threadControlBlock_t* Tuner::getOrCreateTcb() {
+	pid_t tid = syscall(SYS_gettid);  
+	return getOrCreateTcb(tid);
+}
+
 
 void Tuner::postOnStartMutex(pid_t tid) {
-	map<pid_t, sem_t*>::iterator mapit;
-	mapit = semMap.find(tid);
-	if(mapit != semMap.end()) {
-		if(sem_post(mapit->second)!=0) {
-			errorExit("unable to post on startMutex");
-		}
-	}
+	threadControlBlock_t* tcb = getOrCreateTcb(tid);
+	sem_post(&(tcb->sem));
 }
 
 
@@ -119,30 +117,52 @@ int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to
 	msg.max = to;
 	msg.step = step;
 	msg.type = type;
+	sem_wait(&sendSem);
 	udsComm->sendMsgHead(TMSG_ADD_PARAM);
 	udsComm->send((const char*) &msg, sizeof(tmsgAddParam));
+	sem_post(&sendSem);
 	return 0;
 }
 
 int Tuner::tGetInitialValues() {
-	waitForStartMutex();
+	sem_wait(&sendSem);
 	udsComm->sendMsgHead(TMSG_GET_INITIAL_VALUES);
+	sem_post(&sendSem);
 	return 0;
 }
 
-int Tuner::tStart() {
-	waitForStartMutex();
-	udsComm->sendMsgHead(TMSG_START_MEASSURE);
+int Tuner::tRequestStart() {
+	threadControlBlock_t* tcb = getOrCreateTcb();
+	sem_wait(&sendSem);
+	udsComm->sendMsgHead(TMSG_REQUEST_START_MEASUREMENT);
+	sem_post(&sendSem);
+	sem_wait(&(tcb->sem));
+	clock_gettime(CLOCK_MONOTONIC, &(tcb->tsMeasureStart));
 	return 0;
 }
 
 int Tuner::tStop() {
-	udsComm->sendMsgHead(TMSG_STOP_MEASSURE);
+	threadControlBlock_t* tcb = getOrCreateTcb();
+
+	timespec tsMeasureStop;
+	timespec tsMeasureDiff;
+	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStop);
+	diff(&(tcb->tsMeasureStart), &tsMeasureStop, &tsMeasureDiff);
+
+	struct tmsgStopMeas msg;
+	msg.tsMeasureDiff = tsMeasureDiff;
+	sem_wait(&sendSem);
+	udsComm->sendMsgHead(TMSG_STOP_MEASUREMENT);
+	udsComm->send((const char*) &msg, sizeof(tmsgStopMeas));
+	sem_post(&sendSem);
+
 	return 0;
 }
 
 int Tuner::tFinishTuning() {
+	sem_wait(&sendSem);
 	udsComm->sendMsgHead(TMSG_FINISH_TUNING);
+	sem_post(&sendSem);
 	return 0;
 }
 

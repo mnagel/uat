@@ -3,8 +3,9 @@
 
 enum MsgType {
 	TMSG_ADD_PARAM,
-	TMSG_START_MEASSURE,
-	TMSG_STOP_MEASSURE,
+	TMSG_REQUEST_START_MEASUREMENT,
+	TMSG_GRANT_START_MEASUREMENT,
+	TMSG_STOP_MEASUREMENT,
 	TMSG_SET_VALUE,
 	TMSG_DONT_SET_VALUE,
 	TMSG_GET_INITIAL_VALUES,
@@ -36,4 +37,8 @@ struct tmsgSetValue {
 	int *parameter; 
 	int value; 
 	bool lastMsg;
+};
+
+struct tmsgStopMeas {
+	timespec tsMeasureDiff;
 };

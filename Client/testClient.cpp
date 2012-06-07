@@ -17,9 +17,9 @@ int minValue[] = {1, 5, 1, 10};
 int maxValue[] = {20, 30, 10, 50};
 int optimum[] = {10, 5, 3, 46};
 int numberToUse = 3;
-pthread_t pthreads[4];
+pthread_t pthreads[10];
 int finishCount = 0;
-int numberThreads = 2;
+int numberThreads = 3;
 
 void* run(void* nvm);
 
@@ -58,7 +58,7 @@ void* run(void* nvm) {
 	printf("T pid: %u\n", getpid()); 
 	for(int i=0; i<1000; i++) {
 		printf("before start\n");
-		myTuner->tStart();
+		myTuner->tRequestStart();
 		int sleep = 0;
 		for(int j=0; j<numberToUse; j++) {
 			sleep += 50*abs(variables[j] - optimum[j]);

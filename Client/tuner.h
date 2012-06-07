@@ -9,6 +9,8 @@
 
 using namespace std;
 
+struct threadControlBlock_t;
+
 class Tuner {
 
 	public:
@@ -17,7 +19,7 @@ class Tuner {
 	int tRegisterParameter(const char *name, int *parameter, int from, int to, int step);
 	int tRegisterParameter(const char *name, int *parameter, int from, int to, int step, ParameterType type);
 	int tGetInitialValues();
-	int tStart();
+	int tRequestStart();
 	int tStop();
 	int tFinishTuning();
 	int tStopW(int weight);
@@ -33,11 +35,11 @@ class Tuner {
 	void handleSetValueMessage(struct tmsgSetValue* msg);
 	void handleDontSetValueMessage();
 
-	sem_t* initStartMutex(pid_t tid);
 	threadControlBlock_t* getOrCreateTcb();
-	void waitForStartMutex();
+	threadControlBlock_t* getOrCreateTcb(pid_t tid);
 	void postOnStartMutex(pid_t tid);
 
+	sem_t sendSem;
 	std::map<pid_t, threadControlBlock_t*> tcbMap;
 };
 
@@ -45,4 +47,4 @@ struct threadControlBlock_t {
 	pid_t tid;
 	sem_t sem;
 	struct timespec tsMeasureStart;
-}
+};

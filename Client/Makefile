@@ -1,6 +1,6 @@
 GCC = g++
 CFLAGS = -Wall
-LIBS = -pthread
+LIBS = -pthread -lrt
 
 SRC =$(wildcard *.cpp)
 OBJ =$(SRC:.cpp=.o)  

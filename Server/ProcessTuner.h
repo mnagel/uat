@@ -30,8 +30,8 @@ class ProcessTuner {
 
 	void handleAddParamMessage(struct tmsgAddParam* msg);
 	void handleGetInitialValuesMessage();
-	void handleStartMeassureMessage();
-	void handleStopMeassureMessage();
+	void handleRequestStartMeasurementMessage();
+	void handleStopMeasurementMessage(struct tmsgStopMeas* msg);
 	void handleFinishTuningMessage();
 
 	void sendAllChangedParams();

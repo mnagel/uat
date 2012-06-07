@@ -57,6 +57,13 @@ void UDSCommunicator::receiveAddParamMessage(struct tmsgAddParam* o_msg){
 		errorExit("receiveAddParamMessage");
 }
 
+void UDSCommunicator::receiveStopMeasMessage(struct tmsgStopMeas* o_msg){
+	int iCount;
+	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgStopMeas));
+	if(iCount!=sizeof(struct tmsgStopMeas))
+		errorExit("receiveStopMeasMessage");
+}
+
 void UDSCommunicator::receiveInt(int* o_msg) {
 	int iCount;
 	iCount=read(this->fdConn, o_msg, sizeof(int));
