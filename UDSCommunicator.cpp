@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/types.h>
+#include <sys/syscall.h> 
 #include <string>
 #include <stdlib.h>
 #include <iostream>
@@ -69,6 +71,26 @@ void UDSCommunicator::receiveMsgType(MsgType* o_msg) {
 	if(iCount!=sizeof(MsgType)) {
 		errorExit("receiveMsgType");
 	}
+}
+
+void UDSCommunicator::receiveMsgHead(tmsgHead* o_msg) {
+	int iCount;
+	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgHead));
+	if(iCount!=sizeof(struct tmsgHead)) {
+		errorExit("receiveMsgHead");
+	}
+}
+
+void UDSCommunicator::sendMsgHead(MsgType msgType) {
+	pid_t tid = syscall(SYS_gettid);
+	this->sendMsgHead(msgType, tid);
+}
+
+void UDSCommunicator::sendMsgHead(MsgType msgType, pid_t tid) {
+	struct tmsgHead head;
+	head.msgType = msgType;
+	head.tid = tid;
+	this->send((const char*) &head, sizeof(struct tmsgHead));
 }
 
 void UDSCommunicator::send(const char* msg, int length) {

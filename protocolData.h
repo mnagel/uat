@@ -17,6 +17,11 @@ enum ParameterType {
 	TYPE_DATA_BLOCK_SIZE
 };
 
+struct tmsgHead {
+	MsgType msgType;
+	pid_t tid;
+};
+
 struct tmsgAddParam {
 	int *parameter; 
 	int value;

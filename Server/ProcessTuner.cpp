@@ -56,10 +56,11 @@ void* ProcessTuner::threadCreator(void* context) {
 }
 
 void ProcessTuner::run() {
-	MsgType msgType;
+	tmsgHead msgHead;
 	while(this->runLoop) {
-		udsComm->receiveMsgType(&msgType);
-		switch(msgType) {
+		udsComm->receiveMsgHead(&msgHead);
+		printf("received message from tid: %d\n", msgHead.tid);
+		switch(msgHead.msgType) {
 			case TMSG_ADD_PARAM:
 				struct tmsgAddParam msg;
 				udsComm->receiveAddParamMessage(&msg);

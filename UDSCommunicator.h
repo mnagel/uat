@@ -11,6 +11,9 @@ class UDSCommunicator {
 	void receiveAddParamMessage(struct tmsgAddParam* o_msg);
 	void receiveInt(int* o_msg);
 	void receiveMsgType(MsgType* o_msg);
+	void receiveMsgHead(struct tmsgHead* o_msg);
+	void sendMsgHead(MsgType msgType);
+	void sendMsgHead(MsgType msgType, pid_t tid);
 	void send(const char* msg, int length);
 	void send(int a);
 

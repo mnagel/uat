@@ -92,30 +92,30 @@ int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to
 	msg.max = to;
 	msg.step = step;
 	msg.type = type;
-	udsComm->send(TMSG_ADD_PARAM);
+	udsComm->sendMsgHead(TMSG_ADD_PARAM);
 	udsComm->send((const char*) &msg, sizeof(tmsgAddParam));
 	return 0;
 }
 
 int Tuner::tGetInitialValues() {
 	sem_wait(&(this->startMutex));
-	udsComm->send(TMSG_GET_INITIAL_VALUES);
+	udsComm->sendMsgHead(TMSG_GET_INITIAL_VALUES);
 	return 0;
 }
 
 int Tuner::tStart() {
 	sem_wait(&(this->startMutex));
-	udsComm->send(TMSG_START_MEASSURE);
+	udsComm->sendMsgHead(TMSG_START_MEASSURE);
 	return 0;
 }
 
 int Tuner::tStop() {
-	udsComm->send(TMSG_STOP_MEASSURE);
+	udsComm->sendMsgHead(TMSG_STOP_MEASSURE);
 	return 0;
 }
 
 int Tuner::tFinishTuning() {
-	udsComm->send(TMSG_FINISH_TUNING);
+	udsComm->sendMsgHead(TMSG_FINISH_TUNING);
 	return 0;
 }
 
