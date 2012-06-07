@@ -8,6 +8,7 @@
 #include "../UDSCommunicator.h"
 #include "McHandler.h"
 #include "Optimizer.h"
+#include "ThreadObserver.h"
 
 class ProcessTuner {
 	public:
@@ -16,6 +17,7 @@ class ProcessTuner {
 	~ProcessTuner();
 	void run();
 	void runInNewThread();
+	void addThreadListener(ThreadObserver* listener);
 	static void* threadCreator(void* context);
 
 	private:
@@ -31,6 +33,7 @@ class ProcessTuner {
 
 	McHandler* mcHandler;
 	Optimizer* optimizer;
+	std::vector<ThreadObserver*> threadListener;
 	struct timespec tsMeasureStart;
 
 };

@@ -20,7 +20,8 @@ int global = 0;
 ProcessTuner::ProcessTuner(int fdConn):
 	udsComm(new UDSCommunicator(fdConn)),
 	mcHandler(new McHandler()),
-	optimizer(new Optimizer(mcHandler)) {
+	optimizer(new Optimizer(mcHandler)),
+	threadListener(0) {
 }
 
 ProcessTuner::~ProcessTuner() {
@@ -28,6 +29,10 @@ ProcessTuner::~ProcessTuner() {
 	delete mcHandler;
 	delete optimizer;
 	delete pthread;
+}
+
+void ProcessTuner::addThreadListener(ThreadObserver* listener) {
+	threadListener.push_back(listener);
 }
 
 void ProcessTuner::runInNewThread() {
@@ -39,7 +44,9 @@ void ProcessTuner::runInNewThread() {
 void* ProcessTuner::threadCreator(void* context) {
 	ProcessTuner* thisTuner = (ProcessTuner*) context;
 	thisTuner->run();
-	delete thisTuner; 
+	for(unsigned int i=0; i<thisTuner->threadListener.size(); i++) {
+		((thisTuner->threadListener)[i])->threadFinished((void*) thisTuner);
+	}
 	return NULL;
 }
 

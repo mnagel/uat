@@ -56,6 +56,7 @@ void TunerDaemon::run() {
 		printf("\nConnection !!! receiving data ...\n");
 		ProcessTuner* tuner = new ProcessTuner(fdConn);
 		this->processTuners.push_back(tuner);
+		tuner->addThreadListener((ThreadObserver*) this);
 		tuner->runInNewThread();
 	}
 }
@@ -63,4 +64,9 @@ void TunerDaemon::run() {
 
 void TunerDaemon::stop() {
 	close(fdSock);
+}
+
+void TunerDaemon::threadFinished(void* context) {
+	ProcessTuner* tuner = (ProcessTuner*) context;
+	delete tuner;
 }
