@@ -4,25 +4,36 @@
 #include <sys/un.h>
 #include <string>
 #include <stdlib.h>
+#include <vector>
 
 #include "ProcessTuner.h"
 #include "../utils.h"
 #include "TunerDaemon.h"
 
+using namespace std;
 
-TunerDaemon::TunerDaemon() {
+TunerDaemon::TunerDaemon():
+	threads(1),
+	processTuners(1) {
 
 }
 
 TunerDaemon::~TunerDaemon() {
-
-
-
+	vector<pthread_t*>::iterator threadsIt;
+	for(threadsIt = this->threads.begin(); threadsIt!=this->threads.end(); threadsIt++) {
+		delete *threadsIt;
+	}
+	vector<ProcessTuner*>::iterator tunersIt;
+	for(tunersIt = this->processTuners.begin(); tunersIt!=this->processTuners.end(); tunersIt++) {
+		delete *tunersIt;
+	}
 }
 
 void* TunerDaemon::threadCreator(void* createParams) {
 	threadCreateParams_t* params = (threadCreateParams_t*) createParams;
+	TunerDaemon* thisDaemon = (TunerDaemon*) params->daemon;
 	ProcessTuner* tuner = new ProcessTuner(params->fdNewConn);
+	thisDaemon->processTuners.push_back(tuner);
 	tuner->run();
 	delete tuner;
 	close(params->fdNewConn);
@@ -58,8 +69,9 @@ void TunerDaemon::run() {
 		struct threadCreateParams_t params;
 		params.daemon = this;
 		params.fdNewConn = fdConn;
-		pthread_t receiveThread;
-		pthread_create (&receiveThread, NULL, &TunerDaemon::threadCreator, (void*) &params);
+		pthread_t* receiveThread = new pthread_t;
+		pthread_create (receiveThread, NULL, &TunerDaemon::threadCreator, (void*) &params);
+		threads.push_back(receiveThread);
 	}
 
 }
