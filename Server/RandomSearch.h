@@ -14,9 +14,9 @@ class RandomSearch {
 		~RandomSearch();
 		int doRandSearch();
 
-
 	private:
 		void calcNumNeededConfigs();
+		void generateRandomConfigs();
 
 		McHandler* mcHandler;
 		double relCov;

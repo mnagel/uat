@@ -25,9 +25,12 @@ class McHandler {
 		void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*>* oParams);
 		std::list<struct opt_param_t*>* getParams();
 		void setBestMcAsConfig();
+		void setMcAsConfig(opt_mc_t* mc);
 		int computeNumPossibleConfigs();
 		opt_mc_t* createRandomMc();
 		void addMc(opt_mc_t* mc);
+		bool isMcInNeighborhood(opt_mc_t* mc, int len);
+		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 
 	private:
 		std::vector<struct opt_mc_t*> mcs;

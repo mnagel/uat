@@ -11,7 +11,9 @@ using namespace std;
 
 McHandler::McHandler():
 	mcs(0),
-	currentConfig(0) 
+	currentConfig(0),
+	bestMc(NULL),
+	lastMc(NULL)
 {
 	srandom(time(NULL));
 }
@@ -84,6 +86,13 @@ struct opt_mc_t* McHandler::addMcForCurrentConfig(unsigned long currentConfigHas
 
 void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
 	mc->measurements.push_back(ts);
+	lastMc = mc;
+	lastTs = ts;
+	//short evaluation important here
+	if(bestMc == NULL || ts.tv_sec < bestTs.tv_sec || (ts.tv_sec == bestTs.tv_sec && ts.tv_nsec<bestTs.tv_nsec)) {
+		bestMc = mc;
+		bestTs = ts;
+	}
 }
 
 
@@ -208,8 +217,33 @@ list<struct opt_param_t*>* McHandler::getParams() {
 	return &currentConfig;
 }
 
+/**
+  *	Uses the config of the fastest Mc, even if the params aren't identical with the currentConfig list 
+  */
 void McHandler::setBestMcAsConfig() {
-//TODO fill this method
+	if(bestMc == NULL) return;
+	setMcAsConfig(bestMc);
+}
+
+void McHandler::setMcAsConfig(opt_mc_t* mc) {
+	list<struct opt_param_t*>::iterator paramsIt;
+	vector<struct opt_param_t>::iterator configIt;
+	for(paramsIt = currentConfig.begin(), configIt = mc->config.begin();
+			paramsIt != currentConfig.end(), configIt != mc->config.end();) {
+		if((*paramsIt)->address == (*configIt).address) {
+			if((*paramsIt)->curval != (*configIt).curval) {
+				(*paramsIt)->curval = (*configIt).curval;
+				(*paramsIt)->changed = true;
+			}
+			paramsIt++;
+			configIt++;
+		} else if((*paramsIt)->address < (*configIt).address) {
+			paramsIt++;
+		} else {
+			configIt++;
+		}
+	}
+
 }
 
 int McHandler::computeNumPossibleConfigs() {
@@ -249,6 +283,36 @@ opt_mc_t* McHandler::createRandomMc() {
 
 void McHandler::addMc(opt_mc_t* mc) {
 	mcs.push_back(mc);
+}
+
+bool McHandler::isMcInNeighborhood(opt_mc_t* mc, int len) {
+	vector<struct opt_mc_t*>::iterator mcIt;
+	for(mcIt = mcs.begin(); mcIt != mcs.end(); mcIt++) {
+		if(areParamsInRegion(&((*mcIt)->config), &(mc->config), len)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool McHandler::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct opt_param_t>* params2, int len) {
+	vector<struct opt_param_t>::iterator params1It;
+	vector<struct opt_param_t>::iterator params2It;
+	for(params1It = params1->begin(), params2It = params2->begin();
+		params1It != params1->end(), params2It != params2->end();) {
+		if(params1It->address == params2It->address) {
+			if(abs(params1It->curval - params2It->curval) <= len) {
+				return true;
+			}
+			params1It++;
+			params2It++;
+		} else if(params1It->address < params2It->address) {
+			params1It++;
+		} else {
+			params2It++;
+		}
+	}
+	return false;
 }
 
 unsigned long McHandler::getHash(vector<struct opt_param_t>* paramList) {
