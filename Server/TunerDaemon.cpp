@@ -14,17 +14,11 @@
 using namespace std;
 
 TunerDaemon::TunerDaemon():
-	threads(1),
-	processTuners(1),
 	globalMcHandler(new GlobalMcHandler) {
 
 }
 
 TunerDaemon::~TunerDaemon() {
-	vector<ProcessTuner*>::iterator tunersIt;
-	for(tunersIt = this->processTuners.begin(); tunersIt!=this->processTuners.end(); tunersIt++) {
-		delete *tunersIt;
-	}
 	delete globalMcHandler;
 }
 
@@ -55,7 +49,7 @@ void TunerDaemon::run() {
 	while ((fdConn=accept(this->fdSock, (struct sockaddr*)&(this->strAddr), &(this->lenAddr))) >= 0) {
 		printf("\nConnection !!! receiving data ...\n");
 		ProcessTuner* tuner = new ProcessTuner(fdConn);
-		this->processTuners.push_back(tuner);
+		globalMcHandler->addTuner(tuner);
 		tuner->addThreadListener((ThreadObserver*) this);
 		tuner->runInNewThread();
 	}
@@ -69,5 +63,6 @@ void TunerDaemon::stop() {
 void TunerDaemon::threadFinished(void* context) {
 	printf("thread finished in TunerDaemon has been called\n");
 	ProcessTuner* tuner = (ProcessTuner*) context;
+	globalMcHandler->removeTuner(tuner);
 	delete tuner;
 }

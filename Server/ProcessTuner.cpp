@@ -32,6 +32,10 @@ ProcessTuner::~ProcessTuner() {
 	delete pthread;
 }
 
+McHandler* ProcessTuner::getMcHandler() {
+	return mcHandler;
+}
+
 void ProcessTuner::addThreadListener(ThreadObserver* listener) {
 	threadListener.push_back(listener);
 }

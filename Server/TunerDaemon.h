@@ -21,8 +21,6 @@ class TunerDaemon : public ThreadObserver {
 		socklen_t lenAddr;
 		int fdSock;
 
-		std::vector<pthread_t*> threads;
-		std::vector<ProcessTuner*> processTuners;
 		GlobalMcHandler* globalMcHandler;
 
 		void run();

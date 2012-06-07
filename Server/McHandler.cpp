@@ -183,6 +183,16 @@ void McHandler::raiseConfig() {
 	}
 }
 
+void McHandler::getAllParamsHavingType(ParameterType type, list<opt_param_t*> oParams) {
+	// TODO params in currentConfig list have to be created on heap and list should save pointers!!!!!! IMPORTANT !!!!!!!!!!
+	list<struct opt_param_t>::iterator param_iterator;
+	for(param_iterator = this->currentConfig.begin(); param_iterator!=this->currentConfig.end(); param_iterator++) {
+		if(param_iterator->type == type) {
+			oParams.push_back(&(*param_iterator));
+		}
+	}
+}
+
 list<struct opt_param_t>* McHandler::getParams() {
 	return &currentConfig;
 }

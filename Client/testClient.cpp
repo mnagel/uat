@@ -8,8 +8,8 @@ using namespace std;
 int main(int argc, char *argv[]) {
 	int testVariable = 1337;
 	int second = 1338;
-	int third = 1339;
-	int fourth = 1340;
+	//int third = 1339;
+	//int fourth = 1340;
 	Tuner* myTuner = new Tuner();
 
 	string name = "testVariable";

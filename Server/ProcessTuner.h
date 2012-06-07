@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <time.h>
+#include <stdlib.h>
 
 #include "tunerData.h"
 #include "../protocolData.h"
@@ -18,6 +19,7 @@ class ProcessTuner {
 	void run();
 	void runInNewThread();
 	void addThreadListener(ThreadObserver* listener);
+	McHandler* getMcHandler();
 	static void* threadCreator(void* context);
 
 	private:
