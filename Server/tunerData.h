@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "../protocolData.h"
 
 /* list item representing a parameter which is auto-tuned */
 struct opt_param_t {
