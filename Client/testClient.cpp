@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 		myTuner->tStart();
 		int sleep = 0;
 		for(int j=0; j<numberToUse; j++) {
-			sleep += 100*abs(variables[j] - optimum[j]);
+			sleep += 50*abs(variables[j] - optimum[j]);
 		}
 		usleep(sleep*1000);
 		myTuner->tStop();

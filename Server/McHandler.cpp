@@ -34,10 +34,23 @@ struct opt_mc_t* McHandler::getMcForCurrentConfigOrCreate() {
 	struct opt_mc_t* matchingMc = NULL;
 
 	unsigned long currentConfigHash = getHash(&currentConfig);
+	matchingMc = getMcIfExists(currentConfigHash);
+
+	if(matchingMc == NULL) {
+		matchingMc = this->addMcForCurrentConfig(currentConfigHash);
+	}
+	return matchingMc;
+}
+
+struct opt_mc_t* McHandler::getMcIfExists(opt_mc_t* mc) {
+	return getMcIfExists(getHash(&(mc->config)));
+}
+struct opt_mc_t* McHandler::getMcIfExists(unsigned long mcHash) {
+	struct opt_mc_t* matchingMc = NULL;
 
 	map<unsigned long, vector<struct opt_mc_t*>*>::iterator mapit;
 
-	mapit = mcsMap.find(currentConfigHash);
+	mapit = mcsMap.find(mcHash);
 	if(mapit != mcsMap.end()) {
 		vector<struct opt_mc_t*>* hashedMcs = mapit->second;
 		vector<struct opt_mc_t*>::iterator it;
@@ -48,11 +61,6 @@ struct opt_mc_t* McHandler::getMcForCurrentConfigOrCreate() {
 			}
 		}
 	}
-
-	if(matchingMc == NULL) {
-		matchingMc = this->addMcForCurrentConfig(currentConfigHash);
-	}
-
 	return matchingMc;
 }
 
@@ -78,9 +86,13 @@ void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
 	lastMc = mc;
 	lastTs = ts;
 	//short evaluation important here
-	if(bestMc == NULL || ts.tv_sec < bestTs.tv_sec || (ts.tv_sec == bestTs.tv_sec && ts.tv_nsec<bestTs.tv_nsec)) {
+	if(bestMc == NULL || isTimespecLower(&ts, &bestTs)) {
 		bestMc = mc;
 		bestTs = ts;
+	}
+
+	if(mc->bestMeasurement == NULL || isTimespecLower(&ts, mc->bestMeasurement)) {
+		mc->bestMeasurement = &mc->measurements.back();
 	}
 }
 
@@ -204,6 +216,14 @@ void McHandler::getAllParamsHavingType(ParameterType type, list<opt_param_t*>* o
 
 list<struct opt_param_t*>* McHandler::getParams() {
 	return &currentConfig;
+}
+
+int McHandler::getNumParams() {
+	return currentConfig.size();
+}
+
+opt_mc_t* McHandler::getBestMc() {
+	return bestMc;
 }
 
 void McHandler::setBestMcAsConfig() {
@@ -333,6 +353,12 @@ bool McHandler::areParamsInRegion(vector<struct opt_param_t>* params1, vector<st
 		}
 	}
 	return false;
+}
+
+opt_mc_t* McHandler::copyMcWithoutMeasurements(opt_mc_t* mc) {
+	opt_mc_t* copiedMc = new opt_mc_t;
+	copiedMc->config = mc->config;
+	return copiedMc;
 }
 
 unsigned long McHandler::getHash(vector<struct opt_param_t>* paramList) {

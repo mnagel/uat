@@ -44,6 +44,8 @@ struct opt_mc_t {
 	/* the measure for the above configuration */
 	std::vector<timespec> measurements;
 
-	opt_mc_t():config(0),measurements(0){}
+	timespec* bestMeasurement;
+
+	opt_mc_t():config(0),measurements(0),bestMeasurement(NULL){}
 };
 

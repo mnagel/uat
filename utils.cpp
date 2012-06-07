@@ -21,3 +21,11 @@ void diff(timespec* start, timespec* end, timespec* diff) {
 		diff->tv_nsec = end->tv_nsec - start->tv_nsec;
 	}
 }
+
+bool isTimespecLower(timespec* first, timespec* second) {
+	return (first->tv_sec < second->tv_sec || (first->tv_sec == second->tv_sec && first->tv_nsec < second->tv_nsec)); 
+}
+
+double getRelativePerformance(timespec* first, timespec* second) {
+	return (((double) first->tv_sec) * 1e9 + (double) first->tv_nsec)/(((double) second->tv_sec) * 1e9 + (double) second->tv_nsec);
+}

@@ -15,6 +15,7 @@ class HeuristicOptimizer : public Optimizer {
 	public:
 		HeuristicOptimizer(McHandler* handler);
 		~HeuristicOptimizer();
+		void setInitialConfig();
 		void chooseNewValues();
 
 	private:

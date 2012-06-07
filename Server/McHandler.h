@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "tunerData.h"
+#include "../utils.h"
 
 class McHandler {
 
@@ -13,6 +14,8 @@ class McHandler {
 		McHandler();
 		~McHandler();
 		struct opt_mc_t* getMcForCurrentConfigOrCreate();
+		struct opt_mc_t* getMcIfExists(opt_mc_t* mc);
+		struct opt_mc_t* getMcIfExists(unsigned long mcHash);
 		struct opt_mc_t* addMcForCurrentConfig(unsigned long currentConfigHash);
 		void addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts);
 		struct opt_param_t* addParam(struct opt_param_t* param);
@@ -24,6 +27,8 @@ class McHandler {
 		void raiseConfig();
 		void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*>* oParams);
 		std::list<struct opt_param_t*>* getParams();
+		int getNumParams();
+		opt_mc_t* getBestMc();
 		void setBestMcAsConfig();
 		void setMcAsConfig(opt_mc_t* mc);
 		int computeNumPossibleConfigs();
@@ -32,6 +37,7 @@ class McHandler {
 		bool isMcInNeighborhood(opt_mc_t* mc, int len);
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		int setNextNotMeasuredConfig();
+		opt_mc_t* copyMcWithoutMeasurements(opt_mc_t* mc);
 
 	private:
 		std::vector<struct opt_mc_t*> mcs;
