@@ -14,10 +14,13 @@ class ProcessTuner {
 	int fdConn;
 	ProcessTuner(int fdConn);
 	~ProcessTuner();
-	int run();
+	void run();
+	void runInNewThread();
+	static void* threadCreator(void* context);
 
 	private:
 	UDSCommunicator* udsComm;
+	pthread_t* pthread;
 
 	void handleAddParamMessage(struct tmsgAddParam* msg);
 	void handleGetInitialValuesMessage();

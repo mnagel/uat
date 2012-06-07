@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "ProcessTuner.h"
+#include "GlobalMcHandler.h"
 
 class TunerDaemon {
 	public:
@@ -12,14 +13,15 @@ class TunerDaemon {
 		~TunerDaemon();
 		void start();
 		void stop();
-		static void* threadCreator(void* createParams);
 
 	private:
 		struct sockaddr_un strAddr;
 		socklen_t lenAddr;
 		int fdSock;
+
 		std::vector<pthread_t*> threads;
 		std::vector<ProcessTuner*> processTuners;
+		GlobalMcHandler* globalMcHandler;
 
 		void run();
 

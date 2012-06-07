@@ -27,9 +27,23 @@ ProcessTuner::~ProcessTuner() {
 	delete udsComm;
 	delete mcHandler;
 	delete optimizer;
+	delete pthread;
 }
 
-int ProcessTuner::run() {
+void ProcessTuner::runInNewThread() {
+		this->pthread = new pthread_t;
+		pthread_create (pthread, NULL, &ProcessTuner::threadCreator, (void*) this);
+}
+
+
+void* ProcessTuner::threadCreator(void* context) {
+	ProcessTuner* thisTuner = (ProcessTuner*) context;
+	thisTuner->run();
+	delete thisTuner; 
+	return NULL;
+}
+
+void ProcessTuner::run() {
 	MsgType msgType;
 	while(1) {
 		udsComm->receiveMsgType(&msgType);
@@ -54,7 +68,6 @@ int ProcessTuner::run() {
 		}
 	}
 	printf("\n... finished\n");
-	return 0;
 }
 
 void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
