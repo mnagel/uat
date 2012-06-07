@@ -2,5 +2,5 @@
 
 class ThreadObserver {
 	public:
-		void threadFinished(void* context);
+		virtual void threadFinished(void* context);
 };

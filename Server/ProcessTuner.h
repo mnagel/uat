@@ -28,12 +28,14 @@ class ProcessTuner {
 	void handleGetInitialValuesMessage();
 	void handleStartMeassureMessage();
 	void handleStopMeassureMessage();
+	void handleFinishTuningMessage();
 
 	void sendAllChangedParams();
 
 	McHandler* mcHandler;
 	Optimizer* optimizer;
 	std::vector<ThreadObserver*> threadListener;
+	bool runLoop;
 	struct timespec tsMeasureStart;
 
 };

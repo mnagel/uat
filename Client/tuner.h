@@ -18,6 +18,7 @@ class Tuner {
 	int tGetInitialValues();
 	int tStart();
 	int tStop();
+	int tFinishTuning();
 	int tStopW(int weight);
 	int tReset();
 	int tSetpersistence(int pers);

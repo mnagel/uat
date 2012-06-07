@@ -114,6 +114,11 @@ int Tuner::tStop() {
 	return 0;
 }
 
+int Tuner::tFinishTuning() {
+	udsComm->send(TMSG_FINISH_TUNING);
+	return 0;
+}
+
 int Tuner::tStopW(int weight) {
 	return 0;
 }

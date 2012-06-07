@@ -67,6 +67,7 @@ void TunerDaemon::stop() {
 }
 
 void TunerDaemon::threadFinished(void* context) {
+	printf("thread finished in TunerDaemon has been called\n");
 	ProcessTuner* tuner = (ProcessTuner*) context;
 	delete tuner;
 }

@@ -21,7 +21,8 @@ ProcessTuner::ProcessTuner(int fdConn):
 	udsComm(new UDSCommunicator(fdConn)),
 	mcHandler(new McHandler()),
 	optimizer(new Optimizer(mcHandler)),
-	threadListener(0) {
+	threadListener(0),
+	runLoop(true) {
 }
 
 ProcessTuner::~ProcessTuner() {
@@ -52,7 +53,7 @@ void* ProcessTuner::threadCreator(void* context) {
 
 void ProcessTuner::run() {
 	MsgType msgType;
-	while(1) {
+	while(this->runLoop) {
 		udsComm->receiveMsgType(&msgType);
 		switch(msgType) {
 			case TMSG_ADD_PARAM:
@@ -69,12 +70,14 @@ void ProcessTuner::run() {
 			case TMSG_STOP_MEASSURE:
 				this->handleStopMeassureMessage();
 				break;
+			case TMSG_FINISH_TUNING:
+				this->handleFinishTuningMessage();
+				break;
 			default:
 				printf("default case shouldn't happen");
 				break;
 		}
 	}
-	printf("\n... finished\n");
 }
 
 void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
@@ -119,6 +122,10 @@ void ProcessTuner::handleStopMeassureMessage() {
 	optimizer->setNextConfig();
 
 	this->sendAllChangedParams();
+}
+
+void ProcessTuner::handleFinishTuningMessage() {
+	this->runLoop = false;
 }
 
 void ProcessTuner::sendAllChangedParams() {
