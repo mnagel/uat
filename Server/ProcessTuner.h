@@ -40,7 +40,6 @@ class ProcessTuner {
 	Optimizer* optimizer;
 	std::vector<ProcessTunerListener*> processTunerListener;
 	bool runLoop;
-	struct timespec tsMeasureStart;
-	pid_t lastTid;
-
+	pid_t currentTid;
+	std::map<pid_t, opt_mc_t*> threadMcMap;
 };

@@ -60,7 +60,7 @@ void ProcessTuner::run() {
 	while(this->runLoop) {
 		udsComm->receiveMsgHead(&msgHead);
 		printf("received message from tid: %d\n", msgHead.tid);
-		this->lastTid = msgHead.tid;
+		this->currentTid = msgHead.tid;
 		switch(msgHead.msgType) {
 			case TMSG_ADD_PARAM:
 				struct tmsgAddParam msg;
@@ -119,17 +119,24 @@ void ProcessTuner::handleGetInitialValuesMessage() {
 }
 
 void ProcessTuner::handleRequestStartMeasurementMessage() {
-	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStart);
-	udsComm->sendMsgHead(TMSG_GRANT_START_MEASUREMENT, this->lastTid);
+	struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
+	threadMcMap.erase(this->currentTid);
+	threadMcMap.insert(pair<pid_t, opt_mc_t*>(this->currentTid, mc));
+	udsComm->sendMsgHead(TMSG_GRANT_START_MEASUREMENT, this->currentTid);
 }
 
 void ProcessTuner::handleStopMeasurementMessage(tmsgStopMeas* msg) {
-	struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
-	mcHandler->addMeasurementToMc(mc, msg->tsMeasureDiff);
-	mcHandler->printAllMc(false);
-	optimizer->chooseNewValues();
+	map<pid_t, opt_mc_t*>::iterator mapit;
+	mapit = threadMcMap.find(this->currentTid);
+	if(mapit != threadMcMap.end()) {
+		struct opt_mc_t* mc = mapit->second;
+		//struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
+		mcHandler->addMeasurementToMc(mc, msg->tsMeasureDiff);
+		mcHandler->printAllMc(false);
+		optimizer->chooseNewValues();
 
-	this->sendAllChangedParams();
+		this->sendAllChangedParams();
+	}
 }
 
 void ProcessTuner::handleFinishTuningMessage() {
@@ -154,7 +161,7 @@ void ProcessTuner::sendAllChangedParams() {
 
 		if((*param_iterator)->changed && !param_changed) {
 			param_changed = true;
-			udsComm->sendMsgHead(TMSG_SET_VALUE, this->lastTid);
+			udsComm->sendMsgHead(TMSG_SET_VALUE, this->currentTid);
 		} 
 
 		// set msg to be sent in one of the next iterations or after the for loop
@@ -166,13 +173,17 @@ void ProcessTuner::sendAllChangedParams() {
 		}
 	}
 
+	// invalidate all other measurements, if there are changed params
+	if(param_changed) {
+		printf("delete all measurements except that of %d\n", this->currentTid);
+		threadMcMap.clear();
+	}
+
 	if(param_changed) {
 		setMsg.lastMsg = true;
 		udsComm->send((const char*) &setMsg, sizeof(struct tmsgSetValue));
 	} else {
-		udsComm->sendMsgHead(TMSG_DONT_SET_VALUE, this->lastTid);
+		udsComm->sendMsgHead(TMSG_DONT_SET_VALUE, this->currentTid);
 	}
-
-
 }
 
