@@ -7,14 +7,18 @@
 
 using namespace std;
 
-int main(int argc, char *argv[]) {
-	int variables[] = {1, 2, 3, 4};
-	int min[] = {1, 5, 1, 10};
-	int max[] = {20, 30, 10, 50};
-	int optimum[] = {10, 5, 3, 46};
-	int numberToUse = 3;
 
-	Tuner* myTuner = new Tuner();
+Tuner* myTuner;
+int variables[] = {1, 2, 3, 4};
+int min[] = {1, 5, 1, 10};
+int max[] = {20, 30, 10, 50};
+int optimum[] = {10, 5, 3, 46};
+int numberToUse = 3;
+struct pthread_t* pthreads[4];
+
+int main(int argc, char *argv[]) {
+
+	myTuner = new Tuner();
 
 	string name = "testVariable";
 	const char* nameAsChar = name.c_str();
@@ -23,6 +27,19 @@ int main(int argc, char *argv[]) {
 	}
 
 	myTuner->tGetInitialValues();
+
+	for(int i=0; i<3; i++) {
+		pthreads[i] = new pthread_t;
+		pthread_create (pthread, NULL, &run, NULL);
+	}
+	myTuner->tFinishTuning();
+	usleep(2000*1000);
+	delete myTuner;
+	//tTestSend();
+
+}
+
+void* run() {
 	for(int i=0; i<1000; i++) {
 		myTuner->tStart();
 		int sleep = 0;
@@ -32,9 +49,5 @@ int main(int argc, char *argv[]) {
 		usleep(sleep*1000);
 		myTuner->tStop();
 	}
-	myTuner->tFinishTuning();
-	usleep(2000*1000);
-	delete myTuner;
-	//tTestSend();
 
 }
