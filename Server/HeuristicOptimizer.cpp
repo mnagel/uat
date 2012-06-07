@@ -21,6 +21,8 @@ void HeuristicOptimizer::chooseNewValues() {
 			if(randSearch->doRandSearch()>0) {
 				//this->optState = LOCAL_SEARCH;
 				this->optState = FULLY_OPTIMIZED;
+				printf("set best config\n");
+				mcHandler->setBestMcAsConfig();
 			}
 			break;
 		case LOCAL_SEARCH:

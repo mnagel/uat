@@ -67,19 +67,8 @@ struct opt_mc_t* McHandler::addMcForCurrentConfig(unsigned long currentConfigHas
 		// param struct has to be copied when inserting into config!
 		newMc->config.push_back(**paramsit);
 	}
-	this->mcs.push_back(newMc);
 
-	map<unsigned long, vector<struct opt_mc_t*>*>::iterator it;
-	vector<struct opt_mc_t*>* hashedMcs;
-
-	it = mcsMap.find(currentConfigHash);
-	if(it == mcsMap.end()) {
-		hashedMcs = new vector<struct opt_mc_t*>;
-		mcsMap.insert(pair<unsigned long, vector<struct opt_mc_t*>*>(currentConfigHash, hashedMcs));
-	} else {
-		hashedMcs = it->second;
-	}
-	hashedMcs->push_back(newMc);
+	this->addMc(newMc);
 
 	return newMc;
 }
@@ -298,8 +287,22 @@ opt_mc_t* McHandler::createRandomMc() {
 	return randomMc;
 }
 
-void McHandler::addMc(opt_mc_t* mc) {
-	mcs.push_back(mc);
+void McHandler::addMc(opt_mc_t* newMc) {
+	this->mcs.push_back(newMc);
+
+
+	unsigned long hash = this->getHash(&(newMc->config));
+	map<unsigned long, vector<struct opt_mc_t*>*>::iterator it;
+	vector<struct opt_mc_t*>* hashedMcs;
+
+	it = mcsMap.find(hash);
+	if(it == mcsMap.end()) {
+		hashedMcs = new vector<struct opt_mc_t*>;
+		mcsMap.insert(pair<unsigned long, vector<struct opt_mc_t*>*>(hash, hashedMcs));
+	} else {
+		hashedMcs = it->second;
+	}
+	hashedMcs->push_back(newMc);
 }
 
 bool McHandler::isMcInNeighborhood(opt_mc_t* mc, int len) {

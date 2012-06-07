@@ -28,7 +28,7 @@ class McHandler {
 		void setMcAsConfig(opt_mc_t* mc);
 		int computeNumPossibleConfigs();
 		opt_mc_t* createRandomMc();
-		void addMc(opt_mc_t* mc);
+		void addMc(opt_mc_t* newMc);
 		bool isMcInNeighborhood(opt_mc_t* mc, int len);
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		int setNextNotMeasuredConfig();

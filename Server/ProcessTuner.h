@@ -9,6 +9,7 @@
 #include "../UDSCommunicator.h"
 #include "McHandler.h"
 #include "Optimizer.h"
+#include "HeuristicOptimizer.h"
 #include "ProcessTunerListener.h"
 class ProcessTunerListener;
 
