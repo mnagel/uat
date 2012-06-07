@@ -133,8 +133,8 @@ void ProcessTuner::handleFinishTuningMessage() {
 }
 
 void ProcessTuner::sendAllChangedParams() {
-	list<struct opt_param_t>* params = mcHandler->getParams();
-	list<struct opt_param_t>::iterator param_iterator;
+	list<struct opt_param_t*>* params = mcHandler->getParams();
+	list<struct opt_param_t*>::iterator param_iterator;
 	struct tmsgSetValue setMsg;
 	
 	bool param_changed = false;
@@ -143,22 +143,22 @@ void ProcessTuner::sendAllChangedParams() {
 	// order is important!
 	for(param_iterator = params->begin(); param_iterator!=params->end(); param_iterator++) {
 		// there is a param from one of the rounds before AND there is another param, to be sent
-		if(param_iterator->changed && param_changed) {
+		if((*param_iterator)->changed && param_changed) {
 			setMsg.lastMsg = false;	
 			udsComm->send((const char*) &setMsg, sizeof(struct tmsgSetValue));
 		} 
 
-		if(param_iterator->changed && !param_changed) {
+		if((*param_iterator)->changed && !param_changed) {
 			param_changed = true;
 			udsComm->send(TMSG_SET_VALUE);
 		} 
 
 		// set msg to be sent in one of the next iterations or after the for loop
-		if(param_iterator->changed) {
+		if((*param_iterator)->changed) {
 			setMsg.set = true;
-			setMsg.parameter = param_iterator->address;
-			setMsg.value = param_iterator->curval;
-			param_iterator->changed = false;
+			setMsg.parameter = (*param_iterator)->address;
+			setMsg.value = (*param_iterator)->curval;
+			(*param_iterator)->changed = false;
 		}
 	}
 

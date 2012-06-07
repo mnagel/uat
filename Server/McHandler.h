@@ -23,11 +23,11 @@ class McHandler {
 		void setConfigToMin();
 		void raiseConfig();
 		void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*> oParams);
-		std::list<struct opt_param_t>* getParams();
+		std::list<struct opt_param_t*>* getParams();
 
 	private:
 		std::vector<struct opt_mc_t*> mcs;
-		std::list<struct opt_param_t> currentConfig;
+		std::list<struct opt_param_t*> currentConfig;
 		std::map<unsigned long, std::vector<struct opt_mc_t*>*> mcsMap;
 		struct opt_mc_t* bestMc;
 		struct timespec bestTs; 
@@ -36,7 +36,7 @@ class McHandler {
 
 		bool matchesCurrentConfig(struct opt_mc_t* mc);
 		unsigned long getHash(std::vector<struct opt_param_t>* paramList);
-		unsigned long getHash(std::list<struct opt_param_t>* paramList);
+		unsigned long getHash(std::list<struct opt_param_t*>* paramList);
 
 
 

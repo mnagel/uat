@@ -18,6 +18,10 @@ McHandler::~McHandler() {
 	for ( it=mcs.begin() ; it < mcs.end(); it++ ) {
 		delete *it;
 	}
+	list<struct opt_param_t*>::iterator paramsit;
+	for ( paramsit=currentConfig.begin() ; paramsit != currentConfig.end(); paramsit++ ) {
+		delete *paramsit;
+	}
 	//TODO delete vectors in mcsMap
 }
 
@@ -53,10 +57,12 @@ struct opt_mc_t* McHandler::getMcForCurrentConfigOrCreate() {
 struct opt_mc_t* McHandler::addMcForCurrentConfig(unsigned long currentConfigHash) {
 	struct opt_mc_t* newMc = new struct opt_mc_t;
 
-	// vector operator "=" copies vector content ->
-	// this line has to be checked, when changing data structure
-	newMc->config.insert(newMc->config.begin(), currentConfig.begin(), currentConfig.end());
-	mcs.push_back(newMc);
+	list<struct opt_param_t*>::iterator paramsit;
+	for ( paramsit=this->currentConfig.begin() ; paramsit != this->currentConfig.end(); paramsit++ ) {
+		// param struct has to be copied when inserting into config!
+		newMc->config.push_back(**paramsit);
+	}
+	this->mcs.push_back(newMc);
 
 	map<unsigned long, vector<struct opt_mc_t*>*>::iterator it;
 	vector<struct opt_mc_t*>* hashedMcs;
@@ -84,16 +90,19 @@ void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
  * be small
  */
 void McHandler::addParam(struct opt_param_t* param) {
-	list<struct opt_param_t>::iterator param_iterator;
+	struct opt_param_t* heapParam = new struct opt_param_t;
+	*heapParam = *param;
+
+	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
-		if(param_iterator->address > param->address) {
+		if((*param_iterator)->address > heapParam->address) {
 			/* param has to be copied, as its memory space may be freed in the near future */
-			currentConfig.insert(param_iterator, *param);
+			currentConfig.insert(param_iterator, heapParam);
 			break;
 		}
 	}
 	if(param_iterator==currentConfig.end()) {
-		currentConfig.push_back(*param);
+		currentConfig.push_back(heapParam);
 	}
 }
 
@@ -104,12 +113,12 @@ bool McHandler::matchesCurrentConfig(struct opt_mc_t* mc) {
 	}
 
 	vector<struct opt_param_t>::iterator config_iterator;
-	list<struct opt_param_t>::iterator param_iterator;
+	list<struct opt_param_t*>::iterator param_iterator;
 	for(config_iterator = mc->config.begin(), param_iterator = currentConfig.begin(); 
 			config_iterator < mc->config.end(); 
 			config_iterator++, param_iterator++) {
-		if(config_iterator->address != param_iterator->address 
-				|| config_iterator->curval != param_iterator->curval) {
+		if(config_iterator->address != (*param_iterator)->address 
+				|| config_iterator->curval != (*param_iterator)->curval) {
 			return false;
 		}
 	}
@@ -120,9 +129,9 @@ void McHandler::printCurrentConfig() {
 	printf("------------------------------------\n");
 	printf("-----printing current config -------\n");
 	printf("------------------------------------\n");
-	list<struct opt_param_t>::iterator param_iterator;
+	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
-		printf("\tparamAddress: %p paramValue: %d\n", param_iterator->address, param_iterator->curval);
+		printf("\tparamAddress: %p paramValue: %d\n", (*param_iterator)->address, (*param_iterator)->curval);
 	}
 
 }
@@ -154,46 +163,45 @@ void McHandler::printConfig(struct opt_mc_t* mc) {
 }
 
 void McHandler::changeAllParamsToValue(int value) {
-	list<struct opt_param_t>::iterator param_iterator;
+	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
-		param_iterator->curval = value;
-		param_iterator->changed = true;
+		(*param_iterator)->curval = value;
+		(*param_iterator)->changed = true;
 	}
 }
 
 void McHandler::setConfigToMin() {
-	list<struct opt_param_t>::iterator param_iterator;
+	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
-		param_iterator->curval = param_iterator->min;
-		param_iterator->changed = true;
+		(*param_iterator)->curval = (*param_iterator)->min;
+		(*param_iterator)->changed = true;
 	}
 }
 
 void McHandler::raiseConfig() {
-	list<struct opt_param_t>::iterator param_iterator;
+	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
 		// TODO param is not always changed, exception is the intervall [a,b] and a==b or stepsize > b-a
-		param_iterator->changed = true;
-		if((param_iterator->curval + param_iterator->step) <= param_iterator->max) {
-			param_iterator->curval += param_iterator->step;
+		(*param_iterator)->changed = true;
+		if(((*param_iterator)->curval + (*param_iterator)->step) <= (*param_iterator)->max) {
+			(*param_iterator)->curval += (*param_iterator)->step;
 			break;
 		} else {
-			param_iterator->curval = param_iterator->min;
+			(*param_iterator)->curval = (*param_iterator)->min;
 		}
 	}
 }
 
 void McHandler::getAllParamsHavingType(ParameterType type, list<opt_param_t*> oParams) {
-	// TODO params in currentConfig list have to be created on heap and list should save pointers!!!!!! IMPORTANT !!!!!!!!!!
-	list<struct opt_param_t>::iterator param_iterator;
+	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = this->currentConfig.begin(); param_iterator!=this->currentConfig.end(); param_iterator++) {
-		if(param_iterator->type == type) {
-			oParams.push_back(&(*param_iterator));
+		if((*param_iterator)->type == type) {
+			oParams.push_back(*param_iterator);
 		}
 	}
 }
 
-list<struct opt_param_t>* McHandler::getParams() {
+list<struct opt_param_t*>* McHandler::getParams() {
 	return &currentConfig;
 }
 
@@ -207,12 +215,12 @@ unsigned long McHandler::getHash(vector<struct opt_param_t>* paramList) {
 	return hash;
 }
 
-unsigned long McHandler::getHash(list<struct opt_param_t>* paramList) {
-	list<struct opt_param_t>::iterator paramIterator;
+unsigned long McHandler::getHash(list<struct opt_param_t*>* paramList) {
+	list<struct opt_param_t*>::iterator paramIterator;
 	unsigned long hash = 0;
 	// TODO replace hashing algorithm, that one is far away from being collision resistant
 	for(paramIterator = paramList->begin(); paramIterator!=paramList->end(); paramIterator++) {
-		hash += paramIterator->curval + (unsigned long) paramIterator->address;
+		hash += (*paramIterator)->curval + (unsigned long) (*paramIterator)->address;
 	}
 	return hash;
 }
