@@ -77,6 +77,7 @@ void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
 	mc->measurements.push_back(ts);
 }
 
+
 /*
  * params list has to be sorted, linear search is used to find the correct insertion 
  * position, as binary search doesn't work well on doubly linked lists and list should
