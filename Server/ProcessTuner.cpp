@@ -115,12 +115,10 @@ void ProcessTuner::handleGetInitialValuesMessage() {
 }
 
 void ProcessTuner::handleStartMeassureMessage() {
-	printf("start meassure\n");
 	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStart);
 }
 
 void ProcessTuner::handleStopMeassureMessage() {
-	printf("stop meassure\n");
 	timespec tsMeasureStop;
 	timespec tsMeasureDiff;
 	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStop);
@@ -128,7 +126,7 @@ void ProcessTuner::handleStopMeassureMessage() {
 
 	struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
 	mcHandler->addMeasurementToMc(mc, tsMeasureDiff);
-	mcHandler->printAllMc();
+	mcHandler->printAllMc(false);
 	optimizer->chooseNewValues();
 
 	this->sendAllChangedParams();

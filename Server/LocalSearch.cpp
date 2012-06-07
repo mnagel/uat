@@ -3,7 +3,7 @@
 #include "LocalSearch.h"
 #include "../utils.h"
 
-LocalSearch::LocalSearch(McHandler* handler, double threshold, int retryCount):
+LocalSearch::LocalSearch(McHandler* handler, int threshold, int retryCount):
 	mcHandler(handler),
 	threshold(threshold),
 	retryCount(retryCount),
@@ -69,6 +69,9 @@ int LocalSearch::doLocalSearch() {
 			mcHandler->addMc(nextMc);
 			mcHandler->setMcAsConfig(nextMc);
 			curMc = nextMc;
+		} else {
+			printf("tried all directions\n");
+			return 1;
 		}
 	}
 
@@ -129,7 +132,7 @@ int LocalSearch::getNextDirectionForCurrentParam() {
 }
 
 bool LocalSearch::isCurrentConfigBetter() {
-	return isTimespecLower(curMc->bestMeasurement, bestMc->bestMeasurement);
+	return isTimespecLower(&(curMc->bestMeasurement), &(bestMc->bestMeasurement));
 }
 
 bool LocalSearch::isCurrentConfigSimilar() {
@@ -137,7 +140,7 @@ bool LocalSearch::isCurrentConfigSimilar() {
 }
 
 bool LocalSearch::isConfigSimilar(opt_mc_t* mc) {
-	return getRelativePerformance(mc->bestMeasurement, bestMc->bestMeasurement) < this->threshold;
+	return getRelativePerformance(&(mc->bestMeasurement), &(bestMc->bestMeasurement)) < this->threshold;
 	
 }
 

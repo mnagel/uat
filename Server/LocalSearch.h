@@ -4,13 +4,13 @@
 
 class LocalSearch {
 	public:
-		LocalSearch(McHandler* handler, double threshold, int retryCount);
+		LocalSearch(McHandler* handler, int threshold, int retryCount);
 		~LocalSearch();
 		int doLocalSearch();
 
 	private:
 		McHandler* mcHandler;
-		double threshold;
+		int threshold;
 		int retryCount;
 		opt_mc_t* bestMc;
 		opt_mc_t* curMc;

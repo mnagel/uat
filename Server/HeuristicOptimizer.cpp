@@ -6,7 +6,7 @@
 HeuristicOptimizer::HeuristicOptimizer(McHandler* handler):
 	Optimizer(handler),
 	randSearch(new RandomSearch(handler,  0.1d, 3)),
-	locSearch(new LocalSearch(handler, 1.2d, 2)) {
+	locSearch(new LocalSearch(handler, 120, 2)) {
 
 }
 
@@ -30,6 +30,7 @@ void HeuristicOptimizer::chooseNewValues() {
 		case LOCAL_SEARCH:
 			if(locSearch->doLocalSearch()>0) {
 				this->optState = FULLY_OPTIMIZED;
+				this->chooseNewValues();
 			}
 			break;
 		case FULLY_OPTIMIZED:

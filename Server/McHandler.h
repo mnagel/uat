@@ -15,13 +15,12 @@ class McHandler {
 		~McHandler();
 		struct opt_mc_t* getMcForCurrentConfigOrCreate();
 		struct opt_mc_t* getMcIfExists(opt_mc_t* mc);
-		struct opt_mc_t* getMcIfExists(unsigned long mcHash);
 		struct opt_mc_t* addMcForCurrentConfig(unsigned long currentConfigHash);
 		void addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts);
 		struct opt_param_t* addParam(struct opt_param_t* param);
 		void printCurrentConfig();
-		void printAllMc();
-		void printConfig(struct opt_mc_t* mc);
+		void printAllMc(bool longVersion);
+		void printConfig(struct opt_mc_t* mc, bool longVersion);
 		void changeAllParamsToValue(int value);
 		void setConfigToMin();
 		void raiseConfig();
@@ -49,6 +48,7 @@ class McHandler {
 		struct timespec lastTs; 
 
 		bool matchesCurrentConfig(struct opt_mc_t* mc);
+		bool configsMatch(struct opt_mc_t* first, struct opt_mc_t* second);
 		unsigned long getHash(std::vector<struct opt_param_t>* paramList);
 		unsigned long getHash(std::list<struct opt_param_t*>* paramList);
 

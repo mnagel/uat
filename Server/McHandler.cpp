@@ -34,7 +34,19 @@ struct opt_mc_t* McHandler::getMcForCurrentConfigOrCreate() {
 	struct opt_mc_t* matchingMc = NULL;
 
 	unsigned long currentConfigHash = getHash(&currentConfig);
-	matchingMc = getMcIfExists(currentConfigHash);
+	map<unsigned long, vector<struct opt_mc_t*>*>::iterator mapit;
+
+	mapit = mcsMap.find(currentConfigHash);
+	if(mapit != mcsMap.end()) {
+		vector<struct opt_mc_t*>* hashedMcs = mapit->second;
+		vector<struct opt_mc_t*>::iterator it;
+		for (it=hashedMcs->begin() ; it < hashedMcs->end(); it++ ) {
+			if(matchesCurrentConfig(*it)) {
+				matchingMc = *it;
+				break;
+			}
+		}
+	}
 
 	if(matchingMc == NULL) {
 		matchingMc = this->addMcForCurrentConfig(currentConfigHash);
@@ -43,10 +55,9 @@ struct opt_mc_t* McHandler::getMcForCurrentConfigOrCreate() {
 }
 
 struct opt_mc_t* McHandler::getMcIfExists(opt_mc_t* mc) {
-	return getMcIfExists(getHash(&(mc->config)));
-}
-struct opt_mc_t* McHandler::getMcIfExists(unsigned long mcHash) {
 	struct opt_mc_t* matchingMc = NULL;
+
+	unsigned long mcHash = getHash(&(mc->config));
 
 	map<unsigned long, vector<struct opt_mc_t*>*>::iterator mapit;
 
@@ -55,7 +66,7 @@ struct opt_mc_t* McHandler::getMcIfExists(unsigned long mcHash) {
 		vector<struct opt_mc_t*>* hashedMcs = mapit->second;
 		vector<struct opt_mc_t*>::iterator it;
 		for (it=hashedMcs->begin() ; it < hashedMcs->end(); it++ ) {
-			if(matchesCurrentConfig(*it)) {
+			if(configsMatch(*it, mc)) {
 				matchingMc = *it;
 				break;
 			}
@@ -91,8 +102,8 @@ void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
 		bestTs = ts;
 	}
 
-	if(mc->bestMeasurement == NULL || isTimespecLower(&ts, mc->bestMeasurement)) {
-		mc->bestMeasurement = &mc->measurements.back();
+	if((mc->bestMeasurement.tv_sec == 0 && mc->bestMeasurement.tv_nsec == 0) || isTimespecLower(&ts, &(mc->bestMeasurement))) {
+		mc->bestMeasurement = ts;
 	}
 }
 
@@ -138,6 +149,24 @@ bool McHandler::matchesCurrentConfig(struct opt_mc_t* mc) {
 	return true;
 }
 
+bool McHandler::configsMatch(struct opt_mc_t* first, struct opt_mc_t* second) {
+	if(first->config.size() != second->config.size()) {
+		return false;
+	}
+
+	vector<struct opt_param_t>::iterator firstIt;
+	vector<struct opt_param_t>::iterator secondIt;
+	for(firstIt = first->config.begin(), secondIt = second->config.begin(); 
+			firstIt != first->config.end(); 
+			firstIt++, secondIt++) {
+		if(firstIt->address != secondIt->address 
+				|| firstIt->curval != secondIt->curval) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void McHandler::printCurrentConfig() {
 	printf("------------------------------------\n");
 	printf("-----printing current config -------\n");
@@ -149,28 +178,42 @@ void McHandler::printCurrentConfig() {
 
 }
 
-void McHandler::printAllMc() {
+void McHandler::printAllMc(bool longVersion) {
 	printf("----------------------------\n");
 	printf("-----printing all mc -------\n");
 	printf("----------------------------\n");
 	vector<struct opt_mc_t*>::iterator it;
 	for ( it=mcs.begin() ; it < mcs.end(); it++ ) {
-		printf("\t-------------------------------\n");
-		printf("\t-----printing next conf -------\n");
-		printf("\t-------------------------------\n");
-		printConfig(*it);
+		if(longVersion) {
+			printf("\t-------------------------------\n");
+			printf("\t-----printing next conf -------\n");
+			printf("\t-------------------------------\n");
+		}
+		printConfig(*it, longVersion);
 	}
 }
 
-void McHandler::printConfig(struct opt_mc_t* mc) {
+void McHandler::printConfig(struct opt_mc_t* mc, bool longVersion) {
 		vector<struct opt_param_t>::iterator param_iterator;
 		for ( param_iterator=mc->config.begin() ; param_iterator < mc->config.end(); param_iterator++ ) {
-			printf("\t\tparameter value: %d\n", param_iterator->curval);
+			if(longVersion) {
+				printf("\t\tparameter value: %d\n", param_iterator->curval);
+			} else {
+				printf("\t\t%d ", param_iterator->curval);
+			}
 		}
-		printf("\n\t\tmeasurements:\n");
+		if(longVersion) {
+			printf("\n\t\tmeasurements:\n");
+		} else {
+			printf("\tmeas: ");
+		}
 		vector<struct timespec>::iterator ts_iterator;
 		for ( ts_iterator=mc->measurements.begin() ; ts_iterator < mc->measurements.end(); ts_iterator++ ) {
-			printf("\t\tmeasurement value: sec: %ld nsec: %d\n", ts_iterator->tv_sec, (int) ts_iterator->tv_nsec);
+			if(longVersion) {
+				printf("\t\tmeasurement value: sec: %ld nsec: %d\n", ts_iterator->tv_sec, (int) ts_iterator->tv_nsec);
+			} else {
+				printf("%ld.%09d ", ts_iterator->tv_sec, (int) ts_iterator->tv_nsec);
+			}
 		}
 		printf("\n");
 }

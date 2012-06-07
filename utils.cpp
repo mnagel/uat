@@ -2,6 +2,7 @@
 #include <string>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 #include "utils.h"
 
@@ -26,6 +27,6 @@ bool isTimespecLower(timespec* first, timespec* second) {
 	return (first->tv_sec < second->tv_sec || (first->tv_sec == second->tv_sec && first->tv_nsec < second->tv_nsec)); 
 }
 
-double getRelativePerformance(timespec* first, timespec* second) {
-	return (((double) first->tv_sec) * 1e9 + (double) first->tv_nsec)/(((double) second->tv_sec) * 1e9 + (double) second->tv_nsec);
+int getRelativePerformance(timespec* first, timespec* second) {
+	return (((unsigned long) first->tv_sec) * 1e6 + first->tv_nsec/1e3)/(((unsigned long) second->tv_sec) * 1e4 + second->tv_nsec/1e5);
 }
