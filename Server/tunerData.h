@@ -33,6 +33,8 @@ struct opt_param_t {
 	bool changed;
 
 	ParameterType type;	
+	int hintValue;
+	bool newHint;
 };
 
 struct opt_mc_t {
