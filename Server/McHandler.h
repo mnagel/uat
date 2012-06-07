@@ -26,7 +26,7 @@ class McHandler {
 
 	private:
 		std::vector<struct opt_mc_t*> mcs;
-		std::list<struct opt_param_t> params;
+		std::list<struct opt_param_t> currentConfig;
 		std::map<unsigned long, std::vector<struct opt_mc_t*>*> mcsMap;
 		struct opt_mc_t* bestMc;
 		struct timespec bestTs; 

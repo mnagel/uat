@@ -9,7 +9,7 @@ using namespace std;
 
 McHandler::McHandler():
 	mcs(0),
-	params(0) 
+	currentConfig(0) 
 {
 }
 
@@ -24,7 +24,7 @@ McHandler::~McHandler() {
 struct opt_mc_t* McHandler::getMcForCurrentConfigOrCreate() {
 	struct opt_mc_t* matchingMc = NULL;
 
-	unsigned long currentConfigHash = getHash(&params);
+	unsigned long currentConfigHash = getHash(&currentConfig);
 
 	map<unsigned long, vector<struct opt_mc_t*>*>::iterator mapit;
 
@@ -55,7 +55,7 @@ struct opt_mc_t* McHandler::addMcForCurrentConfig(unsigned long currentConfigHas
 
 	// vector operator "=" copies vector content ->
 	// this line has to be checked, when changing data structure
-	newMc->config.insert(newMc->config.begin(), params.begin(), params.end());
+	newMc->config.insert(newMc->config.begin(), currentConfig.begin(), currentConfig.end());
 	mcs.push_back(newMc);
 
 	map<unsigned long, vector<struct opt_mc_t*>*>::iterator it;
@@ -84,27 +84,27 @@ void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
  */
 void McHandler::addParam(struct opt_param_t* param) {
 	list<struct opt_param_t>::iterator param_iterator;
-	for(param_iterator = params.begin(); param_iterator!=params.end(); param_iterator++) {
+	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
 		if(param_iterator->address > param->address) {
 			/* param has to be copied, as its memory space may be freed in the near future */
-			params.insert(param_iterator, *param);
+			currentConfig.insert(param_iterator, *param);
 			break;
 		}
 	}
-	if(param_iterator==params.end()) {
-		params.push_back(*param);
+	if(param_iterator==currentConfig.end()) {
+		currentConfig.push_back(*param);
 	}
 }
 
 // params have to have same order
 bool McHandler::matchesCurrentConfig(struct opt_mc_t* mc) {
-	if(params.size() != mc->config.size()) {
+	if(currentConfig.size() != mc->config.size()) {
 		return false;
 	}
 
 	vector<struct opt_param_t>::iterator config_iterator;
 	list<struct opt_param_t>::iterator param_iterator;
-	for(config_iterator = mc->config.begin(), param_iterator = params.begin(); 
+	for(config_iterator = mc->config.begin(), param_iterator = currentConfig.begin(); 
 			config_iterator < mc->config.end(); 
 			config_iterator++, param_iterator++) {
 		if(config_iterator->address != param_iterator->address 
@@ -120,7 +120,7 @@ void McHandler::printCurrentConfig() {
 	printf("-----printing current config -------\n");
 	printf("------------------------------------\n");
 	list<struct opt_param_t>::iterator param_iterator;
-	for(param_iterator = params.begin(); param_iterator!=params.end(); param_iterator++) {
+	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
 		printf("\tparamAddress: %p paramValue: %d\n", param_iterator->address, param_iterator->curval);
 	}
 
@@ -154,7 +154,7 @@ void McHandler::printConfig(struct opt_mc_t* mc) {
 
 void McHandler::changeAllParamsToValue(int value) {
 	list<struct opt_param_t>::iterator param_iterator;
-	for(param_iterator = params.begin(); param_iterator!=params.end(); param_iterator++) {
+	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
 		param_iterator->curval = value;
 		param_iterator->changed = true;
 	}
@@ -162,7 +162,7 @@ void McHandler::changeAllParamsToValue(int value) {
 
 void McHandler::setConfigToMin() {
 	list<struct opt_param_t>::iterator param_iterator;
-	for(param_iterator = params.begin(); param_iterator!=params.end(); param_iterator++) {
+	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
 		param_iterator->curval = param_iterator->min;
 		param_iterator->changed = true;
 	}
@@ -170,7 +170,7 @@ void McHandler::setConfigToMin() {
 
 void McHandler::raiseConfig() {
 	list<struct opt_param_t>::iterator param_iterator;
-	for(param_iterator = params.begin(); param_iterator!=params.end(); param_iterator++) {
+	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
 		// TODO param is not always changed, exception is the intervall [a,b] and a==b or stepsize > b-a
 		param_iterator->changed = true;
 		if((param_iterator->curval + param_iterator->step) <= param_iterator->max) {
@@ -183,7 +183,7 @@ void McHandler::raiseConfig() {
 }
 
 list<struct opt_param_t>* McHandler::getParams() {
-	return &params;
+	return &currentConfig;
 }
 
 unsigned long McHandler::getHash(vector<struct opt_param_t>* paramList) {
