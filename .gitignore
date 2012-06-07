@@ -36,3 +36,9 @@ Thumbs.db
 # Temporary files #
 ###################
 *~
+*.swp
+
+# Special binary files in this project #
+########################################
+client
+server
