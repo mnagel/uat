@@ -1,0 +1,100 @@
+int full_choose_new_values(struct opt_process_t *process, s64 cur_perf)
+{
+	struct mc *new_mc, *copy_mc;
+	//struct opt_param_t *param;
+	int i = 0, k = 0;
+	s64 avg = 0;
+	dprintk("[fullOptimizer.c] Entering full_choose_new_values() ... num_samples: %i\n", num_samples);
+
+	/* store the current measure into a mc of this process */
+	if (store_measure_into_mc(process, cur_perf) != 0) {
+		printk("[fullOptimizer.c] could not store measure %lld with config %p\n",
+						cur_perf, &process->reg_params);
+		printk("[fullOptimizer.c] aborting full_choose_new_values!\n");
+		return 1;
+	}
+	dprintk("[fullOptimizer.c] stored newest measure %lld\n", cur_perf);
+
+	/* step 0: Store current measurement. "0" is considered a wrong
+	 * measurement. Record it at the first array position that is not 0. */
+	for (i = 0; i < num_samples; i++) {
+		if (readings[i] == 0) {
+			dprintk("[fullOptimizer.c] Recording %ith result: %lld\n", i, cur_perf);
+			readings[i] = cur_perf;
+			break;
+		}
+	}
+
+	/* step 1: Check whether we already have enough measurements from the
+	 * current configuration. If yes, change configuration to next one.
+	 * For each param of the current, increment value until it reached the
+	 * maximum.
+	 */
+	//dprintk("[fullOptimizer.c] i: %i\n", i);
+	if (i == (num_samples - 1)) {
+		// enough samples taken, evaluate samples and advance param(s)
+		// was this configuration better than the best so far?
+		for (k = 0; k < num_samples; k++) {
+			dprintk("[fullOptimizer.c] Calculating avg round %i: From %lld, adding %lld divided by %i.\n", k, avg, readings[i], num_samples);
+			avg += (readings[k] / num_samples);
+			readings[k] = 0;
+		}
+		dprintk("[fullOptimizer.c] Average: %lld\n", avg);
+		if (last_config == NULL) {
+			copy_mc = get_best_measured_mc(process->tgid, 0);
+			dprintk("[fullOptimizer.c] Generating last_config.\n");
+			last_config = create_next_mc(NULL, &copy_mc->config, process); 
+		}
+		if (best_config == NULL) {
+			copy_mc = get_best_measured_mc(process->tgid, 0);
+			dprintk("[fullOptimizer.c] Generating best_config.\n");
+			best_config = create_next_mc(NULL, &copy_mc->config, process);
+			best_config->measure.reading = LONG_MAX;
+		}
+		if (best_config->measure.reading > avg) {
+			// we have a new best config!
+			printk("[fullOptimizer.c] Found new best config!\n");
+			//cleanup_mc(best_config);
+			best_config = last_config;
+			best_config->measure.reading = avg;
+
+			dprintk("[fullOptimizer.c] last_config: %p\n", last_config);
+			dprintk("[fullOptimizer.c] measure: %p\n", &last_config->measure);
+			dprintk("[fullOptimizer.c] reading: %lld\n", last_config->measure.reading);
+		}
+
+		// this code is partially taken from exhaustive_search.c
+		new_mc = create_next_mc(last_config, NULL, process);
+		if (new_mc == NULL) {
+                        return -1;
+                }
+		//cleanup_mc(last_config);
+		last_config = new_mc;
+
+		// apply new mc
+		apply_mc(new_mc, process);	
+	} else {
+		dprintk("[fullOptimizer.c] Taking another round on the same configuration.\n");
+		return 0;
+	}
+
+	/* step 3: if there is no config more to test then call another
+	 * heuristic with the newly gained information or just use the best
+	 * available configuration */
+	/*if (cur_r->full_search_state == 2) {
+		dprintk("[fullOptimizer.c] Tested all full configs!\n");
+		print_mc_summary(process->tgid);
+		dprintk("[fullOptimizer.c] setting the best measured cfg\n");
+		set_best_measured_mc(process);
+
+		dprintk("heuOpt.c] Mark process %p as fully optimized", process);
+		opt_write_to_proc("Done %d # pid\n", process->tgid);
+		process->fully_optimized = 1;
+		// return 0: indicate that we want to change AT values
+		return 0;
+	}*/
+
+	dprintk("[fullOptimizer.c] Leaving full_choose_new_values().\n");
+
+	return 0;
+}
