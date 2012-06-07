@@ -192,11 +192,11 @@ void McHandler::raiseConfig() {
 	}
 }
 
-void McHandler::getAllParamsHavingType(ParameterType type, list<opt_param_t*> oParams) {
+void McHandler::getAllParamsHavingType(ParameterType type, list<opt_param_t*>* oParams) {
 	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = this->currentConfig.begin(); param_iterator!=this->currentConfig.end(); param_iterator++) {
 		if((*param_iterator)->type == type) {
-			oParams.push_back(*param_iterator);
+			oParams->push_back(*param_iterator);
 		}
 	}
 }
