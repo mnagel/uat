@@ -2,6 +2,8 @@
 #include <list>
 #include <map>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "McHandler.h"
 
@@ -11,6 +13,7 @@ McHandler::McHandler():
 	mcs(0),
 	currentConfig(0) 
 {
+	srandom(time(NULL));
 }
 
 McHandler::~McHandler() {
@@ -206,7 +209,46 @@ list<struct opt_param_t*>* McHandler::getParams() {
 }
 
 void McHandler::setBestMcAsConfig() {
+//TODO fill this method
+}
 
+int McHandler::computeNumPossibleConfigs() {
+	if(currentConfig.size()==0) {
+		return 0;
+	}
+	list<struct opt_param_t*>::iterator paramIterator;
+	int posConfigs = 1;
+	for(paramIterator = currentConfig.begin(); paramIterator!=currentConfig.end(); paramIterator++) {
+		posConfigs *= ((*paramIterator)->max - (*paramIterator)->min) / (*paramIterator)->step + 1;
+	}
+	return posConfigs;
+}
+
+opt_mc_t* McHandler::createRandomMc() {
+	opt_mc_t* randomMc = new opt_mc_t;
+	opt_param_t curParam;
+	list<struct opt_param_t*>::iterator it;
+	for(it = currentConfig.begin(); it != currentConfig.end(); it++) {
+		// param is copied here
+		curParam = (**it);
+		int range = curParam.max - curParam.min + 1;
+		curParam.curval = rand() % range + curParam.min;  
+
+		int modulo = (curParam.curval - curParam.min) % curParam.step;
+		if(modulo!=0) {
+			if(modulo > curParam.step/2) {
+				curParam.curval = curParam.curval - modulo + curParam.step;
+			} else {
+				curParam.curval = curParam.curval - modulo;
+			}
+		}
+		randomMc->config.push_back(curParam);
+	}
+	return randomMc;
+}
+
+void McHandler::addMc(opt_mc_t* mc) {
+	mcs.push_back(mc);
 }
 
 unsigned long McHandler::getHash(vector<struct opt_param_t>* paramList) {

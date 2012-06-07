@@ -25,6 +25,9 @@ class McHandler {
 		void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*>* oParams);
 		std::list<struct opt_param_t*>* getParams();
 		void setBestMcAsConfig();
+		int computeNumPossibleConfigs();
+		opt_mc_t* createRandomMc();
+		void addMc(opt_mc_t* mc);
 
 	private:
 		std::vector<struct opt_mc_t*> mcs;
