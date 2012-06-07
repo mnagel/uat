@@ -24,6 +24,7 @@ class McHandler {
 		void raiseConfig();
 		void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*>* oParams);
 		std::list<struct opt_param_t*>* getParams();
+		void setBestMcAsConfig();
 
 	private:
 		std::vector<struct opt_mc_t*> mcs;

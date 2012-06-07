@@ -32,6 +32,6 @@ void Optimizer::setInitialConfig() {
 	}
 }
 
-void Optimizer::setNextConfig() {
+void Optimizer::chooseNewValues() {
 	mcHandler->raiseConfig();
 }

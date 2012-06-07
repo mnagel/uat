@@ -6,11 +6,9 @@ class Optimizer {
 	public:
 		Optimizer(McHandler* mcHandler);
 		~Optimizer();
-		void setInitialConfig();
-		void setNextConfig();
+		virtual void setInitialConfig();
+		virtual void chooseNewValues();
 
-
-	private:
 		McHandler* mcHandler;
 
 

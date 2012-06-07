@@ -205,6 +205,10 @@ list<struct opt_param_t*>* McHandler::getParams() {
 	return &currentConfig;
 }
 
+void McHandler::setBestMcAsConfig() {
+
+}
+
 unsigned long McHandler::getHash(vector<struct opt_param_t>* paramList) {
 	vector<struct opt_param_t>::iterator paramIterator;
 	unsigned long hash = 0;

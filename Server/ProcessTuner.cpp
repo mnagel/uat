@@ -129,7 +129,7 @@ void ProcessTuner::handleStopMeassureMessage() {
 	struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
 	mcHandler->addMeasurementToMc(mc, tsMeasureDiff);
 	mcHandler->printAllMc();
-	optimizer->setNextConfig();
+	optimizer->chooseNewValues();
 
 	this->sendAllChangedParams();
 }
