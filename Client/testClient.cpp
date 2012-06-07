@@ -16,7 +16,7 @@ int variables[] = {1, 2, 3, 4};
 int minValue[] = {1, 5, 1, 10};
 int maxValue[] = {20, 30, 10, 50};
 int optimum[] = {10, 5, 3, 46};
-int numberToUse = 3;
+int numberToUse = 4;
 pthread_t pthreads[10];
 int finishCount = 0;
 int numberThreads = 3;
