@@ -67,11 +67,18 @@ void ProcessTuner::run() {
 				udsComm->receiveAddParamMessage(&msg);
 				this->handleAddParamMessage(&msg);
 				break;
+			case TMSG_REGISTER_SECTION_PARAM:
+				struct tmsgRegisterSectionParam remsg;
+				udsComm->receiveRegisterSectionParamMessage(&remsg);
+				this->handleRegisterSectionParamMessage(&remsg);
+				break;
 			case TMSG_GET_INITIAL_VALUES:
 				this->handleGetInitialValuesMessage();
 				break;
 			case TMSG_REQUEST_START_MEASUREMENT:
-				this->handleRequestStartMeasurementMessage();
+				struct tmsgRequestStartMeas rmsg;
+				udsComm->receiveRequestStartMeasMessage(&rmsg);
+				this->handleRequestStartMeasurementMessage(&rmsg);
 				break;
 			case TMSG_STOP_MEASUREMENT:
 				struct tmsgStopMeas smsg;
@@ -110,6 +117,10 @@ void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 	}
 }
 
+void ProcessTuner::handleRegisterSectionParamMessage(struct tmsgRegisterSectionParam* msg) {
+	printf("sectionparam %d %p\n", msg->sectionId, msg->parameter);
+}
+
 void ProcessTuner::handleGetInitialValuesMessage() {
 	optimizer->setInitialConfig();
 	//mcHandler->changeAllParamsToValue(global%3);
@@ -118,7 +129,7 @@ void ProcessTuner::handleGetInitialValuesMessage() {
 	this->sendAllChangedParams();
 }
 
-void ProcessTuner::handleRequestStartMeasurementMessage() {
+void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartMeas* msg) {
 	struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
 	threadMcMap.erase(this->currentTid);
 	threadMcMap.insert(pair<pid_t, opt_mc_t*>(this->currentTid, mc));

@@ -19,8 +19,9 @@ class Tuner {
 	int tRegisterParameter(const char *name, int *parameter, int from, int to, int step);
 	int tRegisterParameter(const char *name, int *parameter, int from, int to, int step, ParameterType type);
 	int tGetInitialValues();
-	int tRequestStart();
-	int tStop();
+	int tRegisterSectionParameter(int sectionId, int *parameter);
+	int tRequestStart(int sectionId);
+	int tStop(int sectionId);
 	int tFinishTuning();
 	int tStopW(int weight);
 	int tReset();

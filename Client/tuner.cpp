@@ -124,6 +124,17 @@ int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to
 	return 0;
 }
 
+int Tuner::tRegisterSectionParameter(int sectionId, int *parameter) {
+	struct tmsgRegisterSectionParam msg;
+	msg.sectionId = sectionId;
+	msg.parameter = parameter;
+	sem_wait(&sendSem);
+	udsComm->sendMsgHead(TMSG_REGISTER_SECTION_PARAM);
+	udsComm->send((const char*) &msg, sizeof(tmsgRegisterSectionParam));
+	sem_post(&sendSem);
+	return 0;
+}
+
 int Tuner::tGetInitialValues() {
 	sem_wait(&sendSem);
 	udsComm->sendMsgHead(TMSG_GET_INITIAL_VALUES);
@@ -131,17 +142,22 @@ int Tuner::tGetInitialValues() {
 	return 0;
 }
 
-int Tuner::tRequestStart() {
+int Tuner::tRequestStart(int sectionId) {
 	threadControlBlock_t* tcb = getOrCreateTcb();
+
+	struct tmsgRequestStartMeas msg;
+	msg.sectionId = sectionId;
+
 	sem_wait(&sendSem);
 	udsComm->sendMsgHead(TMSG_REQUEST_START_MEASUREMENT);
+	udsComm->send((const char*) &msg, sizeof(tmsgRequestStartMeas));
 	sem_post(&sendSem);
 	sem_wait(&(tcb->sem));
 	clock_gettime(CLOCK_MONOTONIC, &(tcb->tsMeasureStart));
 	return 0;
 }
 
-int Tuner::tStop() {
+int Tuner::tStop(int sectionId) {
 	threadControlBlock_t* tcb = getOrCreateTcb();
 
 	timespec tsMeasureStop;
@@ -151,6 +167,8 @@ int Tuner::tStop() {
 
 	struct tmsgStopMeas msg;
 	msg.tsMeasureDiff = tsMeasureDiff;
+	msg.sectionId = sectionId;
+
 	sem_wait(&sendSem);
 	udsComm->sendMsgHead(TMSG_STOP_MEASUREMENT);
 	udsComm->send((const char*) &msg, sizeof(tmsgStopMeas));

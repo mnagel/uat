@@ -64,6 +64,21 @@ void UDSCommunicator::receiveStopMeasMessage(struct tmsgStopMeas* o_msg){
 		errorExit("receiveStopMeasMessage");
 }
 
+void UDSCommunicator::receiveRequestStartMeasMessage(struct tmsgRequestStartMeas* o_msg) {
+	int iCount;
+	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgRequestStartMeas));
+	if(iCount!=sizeof(struct tmsgRequestStartMeas))
+		errorExit("receiveRequestStartMeasMessage");
+}
+
+void UDSCommunicator::receiveRegisterSectionParamMessage(struct tmsgRegisterSectionParam* o_msg) {
+	int iCount;
+	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgRegisterSectionParam));
+	if(iCount!=sizeof(struct tmsgRegisterSectionParam))
+		errorExit("receiveRegisterSectionParamMessage");
+}
+
+
 void UDSCommunicator::receiveInt(int* o_msg) {
 	int iCount;
 	iCount=read(this->fdConn, o_msg, sizeof(int));

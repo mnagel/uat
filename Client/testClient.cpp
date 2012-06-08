@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
 	const char* nameAsChar = name.c_str();
 	for(int i=0; i<numberToUse; i++) {
 		myTuner->tRegisterParameter(nameAsChar, variables+i, minValue[i], maxValue[i], 1); 
+		myTuner->tRegisterSectionParameter(1, variables+i); 
 	}
 
 	myTuner->tGetInitialValues();
@@ -58,13 +59,13 @@ void* run(void* nvm) {
 	printf("T pid: %u\n", getpid()); 
 	for(int i=0; i<1000; i++) {
 		printf("before start\n");
-		myTuner->tRequestStart();
+		myTuner->tRequestStart(1);
 		int sleep = 0;
 		for(int j=0; j<numberToUse; j++) {
 			sleep += 50*abs(variables[j] - optimum[j]);
 		}
 		usleep(sleep*1000);
-		myTuner->tStop();
+		myTuner->tStop(1);
 	}
 	finished();
 	return NULL;

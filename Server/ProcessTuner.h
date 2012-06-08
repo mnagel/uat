@@ -29,8 +29,9 @@ class ProcessTuner {
 	pthread_t* pthread;
 
 	void handleAddParamMessage(struct tmsgAddParam* msg);
+	void handleRegisterSectionParamMessage(struct tmsgRegisterSectionParam* msg);
 	void handleGetInitialValuesMessage();
-	void handleRequestStartMeasurementMessage();
+	void handleRequestStartMeasurementMessage(struct tmsgRequestStartMeas* msg);
 	void handleStopMeasurementMessage(struct tmsgStopMeas* msg);
 	void handleFinishTuningMessage();
 

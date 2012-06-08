@@ -3,6 +3,7 @@
 
 enum MsgType {
 	TMSG_ADD_PARAM,
+	TMSG_REGISTER_SECTION_PARAM,
 	TMSG_REQUEST_START_MEASUREMENT,
 	TMSG_GRANT_START_MEASUREMENT,
 	TMSG_STOP_MEASUREMENT,
@@ -23,6 +24,10 @@ struct tmsgHead {
 	pid_t tid;
 };
 
+struct tmsgRequestStartMeas {
+	int sectionId;
+};
+
 struct tmsgAddParam {
 	int *parameter; 
 	int value;
@@ -31,6 +36,12 @@ struct tmsgAddParam {
 	int step;
 	ParameterType type;
 };
+
+struct tmsgRegisterSectionParam {
+	int sectionId;
+	int *parameter; 
+};
+
 
 struct tmsgSetValue {
 	bool set;
@@ -41,4 +52,5 @@ struct tmsgSetValue {
 
 struct tmsgStopMeas {
 	timespec tsMeasureDiff;
+	int sectionId;
 };
