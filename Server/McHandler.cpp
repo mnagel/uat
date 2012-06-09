@@ -19,7 +19,7 @@ McHandler::McHandler():
 }
 
 McHandler::~McHandler() {
-	vector<struct opt_mc_t*>::iterator it;
+	vector<Mc*>::iterator it;
 	for ( it=mcs.begin() ; it < mcs.end(); it++ ) {
 		delete *it;
 	}
@@ -30,16 +30,16 @@ McHandler::~McHandler() {
 	//TODO delete vectors in mcsMap
 }
 
-struct opt_mc_t* McHandler::getMcForCurrentConfigOrCreate() {
-	struct opt_mc_t* matchingMc = NULL;
+Mc* McHandler::getMcForCurrentConfigOrCreate() {
+	Mc* matchingMc = NULL;
 
 	unsigned long currentConfigHash = getHash(&currentConfig);
-	map<unsigned long, vector<struct opt_mc_t*>*>::iterator mapit;
+	map<unsigned long, vector<Mc*>*>::iterator mapit;
 
 	mapit = mcsMap.find(currentConfigHash);
 	if(mapit != mcsMap.end()) {
-		vector<struct opt_mc_t*>* hashedMcs = mapit->second;
-		vector<struct opt_mc_t*>::iterator it;
+		vector<Mc*>* hashedMcs = mapit->second;
+		vector<Mc*>::iterator it;
 		for (it=hashedMcs->begin() ; it < hashedMcs->end(); it++ ) {
 			if(matchesCurrentConfig(*it)) {
 				matchingMc = *it;
@@ -54,17 +54,17 @@ struct opt_mc_t* McHandler::getMcForCurrentConfigOrCreate() {
 	return matchingMc;
 }
 
-struct opt_mc_t* McHandler::getMcIfExists(opt_mc_t* mc) {
-	struct opt_mc_t* matchingMc = NULL;
+Mc* McHandler::getMcIfExists(Mc* mc) {
+	Mc* matchingMc = NULL;
 
 	unsigned long mcHash = getHash(&(mc->config));
 
-	map<unsigned long, vector<struct opt_mc_t*>*>::iterator mapit;
+	map<unsigned long, vector<Mc*>*>::iterator mapit;
 
 	mapit = mcsMap.find(mcHash);
 	if(mapit != mcsMap.end()) {
-		vector<struct opt_mc_t*>* hashedMcs = mapit->second;
-		vector<struct opt_mc_t*>::iterator it;
+		vector<Mc*>* hashedMcs = mapit->second;
+		vector<Mc*>::iterator it;
 		for (it=hashedMcs->begin() ; it < hashedMcs->end(); it++ ) {
 			if(configsMatch(*it, mc)) {
 				matchingMc = *it;
@@ -78,13 +78,13 @@ struct opt_mc_t* McHandler::getMcIfExists(opt_mc_t* mc) {
 /*
  * doesn't check if that mc is already existing
  */
-struct opt_mc_t* McHandler::addMcForCurrentConfig(unsigned long currentConfigHash) {
-	struct opt_mc_t* newMc = new struct opt_mc_t;
+Mc* McHandler::addMcForCurrentConfig(unsigned long currentConfigHash) {
+	Mc* newMc = new Mc;
 
 	list<struct opt_param_t*>::iterator paramsit;
 	for ( paramsit=this->currentConfig.begin() ; paramsit != this->currentConfig.end(); paramsit++ ) {
 		// param struct has to be copied when inserting into config!
-		newMc->config.push_back(**paramsit);
+		newMc->addParam(*paramsit);
 	}
 
 	this->addMc(newMc);
@@ -92,10 +92,12 @@ struct opt_mc_t* McHandler::addMcForCurrentConfig(unsigned long currentConfigHas
 	return newMc;
 }
 
-void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
-	mc->measurements.push_back(ts);
+void McHandler::addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts) {
+	mc->addMeasurement(sectionId, ts);
 	lastMc = mc;
 	lastTs = ts;
+	//TODO bestMc evaluation
+	/*
 	//short evaluation important here
 	if(bestMc == NULL || isTimespecLower(&ts, &bestTs)) {
 		bestMc = mc;
@@ -105,6 +107,7 @@ void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
 	if((mc->bestMeasurement.tv_sec == 0 && mc->bestMeasurement.tv_nsec == 0) || isTimespecLower(&ts, &(mc->bestMeasurement))) {
 		mc->bestMeasurement = ts;
 	}
+	*/
 }
 
 
@@ -121,40 +124,12 @@ struct opt_param_t* McHandler::addParam(struct opt_param_t* param) {
 }
 
 // params have to have same order
-bool McHandler::matchesCurrentConfig(struct opt_mc_t* mc) {
-	if(currentConfig.size() != mc->config.size()) {
-		return false;
-	}
-
-	vector<struct opt_param_t>::iterator config_iterator;
-	list<struct opt_param_t*>::iterator param_iterator;
-	for(config_iterator = mc->config.begin(), param_iterator = currentConfig.begin(); 
-			config_iterator < mc->config.end(); 
-			config_iterator++, param_iterator++) {
-		if(config_iterator->address != (*param_iterator)->address 
-				|| config_iterator->curval != (*param_iterator)->curval) {
-			return false;
-		}
-	}
-	return true;
+bool McHandler::matchesCurrentConfig(Mc* mc) {
+	return mc->matchesConfig(&currentConfig);
 }
 
-bool McHandler::configsMatch(struct opt_mc_t* first, struct opt_mc_t* second) {
-	if(first->config.size() != second->config.size()) {
-		return false;
-	}
-
-	vector<struct opt_param_t>::iterator firstIt;
-	vector<struct opt_param_t>::iterator secondIt;
-	for(firstIt = first->config.begin(), secondIt = second->config.begin(); 
-			firstIt != first->config.end(); 
-			firstIt++, secondIt++) {
-		if(firstIt->address != secondIt->address 
-				|| firstIt->curval != secondIt->curval) {
-			return false;
-		}
-	}
-	return true;
+bool McHandler::configsMatch(Mc* first, Mc* second) {
+	return first->matchesMc(second);
 }
 
 void McHandler::printCurrentConfig() {
@@ -172,40 +147,15 @@ void McHandler::printAllMc(bool longVersion) {
 	printf("----------------------------\n");
 	printf("-----printing all mc -------\n");
 	printf("----------------------------\n");
-	vector<struct opt_mc_t*>::iterator it;
+	vector<Mc*>::iterator it;
 	for ( it=mcs.begin() ; it < mcs.end(); it++ ) {
 		if(longVersion) {
 			printf("\t-------------------------------\n");
 			printf("\t-----printing next conf -------\n");
 			printf("\t-------------------------------\n");
 		}
-		printConfig(*it, longVersion);
+		(*it)->print(longVersion);
 	}
-}
-
-void McHandler::printConfig(struct opt_mc_t* mc, bool longVersion) {
-		vector<struct opt_param_t>::iterator param_iterator;
-		for ( param_iterator=mc->config.begin() ; param_iterator < mc->config.end(); param_iterator++ ) {
-			if(longVersion) {
-				printf("\t\tparameter value: %d\n", param_iterator->curval);
-			} else {
-				printf("\t\t%d ", param_iterator->curval);
-			}
-		}
-		if(longVersion) {
-			printf("\n\t\tmeasurements:\n");
-		} else {
-			printf("\tmeas: ");
-		}
-		vector<struct timespec>::iterator ts_iterator;
-		for ( ts_iterator=mc->measurements.begin() ; ts_iterator < mc->measurements.end(); ts_iterator++ ) {
-			if(longVersion) {
-				printf("\t\tmeasurement value: sec: %ld nsec: %d\n", ts_iterator->tv_sec, (int) ts_iterator->tv_nsec);
-			} else {
-				printf("%ld.%09d ", ts_iterator->tv_sec, (int) ts_iterator->tv_nsec);
-			}
-		}
-		printf("\n");
 }
 
 void McHandler::changeAllParamsToValue(int value) {
@@ -267,7 +217,7 @@ int McHandler::getNumParams() {
 	return currentConfig.size();
 }
 
-opt_mc_t* McHandler::getBestMc() {
+Mc* McHandler::getBestMc() {
 	return bestMc;
 }
 
@@ -283,9 +233,9 @@ void McHandler::setBestMcAsConfig() {
   * DANGER of an endless loop, for example in RandomSearch, as there will always be a not measured config
   */
 int McHandler::setNextNotMeasuredConfig() {
-	vector<struct opt_mc_t*>::iterator mcIt;
+	vector<Mc*>::iterator mcIt;
 	for(mcIt = mcs.begin(); mcIt != mcs.end(); mcIt++) {
-		if((*mcIt)->measurements.size() == 0) {
+		if(!(*mcIt)->isMeasured()) {
 			setMcAsConfig(*mcIt);
 			return 0;
 		}
@@ -296,25 +246,8 @@ int McHandler::setNextNotMeasuredConfig() {
 /**
   *	Uses the config of the given mc, even if the params aren't identical with the currentConfig list 
   */
-void McHandler::setMcAsConfig(opt_mc_t* mc) {
-	list<struct opt_param_t*>::iterator paramsIt;
-	vector<struct opt_param_t>::iterator configIt;
-	for(paramsIt = currentConfig.begin(), configIt = mc->config.begin();
-			paramsIt != currentConfig.end(), configIt != mc->config.end();) {
-		if((*paramsIt)->address == (*configIt).address) {
-			if((*paramsIt)->curval != (*configIt).curval) {
-				(*paramsIt)->curval = (*configIt).curval;
-				(*paramsIt)->changed = true;
-			}
-			paramsIt++;
-			configIt++;
-		} else if((*paramsIt)->address < (*configIt).address) {
-			paramsIt++;
-		} else {
-			configIt++;
-		}
-	}
-
+void McHandler::setMcAsConfig(Mc* mc) {
+	mc->copyConfigIntoList(&currentConfig);
 }
 
 int McHandler::computeNumPossibleConfigs() {
@@ -329,8 +262,8 @@ int McHandler::computeNumPossibleConfigs() {
 	return posConfigs;
 }
 
-opt_mc_t* McHandler::createRandomMc() {
-	opt_mc_t* randomMc = new opt_mc_t;
+Mc* McHandler::createRandomMc() {
+	Mc* randomMc = new Mc;
 	opt_param_t curParam;
 	list<struct opt_param_t*>::iterator it;
 	for(it = currentConfig.begin(); it != currentConfig.end(); it++) {
@@ -352,26 +285,26 @@ opt_mc_t* McHandler::createRandomMc() {
 	return randomMc;
 }
 
-void McHandler::addMc(opt_mc_t* newMc) {
+void McHandler::addMc(Mc* newMc) {
 	this->mcs.push_back(newMc);
 
 
 	unsigned long hash = this->getHash(&(newMc->config));
-	map<unsigned long, vector<struct opt_mc_t*>*>::iterator it;
-	vector<struct opt_mc_t*>* hashedMcs;
+	map<unsigned long, vector<Mc*>*>::iterator it;
+	vector<Mc*>* hashedMcs;
 
 	it = mcsMap.find(hash);
 	if(it == mcsMap.end()) {
-		hashedMcs = new vector<struct opt_mc_t*>;
-		mcsMap.insert(pair<unsigned long, vector<struct opt_mc_t*>*>(hash, hashedMcs));
+		hashedMcs = new vector<Mc*>;
+		mcsMap.insert(pair<unsigned long, vector<Mc*>*>(hash, hashedMcs));
 	} else {
 		hashedMcs = it->second;
 	}
 	hashedMcs->push_back(newMc);
 }
 
-bool McHandler::isMcInNeighborhood(opt_mc_t* mc, int len) {
-	vector<struct opt_mc_t*>::iterator mcIt;
+bool McHandler::isMcInNeighborhood(Mc* mc, int len) {
+	vector<Mc*>::iterator mcIt;
 	for(mcIt = mcs.begin(); mcIt != mcs.end(); mcIt++) {
 		if(areParamsInRegion(&((*mcIt)->config), &(mc->config), len)) {
 			return true;
@@ -400,8 +333,8 @@ bool McHandler::areParamsInRegion(vector<struct opt_param_t>* params1, vector<st
 	return false;
 }
 
-opt_mc_t* McHandler::copyMcWithoutMeasurements(opt_mc_t* mc) {
-	opt_mc_t* copiedMc = new opt_mc_t;
+Mc* McHandler::copyMcWithoutMeasurements(Mc* mc) {
+	Mc* copiedMc = new Mc;
 	copiedMc->config = mc->config;
 	return copiedMc;
 }

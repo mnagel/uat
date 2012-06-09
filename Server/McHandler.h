@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "tunerData.h"
+#include "Mc.h"
 #include "../utils.h"
 
 class McHandler {
@@ -13,14 +14,13 @@ class McHandler {
 	public:
 		McHandler();
 		~McHandler();
-		struct opt_mc_t* getMcForCurrentConfigOrCreate();
-		struct opt_mc_t* getMcIfExists(opt_mc_t* mc);
-		struct opt_mc_t* addMcForCurrentConfig(unsigned long currentConfigHash);
-		void addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts);
+		Mc* getMcForCurrentConfigOrCreate();
+		Mc* getMcIfExists(Mc* mc);
+		Mc* addMcForCurrentConfig(unsigned long currentConfigHash);
+		void addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts);
 		struct opt_param_t* addParam(struct opt_param_t* param);
 		void printCurrentConfig();
 		void printAllMc(bool longVersion);
-		void printConfig(struct opt_mc_t* mc, bool longVersion);
 		void changeAllParamsToValue(int value);
 		void setConfigToMin();
 		void raiseConfig();
@@ -28,30 +28,30 @@ class McHandler {
 		std::list<struct opt_param_t*>* getParams();
 		struct opt_param_t* getParam(int* address);
 		int getNumParams();
-		opt_mc_t* getBestMc();
+		Mc* getBestMc();
 		void setBestMcAsConfig();
-		void setMcAsConfig(opt_mc_t* mc);
+		void setMcAsConfig(Mc* mc);
 		int computeNumPossibleConfigs();
-		opt_mc_t* createRandomMc();
-		void addMc(opt_mc_t* newMc);
-		bool isMcInNeighborhood(opt_mc_t* mc, int len);
+		Mc* createRandomMc();
+		void addMc(Mc* newMc);
+		bool isMcInNeighborhood(Mc* mc, int len);
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		int setNextNotMeasuredConfig();
-		opt_mc_t* copyMcWithoutMeasurements(opt_mc_t* mc);
+		Mc* copyMcWithoutMeasurements(Mc* mc);
 
 		static int sortedInsert(std::list<struct opt_param_t*>* l, struct opt_param_t* param);
 
 	private:
-		std::vector<struct opt_mc_t*> mcs;
+		std::vector<Mc*> mcs;
 		std::list<struct opt_param_t*> currentConfig;
-		std::map<unsigned long, std::vector<struct opt_mc_t*>*> mcsMap;
-		struct opt_mc_t* bestMc;
+		std::map<unsigned long, std::vector<Mc*>*> mcsMap;
+		Mc* bestMc;
 		struct timespec bestTs; 
-		struct opt_mc_t* lastMc;
+		Mc* lastMc;
 		struct timespec lastTs; 
 
-		bool matchesCurrentConfig(struct opt_mc_t* mc);
-		bool configsMatch(struct opt_mc_t* first, struct opt_mc_t* second);
+		bool matchesCurrentConfig(Mc* mc);
+		bool configsMatch(Mc* first, Mc* second);
 		unsigned long getHash(std::vector<struct opt_param_t>* paramList);
 		unsigned long getHash(std::list<struct opt_param_t*>* paramList);
 
