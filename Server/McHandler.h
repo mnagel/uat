@@ -26,6 +26,7 @@ class McHandler {
 		void raiseConfig();
 		void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*>* oParams);
 		std::list<struct opt_param_t*>* getParams();
+		struct opt_param_t* getParam(int* address);
 		int getNumParams();
 		opt_mc_t* getBestMc();
 		void setBestMcAsConfig();
@@ -37,6 +38,8 @@ class McHandler {
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		int setNextNotMeasuredConfig();
 		opt_mc_t* copyMcWithoutMeasurements(opt_mc_t* mc);
+
+		static int sortedInsert(std::list<struct opt_param_t*>* l, struct opt_param_t* param);
 
 	private:
 		std::vector<struct opt_mc_t*> mcs;

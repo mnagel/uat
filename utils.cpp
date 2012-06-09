@@ -30,3 +30,66 @@ bool isTimespecLower(timespec* first, timespec* second) {
 int getRelativePerformance(timespec* first, timespec* second) {
 	return (((unsigned long) first->tv_sec) * 1e6 + first->tv_nsec/1e3)/(((unsigned long) second->tv_sec) * 1e4 + second->tv_nsec/1e5);
 }
+int sortedInsert(list<int>* l, int i) {
+	list<int>::iterator it;
+	for(it = l->begin(); it!=l->end(); it++) {
+		if(*it == i) {
+			return -1;
+		} else if(*it > i) {
+			l->insert(it, i);
+			break;
+		}
+	}
+	if(it == l->end()) {
+		l->push_back(i);
+	}
+	return 0;
+}
+
+int sortedInsert(vector<int>* l, int i) {
+	vector<int>::iterator it;
+	for(it = l->begin(); it!=l->end(); it++) {
+		if(*it == i) {
+			return -1;
+		} else if(*it > i) {
+			l->insert(it, i);
+			break;
+		}
+	}
+	if(it == l->end()) {
+		l->push_back(i);
+	}
+	return 0;
+}
+
+int sortedInsert(list<int*>* l, int* i) {
+	list<int*>::iterator it;
+	for(it = l->begin(); it!=l->end(); it++) {
+		if(*it == i) {
+			return -1;
+		} else if(*it > i) {
+			l->insert(it, i);
+			break;
+		}
+	}
+	if(it == l->end()) {
+		l->push_back(i);
+	}
+	return 0;
+}
+
+int sortedInsert(vector<int*>* l, int* i) {
+	vector<int*>::iterator it;
+	for(it = l->begin(); it!=l->end(); it++) {
+		if(*it == i) {
+			return -1;
+		} else if(*it > i) {
+			l->insert(it, i);
+			break;
+		}
+	}
+	if(it == l->end()) {
+		l->push_back(i);
+	}
+	return 0;
+}

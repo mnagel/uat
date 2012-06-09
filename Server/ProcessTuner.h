@@ -11,6 +11,8 @@
 #include "Optimizer.h"
 #include "HeuristicOptimizer.h"
 #include "ProcessTunerListener.h"
+#include "SectionsTuner.h"
+
 class ProcessTunerListener;
 
 class ProcessTuner {
@@ -36,6 +38,11 @@ class ProcessTuner {
 	void handleFinishTuningMessage();
 
 	void sendAllChangedParams();
+	void addSectionIdIfNotExists(int sectionId);
+	void addSectionParam(int sectionId, int* address);
+	void createSectionsTuners();
+	void addParamsOfSection(int sectionId, SectionsTuner* secTuner);
+	void addSectionsOfParam(struct opt_param_t* param, SectionsTuner* secTuner);
 
 	McHandler* mcHandler;
 	Optimizer* optimizer;
@@ -43,4 +50,9 @@ class ProcessTuner {
 	bool runLoop;
 	pid_t currentTid;
 	std::map<pid_t, opt_mc_t*> threadMcMap;
+	std::list<int> sectionIds;
+	std::map<int, list<struct opt_param_t*>*> sectionParamsMap;
+	std::map<struct opt_param_t*, list<int>*> paramSectionsMap;
+	std::map<int, SectionsTuner*> sectionsTunersMap; 
+	std::vector<SectionsTuner*> sectionsTuners;
 };

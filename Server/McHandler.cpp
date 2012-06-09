@@ -116,17 +116,7 @@ void McHandler::addMeasurementToMc(struct opt_mc_t* mc, struct timespec ts) {
 struct opt_param_t* McHandler::addParam(struct opt_param_t* param) {
 	struct opt_param_t* heapParam = new struct opt_param_t;
 	*heapParam = *param;
-
-	list<struct opt_param_t*>::iterator param_iterator;
-	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
-		if((*param_iterator)->address > heapParam->address) {
-			currentConfig.insert(param_iterator, heapParam);
-			break;
-		}
-	}
-	if(param_iterator==currentConfig.end()) {
-		currentConfig.push_back(heapParam);
-	}
+	sortedInsert(&currentConfig, heapParam);
 	return heapParam;
 }
 
@@ -259,6 +249,18 @@ void McHandler::getAllParamsHavingType(ParameterType type, list<opt_param_t*>* o
 
 list<struct opt_param_t*>* McHandler::getParams() {
 	return &currentConfig;
+}
+
+struct opt_param_t* McHandler::getParam(int* address) {
+	struct opt_param_t* param = NULL;
+	list<struct opt_param_t*>::iterator param_iterator;
+	for(param_iterator = this->currentConfig.begin(); param_iterator!=this->currentConfig.end(); param_iterator++) {
+		if((*param_iterator)->address == address) {
+			param =  *param_iterator;
+		}
+	}
+	return param;
+
 }
 
 int McHandler::getNumParams() {
@@ -424,6 +426,21 @@ unsigned long McHandler::getHash(list<struct opt_param_t*>* paramList) {
 	return hash;
 }
 
+int McHandler::sortedInsert(list<struct opt_param_t*>* l, struct opt_param_t* param) {
+	list<struct opt_param_t*>::iterator it;
+	for(it = l->begin(); it!=l->end(); it++) {
+		if((*it)->address == param->address) {
+			return -1;
+		} else if((*it)->address > param->address) {
+			l->insert(it, param);
+			break;
+		}
+	}
+	if(it == l->end()) {
+		l->push_back(param);
+	}
+	return 0;
+}
 
 
 

@@ -22,10 +22,31 @@ ProcessTuner::ProcessTuner(int fdConn):
 	mcHandler(new McHandler()),
 	optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)),
 	processTunerListener(0),
-	runLoop(true) {
+	runLoop(true),
+	sectionIds(0),
+	sectionsTuners(0) {
 }
 
 ProcessTuner::~ProcessTuner() {
+	list<int>::iterator sectionsIt;
+	map<int, list<struct opt_param_t*>*>::iterator it;
+	for(sectionsIt = sectionIds.begin(); sectionsIt!=sectionIds.end(); sectionsIt++) {
+		it = sectionParamsMap.find(*sectionsIt);
+		delete it->second;
+	}
+	list<struct opt_param_t*>* params = mcHandler->getParams();
+	list<struct opt_param_t*>::iterator paramsIt;
+	map<struct opt_param_t*, list<int>*>::iterator mapit;
+	for(paramsIt = params->begin(); paramsIt!=params->end(); paramsIt++) {
+		mapit = paramSectionsMap.find(*paramsIt);
+		delete mapit->second;
+	}
+
+	vector<SectionsTuner*>::iterator sectionsTunersIt;
+	for(sectionsTunersIt = sectionsTuners.begin(); sectionsTunersIt != sectionsTuners.end(); sectionsTunersIt++) {
+		delete *sectionsTunersIt;
+	}
+
 	delete udsComm;
 	delete mcHandler;
 	delete optimizer;
@@ -108,17 +129,26 @@ void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 	newParam.changed = false;
 	newParam.newHint = false;
 
-	struct opt_param_t* insertedParam = mcHandler->addParam(&newParam);
-	mcHandler->printCurrentConfig();
+	if(mcHandler->getParam(newParam.address)==NULL) {
+		struct opt_param_t* insertedParam = mcHandler->addParam(&newParam);
 
-	// notify listener
-	for(unsigned int i=0; i<this->processTunerListener.size(); i++) {
-		((this->processTunerListener)[i])->tuningParamAdded(insertedParam);
+		list<int>* sectionsVec = new list<int>;
+		paramSectionsMap.insert(pair<struct opt_param_t*, list<int>*>(insertedParam, sectionsVec));
+
+		mcHandler->printCurrentConfig();
+
+		// notify listener
+		for(unsigned int i=0; i<this->processTunerListener.size(); i++) {
+			((this->processTunerListener)[i])->tuningParamAdded(insertedParam);
+		}
+	} else {
+		printf("ERROR param is already added\n");
 	}
 }
 
 void ProcessTuner::handleRegisterSectionParamMessage(struct tmsgRegisterSectionParam* msg) {
 	printf("sectionparam %d %p\n", msg->sectionId, msg->parameter);
+	addSectionParam(msg->sectionId, msg->parameter);
 }
 
 void ProcessTuner::handleGetInitialValuesMessage() {
@@ -198,3 +228,73 @@ void ProcessTuner::sendAllChangedParams() {
 	}
 }
 
+void ProcessTuner::addSectionIdIfNotExists(int sectionId) {
+	if(sortedInsert(&sectionIds, sectionId) > -1) {
+		// the sectionParams vector in the map has to be created as it's a new id
+		list<struct opt_param_t*>* paramsVec = new list<struct opt_param_t*>;
+		sectionParamsMap.insert(pair<int, list<struct opt_param_t*>*>(sectionId, paramsVec));
+	}
+}
+
+void ProcessTuner::addSectionParam(int sectionId, int* address) {
+	struct opt_param_t* param = mcHandler->getParam(address);
+	if(param==NULL) {
+		printf("ERROR param has to be added before registering for a section\n");
+	}
+
+	addSectionIdIfNotExists(sectionId);
+
+	map<int, list<struct opt_param_t*>*>::iterator sectionsIt;
+	list<struct opt_param_t*>* sectionParams;
+
+	sectionsIt = sectionParamsMap.find(sectionId);
+	sectionParams = sectionsIt->second;
+	McHandler::sortedInsert(sectionParams, param);
+
+	map<struct opt_param_t*, list<int>*>::iterator paramsIt;
+	list<int>* paramSections;
+
+	paramsIt = paramSectionsMap.find(param);
+	paramSections = paramsIt->second;
+	sortedInsert(paramSections, sectionId);
+}
+
+void ProcessTuner::createSectionsTuners() {
+	list<int>::iterator sectionIdsIt;
+	map<int, SectionsTuner*>::iterator sectionsTunersMapIt; 
+	vector<SectionsTuner*> sectionsTuners;
+
+	for(sectionIdsIt = sectionIds.begin(); sectionIdsIt != sectionIds.end(); sectionIdsIt++) {
+		if(sectionsTunersMap.find(*sectionIdsIt) == sectionsTunersMap.end()) {
+			SectionsTuner* newSectionsTuner = new SectionsTuner();
+			newSectionsTuner->addSectionId(*sectionIdsIt);
+			sectionsTunersMap.insert(pair<int, SectionsTuner*>(*sectionIdsIt, newSectionsTuner));
+			sectionsTuners.push_back(newSectionsTuner);
+			addParamsOfSection(*sectionIdsIt, newSectionsTuner);
+		}
+	}
+}
+
+void ProcessTuner::addParamsOfSection(int sectionId, SectionsTuner* secTuner) {
+	map<int, list<struct opt_param_t*>*>::iterator sectionParamsMapIt;
+	sectionParamsMapIt = sectionParamsMap.find(sectionId);
+	list<struct opt_param_t*>::iterator paramsIt;
+	for(paramsIt =  sectionParamsMapIt->second->begin(); paramsIt != sectionParamsMapIt->second->end(); paramsIt++) {
+		if(secTuner->addParam(*paramsIt) > -1) {
+			addSectionsOfParam(*paramsIt, secTuner);	
+		}
+	}
+}
+
+void ProcessTuner::addSectionsOfParam(struct opt_param_t* param, SectionsTuner* secTuner) {
+	map<struct opt_param_t*, list<int>*>::iterator paramSectionsMapIt;
+	paramSectionsMapIt = paramSectionsMap.find(param);
+	list<int>::iterator sectionsIt;
+	for(sectionsIt =  paramSectionsMapIt->second->begin(); sectionsIt != paramSectionsMapIt->second->end(); sectionsIt++) {
+		if(secTuner->addSectionId(*sectionsIt) > -1) {
+			sectionsTunersMap.insert(pair<int, SectionsTuner*>(*sectionsIt, secTuner));
+			addParamsOfSection(*sectionsIt, secTuner);	
+		}
+	}
+
+}
