@@ -35,7 +35,6 @@ class McHandler {
 		Mc* createRandomMc();
 		void addMc(Mc* newMc);
 		bool isMcInNeighborhood(Mc* mc, int len);
-		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		int setNextNotMeasuredConfig();
 		Mc* copyMcWithoutMeasurements(Mc* mc);
 
@@ -52,7 +51,6 @@ class McHandler {
 
 		bool matchesCurrentConfig(Mc* mc);
 		bool configsMatch(Mc* first, Mc* second);
-		unsigned long getHash(std::vector<struct opt_param_t>* paramList);
 		unsigned long getHash(std::list<struct opt_param_t*>* paramList);
 
 

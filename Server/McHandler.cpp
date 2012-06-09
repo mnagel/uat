@@ -57,7 +57,7 @@ Mc* McHandler::getMcForCurrentConfigOrCreate() {
 Mc* McHandler::getMcIfExists(Mc* mc) {
 	Mc* matchingMc = NULL;
 
-	unsigned long mcHash = getHash(&(mc->config));
+	unsigned long mcHash = mc->getHash();
 
 	map<unsigned long, vector<Mc*>*>::iterator mapit;
 
@@ -280,7 +280,7 @@ Mc* McHandler::createRandomMc() {
 				curParam.curval = curParam.curval - modulo;
 			}
 		}
-		randomMc->config.push_back(curParam);
+		randomMc->addParam(&curParam);
 	}
 	return randomMc;
 }
@@ -288,8 +288,7 @@ Mc* McHandler::createRandomMc() {
 void McHandler::addMc(Mc* newMc) {
 	this->mcs.push_back(newMc);
 
-
-	unsigned long hash = this->getHash(&(newMc->config));
+	unsigned long hash = newMc->getHash();
 	map<unsigned long, vector<Mc*>*>::iterator it;
 	vector<Mc*>* hashedMcs;
 
@@ -306,47 +305,15 @@ void McHandler::addMc(Mc* newMc) {
 bool McHandler::isMcInNeighborhood(Mc* mc, int len) {
 	vector<Mc*>::iterator mcIt;
 	for(mcIt = mcs.begin(); mcIt != mcs.end(); mcIt++) {
-		if(areParamsInRegion(&((*mcIt)->config), &(mc->config), len)) {
+		if(mc->isInNeighborhood(*mcIt, len)) {
 			return true;
 		}
 	}
 	return false;
 }
 
-bool McHandler::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct opt_param_t>* params2, int len) {
-	vector<struct opt_param_t>::iterator params1It;
-	vector<struct opt_param_t>::iterator params2It;
-	for(params1It = params1->begin(), params2It = params2->begin();
-		params1It != params1->end(), params2It != params2->end();) {
-		if(params1It->address == params2It->address) {
-			if(abs(params1It->curval - params2It->curval) <= len) {
-				return true;
-			}
-			params1It++;
-			params2It++;
-		} else if(params1It->address < params2It->address) {
-			params1It++;
-		} else {
-			params2It++;
-		}
-	}
-	return false;
-}
-
 Mc* McHandler::copyMcWithoutMeasurements(Mc* mc) {
-	Mc* copiedMc = new Mc;
-	copiedMc->config = mc->config;
-	return copiedMc;
-}
-
-unsigned long McHandler::getHash(vector<struct opt_param_t>* paramList) {
-	vector<struct opt_param_t>::iterator paramIterator;
-	unsigned long hash = 0;
-	// TODO replace hashing algorithm, that one is far away from being collision resistant
-	for(paramIterator = paramList->begin(); paramIterator!=paramList->end(); paramIterator++) {
-		hash += paramIterator->curval + (unsigned long) paramIterator->address;
-	}
-	return hash;
+	return mc->getCopyWithoutMeasurements();
 }
 
 unsigned long McHandler::getHash(list<struct opt_param_t*>* paramList) {

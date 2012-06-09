@@ -123,8 +123,44 @@ void Mc::copyConfigIntoList(list<struct opt_param_t*>* params) {
 	}
 }
 
+unsigned long Mc::getHash() {
+	vector<struct opt_param_t>::iterator paramIterator;
+	unsigned long hash = 0;
+	// TODO replace hashing algorithm, that one is far away from being collision resistant
+	for(paramIterator = config.begin(); paramIterator!=config.end(); paramIterator++) {
+		hash += paramIterator->curval + (unsigned long) paramIterator->address;
+	}
+	return hash;
+}
 
+Mc* Mc::getCopyWithoutMeasurements() {
+	Mc* copiedMc = new Mc;
+	copiedMc->config = this->config;
+}
 
+bool Mc::isInNeighborhood(Mc* mc, int len) {
+	return areParamsInRegion(&(this->config), &(mc->config), len);
+}
+
+bool Mc::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct opt_param_t>* params2, int len) {
+	vector<struct opt_param_t>::iterator params1It;
+	vector<struct opt_param_t>::iterator params2It;
+	for(params1It = params1->begin(), params2It = params2->begin();
+		params1It != params1->end(), params2It != params2->end();) {
+		if(params1It->address == params2It->address) {
+			if(abs(params1It->curval - params2It->curval) <= len) {
+				return true;
+			}
+			params1It++;
+			params2It++;
+		} else if(params1It->address < params2It->address) {
+			params1It++;
+		} else {
+			params2It++;
+		}
+	}
+	return false;
+}
 
 
 

@@ -23,6 +23,10 @@ class Mc {
 		void addMeasurement(int sectionId, struct timespec ts);
 		bool isMeasured();
 		void copyConfigIntoList(list<struct opt_param_t*>* params);
+		unsigned long getHash();
+		Mc* getCopyWithoutMeasurements();
+		bool isInNeighborhood(Mc* mc, int len);
+		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 
 		std::vector<struct opt_param_t> config;
 	private:
