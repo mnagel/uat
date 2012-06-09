@@ -136,6 +136,7 @@ unsigned long Mc::getHash() {
 Mc* Mc::getCopyWithoutMeasurements() {
 	Mc* copiedMc = new Mc;
 	copiedMc->config = this->config;
+	return copiedMc;
 }
 
 bool Mc::isInNeighborhood(Mc* mc, int len) {
@@ -162,9 +163,15 @@ bool Mc::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct op
 	return false;
 }
 
+int Mc::getRelativePerformance(Mc* mc) {
+	// TODO do the intelligent compare things
+	return 80;
+}
 
-
-
+int Mc::getNumMeasurements() {
+	// TODO change
+	return 2;
+}
 
 
 

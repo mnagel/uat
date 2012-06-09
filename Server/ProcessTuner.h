@@ -49,7 +49,6 @@ class ProcessTuner {
 	std::vector<ProcessTunerListener*> processTunerListener;
 	bool runLoop;
 	pid_t currentTid;
-	std::map<pid_t, opt_mc_t*> threadMcMap;
 	std::list<int> sectionIds;
 	std::map<int, list<struct opt_param_t*>*> sectionParamsMap;
 	std::map<struct opt_param_t*, list<int>*> paramSectionsMap;

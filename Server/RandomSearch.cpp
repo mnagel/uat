@@ -52,7 +52,7 @@ void RandomSearch::generateRandomConfigs() {
 	 * in the neighborhood of existing cfgs */
 	int nhopFactor = 3;
 	for (int i = 0; i < this->numConfigs; i++) {
-		opt_mc_t* randomMc = mcHandler->createRandomMc();
+		Mc* randomMc = mcHandler->createRandomMc();
 
 		/* 
 		 * heuristic: get very different random cfgs

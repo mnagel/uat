@@ -18,7 +18,7 @@ class McHandler {
 		Mc* getMcIfExists(Mc* mc);
 		Mc* addMcForCurrentConfig(unsigned long currentConfigHash);
 		void addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts);
-		struct opt_param_t* addParam(struct opt_param_t* param);
+		void addParam(struct opt_param_t* param);
 		void printCurrentConfig();
 		void printAllMc(bool longVersion);
 		void changeAllParamsToValue(int value);
@@ -45,7 +45,6 @@ class McHandler {
 		std::list<struct opt_param_t*> currentConfig;
 		std::map<unsigned long, std::vector<Mc*>*> mcsMap;
 		Mc* bestMc;
-		struct timespec bestTs; 
 		Mc* lastMc;
 		struct timespec lastTs; 
 

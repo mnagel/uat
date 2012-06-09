@@ -40,6 +40,7 @@ ProcessTuner::~ProcessTuner() {
 	for(paramsIt = params->begin(); paramsIt!=params->end(); paramsIt++) {
 		mapit = paramSectionsMap.find(*paramsIt);
 		delete mapit->second;
+		delete *paramsIt;
 	}
 
 	vector<SectionsTuner*>::iterator sectionsTunersIt;
@@ -117,31 +118,31 @@ void ProcessTuner::run() {
 
 void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 	printf("add param: parameterpointer: %p from: %d to: %d step: %d type: %d\n",msg->parameter, msg->min, msg->max, msg->step, msg->type);
-	struct opt_param_t newParam;
-	newParam.address = msg->parameter;
-	newParam.curval = msg->value;
-	newParam.initial = msg->value;
-	newParam.min = msg->min;
-	newParam.max = msg->max;
-	newParam.step = msg->step;
-	newParam.type = msg->type;
-	newParam.changed = false;
-	newParam.newHint = false;
+	if(mcHandler->getParam(msg->parameter)==NULL) {
+		struct opt_param_t* newParam = new struct opt_param_t;
+		newParam->address = msg->parameter;
+		newParam->curval = msg->value;
+		newParam->initial = msg->value;
+		newParam->min = msg->min;
+		newParam->max = msg->max;
+		newParam->step = msg->step;
+		newParam->type = msg->type;
+		newParam->changed = false;
+		newParam->newHint = false;
 
-	if(mcHandler->getParam(newParam.address)==NULL) {
-		struct opt_param_t* insertedParam = mcHandler->addParam(&newParam);
+		mcHandler->addParam(newParam);
 
 		list<int>* sectionsVec = new list<int>;
-		paramSectionsMap.insert(pair<struct opt_param_t*, list<int>*>(insertedParam, sectionsVec));
+		paramSectionsMap.insert(pair<struct opt_param_t*, list<int>*>(newParam, sectionsVec));
 
 		mcHandler->printCurrentConfig();
 
 		// notify listener
 		for(unsigned int i=0; i<this->processTunerListener.size(); i++) {
-			((this->processTunerListener)[i])->tuningParamAdded(insertedParam);
+			((this->processTunerListener)[i])->tuningParamAdded(newParam);
 		}
 	} else {
-		printf("ERROR param is already added\n");
+		printf("ERROR param has been already added\n");
 	}
 }
 
@@ -151,37 +152,36 @@ void ProcessTuner::handleRegisterSectionParamMessage(struct tmsgRegisterSectionP
 }
 
 void ProcessTuner::handleGetInitialValuesMessage() {
+	//TODO that has to be totally changed
 	createSectionsTuners();
 	vector<SectionsTuner*>::iterator secIt;
 	for(secIt = sectionsTuners.begin(); secIt != sectionsTuners.end(); secIt++) {
 		(*secIt)-> printInfo();
 	}
-	optimizer->setInitialConfig();
-	//mcHandler->changeAllParamsToValue(global%3);
-	//global++;
+	//TODO optimizer can't be called here any longer, params stay unchanged, but sendAllChangedParams has to be called anyway for mutex in client to unlock
+	//optimizer->setInitialConfig();
 
 	this->sendAllChangedParams();
 }
 
 void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartMeas* msg) {
-	struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
-	threadMcMap.erase(this->currentTid);
-	threadMcMap.insert(pair<pid_t, opt_mc_t*>(this->currentTid, mc));
+	// TODO add an error check if sectionId in stopMeas msg is the same
+	map<int, SectionsTuner*>::iterator it;
+	it = sectionsTunersMap.find(msg->sectionId);
+	if(it != sectionsTunersMap.end()) {
+		it->second->startMeasurement(currentTid);
+	}
 	udsComm->sendMsgHead(TMSG_GRANT_START_MEASUREMENT, this->currentTid);
 }
 
 void ProcessTuner::handleStopMeasurementMessage(tmsgStopMeas* msg) {
-	map<pid_t, opt_mc_t*>::iterator mapit;
-	mapit = threadMcMap.find(this->currentTid);
-	if(mapit != threadMcMap.end()) {
-		struct opt_mc_t* mc = mapit->second;
-		//struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
-		mcHandler->addMeasurementToMc(mc, msg->tsMeasureDiff);
-		mcHandler->printAllMc(false);
-		optimizer->chooseNewValues();
-
-		this->sendAllChangedParams();
+	map<int, SectionsTuner*>::iterator it;
+	it = sectionsTunersMap.find(msg->sectionId);
+	if(it != sectionsTunersMap.end()) {
+		it->second->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureDiff);
 	}
+	/* params are global and exist only once -> if sectionsTuner changes them in stopMeasurement they will be also changed for this ProcessTuner */
+	this->sendAllChangedParams();
 }
 
 void ProcessTuner::handleFinishTuningMessage() {
@@ -216,12 +216,6 @@ void ProcessTuner::sendAllChangedParams() {
 			setMsg.value = (*param_iterator)->curval;
 			(*param_iterator)->changed = false;
 		}
-	}
-
-	// invalidate all other measurements, if there are changed params
-	if(param_changed) {
-		printf("delete all measurements except that of %d\n", this->currentTid);
-		threadMcMap.clear();
 	}
 
 	if(param_changed) {

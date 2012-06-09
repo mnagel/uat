@@ -34,7 +34,7 @@ int LocalSearch::doLocalSearch() {
 		goOn = true;
 	} else {
 		printf("found worse config\n");
-		int numExecutions = curMc->measurements.size();
+		int numExecutions = curMc->getNumMeasurements();
 		if(numExecutions < retryCount) {
 			printf("retry worse config\n");
 			//try that config again
@@ -47,7 +47,7 @@ int LocalSearch::doLocalSearch() {
 	}
 
 	if(goOn) {
-		opt_mc_t* nextMc = NULL;
+		Mc* nextMc = NULL;
 		while(!allDirectionsTested() && nextMc == NULL) {
 			//"if" should be enough, but safer this way
 			while(getNextDirectionForCurrentParam() == 0) {
@@ -132,24 +132,26 @@ int LocalSearch::getNextDirectionForCurrentParam() {
 }
 
 bool LocalSearch::isCurrentConfigBetter() {
-	return isTimespecLower(&(curMc->bestMeasurement), &(bestMc->bestMeasurement));
+	//return isTimespecLower(&(curMc->bestMeasurement), &(bestMc->bestMeasurement));
+	return curMc->getRelativePerformance(bestMc) < 100;
 }
 
 bool LocalSearch::isCurrentConfigSimilar() {
 	return isConfigSimilar(curMc);
 }
 
-bool LocalSearch::isConfigSimilar(opt_mc_t* mc) {
-	return getRelativePerformance(&(mc->bestMeasurement), &(bestMc->bestMeasurement)) < this->threshold;
+bool LocalSearch::isConfigSimilar(Mc* mc) {
+	//return getRelativePerformance(&(mc->bestMeasurement), &(bestMc->bestMeasurement)) < this->threshold;
+	return mc->getRelativePerformance(bestMc) < this->threshold;
 	
 }
 
-opt_mc_t* LocalSearch::getNextCfgForCurrentDirection() {
+Mc* LocalSearch::getNextCfgForCurrentDirection() {
 	int factor = 1;
 	int direction = getNextDirectionForCurrentParam();
 
-	opt_mc_t* nextMc = NULL;
-	opt_mc_t* mcExisting;
+	Mc* nextMc = NULL;
+	Mc* mcExisting;
 	while(nextMc == NULL) {
 		nextMc = changeCurrentParamOfCurrentMc(factor*direction);
 		if(nextMc == NULL) {
@@ -172,8 +174,9 @@ opt_mc_t* LocalSearch::getNextCfgForCurrentDirection() {
 	return nextMc;
 }
 
-opt_mc_t* LocalSearch::changeCurrentParamOfCurrentMc(int factor) {
-	opt_mc_t* changedMc = mcHandler->copyMcWithoutMeasurements(curMc);
+Mc* LocalSearch::changeCurrentParamOfCurrentMc(int factor) {
+	Mc* changedMc = mcHandler->copyMcWithoutMeasurements(curMc);
+	//TODO direkter Zugriff auf config liste unschön
 	opt_param_t* param = &(changedMc->config[curParam]);
 
 	param->curval += factor * param->step;

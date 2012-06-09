@@ -23,10 +23,12 @@ McHandler::~McHandler() {
 	for ( it=mcs.begin() ; it < mcs.end(); it++ ) {
 		delete *it;
 	}
+	/*
 	list<struct opt_param_t*>::iterator paramsit;
 	for ( paramsit=currentConfig.begin() ; paramsit != currentConfig.end(); paramsit++ ) {
 		delete *paramsit;
 	}
+	*/
 	//TODO delete vectors in mcsMap
 }
 
@@ -96,14 +98,12 @@ void McHandler::addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts) {
 	mc->addMeasurement(sectionId, ts);
 	lastMc = mc;
 	lastTs = ts;
-	//TODO bestMc evaluation
-	/*
 	//short evaluation important here
-	if(bestMc == NULL || isTimespecLower(&ts, &bestTs)) {
+	if(bestMc == NULL || mc->getRelativePerformance(bestMc)<100) {
 		bestMc = mc;
-		bestTs = ts;
 	}
 
+	/*
 	if((mc->bestMeasurement.tv_sec == 0 && mc->bestMeasurement.tv_nsec == 0) || isTimespecLower(&ts, &(mc->bestMeasurement))) {
 		mc->bestMeasurement = ts;
 	}
@@ -115,12 +115,12 @@ void McHandler::addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts) {
  * params list has to be sorted, linear search is used to find the correct insertion 
  * position, as binary search doesn't work well on doubly linked lists and list should
  * be small
+ * param isn't copied!
  */
-struct opt_param_t* McHandler::addParam(struct opt_param_t* param) {
-	struct opt_param_t* heapParam = new struct opt_param_t;
-	*heapParam = *param;
-	sortedInsert(&currentConfig, heapParam);
-	return heapParam;
+void McHandler::addParam(struct opt_param_t* param) {
+	//struct opt_param_t* heapParam = new struct opt_param_t;
+	//*heapParam = *param;
+	sortedInsert(&currentConfig, param);
 }
 
 // params have to have same order

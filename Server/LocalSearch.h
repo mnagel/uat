@@ -12,8 +12,8 @@ class LocalSearch {
 		McHandler* mcHandler;
 		int threshold;
 		int retryCount;
-		opt_mc_t* bestMc;
-		opt_mc_t* curMc;
+		Mc* bestMc;
+		Mc* curMc;
 		bool* directions;
 		int numParams;
 		int curParam;
@@ -25,8 +25,8 @@ class LocalSearch {
 		int getNextDirectionForCurrentParam();
 		bool isCurrentConfigBetter();
 		bool isCurrentConfigSimilar();
-		bool isConfigSimilar(opt_mc_t* mc);
-		opt_mc_t* getNextCfgForCurrentDirection();
-		opt_mc_t* changeCurrentParamOfCurrentMc(int factor);
+		bool isConfigSimilar(Mc* mc);
+		Mc* getNextCfgForCurrentDirection();
+		Mc* changeCurrentParamOfCurrentMc(int factor);
 
 };
