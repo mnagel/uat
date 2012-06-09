@@ -21,7 +21,7 @@ pthread_t pthreads[2];
 int finishCount = 0;
 int numberThreads = 3;
 
-void* run(void* nvm);
+void* run(void* section);
 
 int main(int argc, char *argv[]) {
 	pid_t pid = getpid();
@@ -32,15 +32,24 @@ int main(int argc, char *argv[]) {
 	const char* nameAsChar = name.c_str();
 	for(int i=0; i<numberToUse; i++) {
 		myTuner->tRegisterParameter(nameAsChar, variables+i, minValue[i], maxValue[i], 1); 
-		myTuner->tRegisterSectionParameter(1, variables+i); 
 	}
+	
+	myTuner->tRegisterSectionParameter(1, variables); 
+	myTuner->tRegisterSectionParameter(1, variables+1); 
+	myTuner->tRegisterSectionParameter(2, variables+2);
+	myTuner->tRegisterSectionParameter(3, variables+1); 
+	myTuner->tRegisterSectionParameter(3, variables+2);
 
 	myTuner->tGetInitialValues();
 
 	for(int i=0; i<numberThreads-1; i++) {
-		pthread_create (pthreads+i, NULL, &run, NULL);
+		int section = 1;
+		if(i==2)
+			section = 2;
+		pthread_create (pthreads+i, NULL, &run, (void*) &section);
 	}
-	run(NULL);
+	int section = 3;
+	run((void*) &section);
 }
 
 void finished() {
@@ -53,19 +62,20 @@ void finished() {
 	}
 }
 
-void* run(void* nvm) {
-	printf("T self: %lu\n", pthread_self()); 
-	printf("T tid: %lu\n", syscall(SYS_gettid)); 
-	printf("T pid: %u\n", getpid()); 
+void* run(void* voidsection) {
+	int section = *((int*) voidsection);
+	//printf("T self: %lu\n", pthread_self()); 
+	//printf("T tid: %lu\n", syscall(SYS_gettid)); 
+	//printf("T pid: %u\n", getpid()); 
 	for(int i=0; i<1000; i++) {
 		printf("before start\n");
-		myTuner->tRequestStart(1);
+		myTuner->tRequestStart(section);
 		int sleep = 0;
 		for(int j=0; j<numberToUse; j++) {
 			sleep += 50*abs(variables[j] - optimum[j]);
 		}
 		usleep(sleep*1000);
-		myTuner->tStop(1);
+		myTuner->tStop(section);
 	}
 	finished();
 	return NULL;

@@ -1,3 +1,4 @@
+#include <stdio.h>
 
 #include "SectionsTuner.h"
 #include "McHandler.h"
@@ -33,4 +34,12 @@ int SectionsTuner::addParam(struct opt_param_t* param) {
   */
 int SectionsTuner::addSectionId(int sectionId) {
 	return sortedInsert(&sectionIds, sectionId);
+}
+
+void SectionsTuner::printInfo() {
+	printf("SectionTuner Info:\n");
+	vector<int>::iterator it;
+	for(it = sectionIds.begin(); it!=sectionIds.end(); it++) {
+		printf("\t Tuning Section: %d\n", *it);
+	}
 }

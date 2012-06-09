@@ -10,6 +10,7 @@ class SectionsTuner {
 		~SectionsTuner();
 		int addSectionId(int sectionId);
 		int addParam(struct opt_param_t* param);
+		void printInfo();
 
 	private:
 		McHandler* mcHandler;

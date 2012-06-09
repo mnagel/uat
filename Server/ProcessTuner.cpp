@@ -80,7 +80,6 @@ void ProcessTuner::run() {
 	tmsgHead msgHead;
 	while(this->runLoop) {
 		udsComm->receiveMsgHead(&msgHead);
-		printf("received message from tid: %d\n", msgHead.tid);
 		this->currentTid = msgHead.tid;
 		switch(msgHead.msgType) {
 			case TMSG_ADD_PARAM:
@@ -147,11 +146,16 @@ void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 }
 
 void ProcessTuner::handleRegisterSectionParamMessage(struct tmsgRegisterSectionParam* msg) {
-	printf("sectionparam %d %p\n", msg->sectionId, msg->parameter);
+	//printf("sectionparam %d %p\n", msg->sectionId, msg->parameter);
 	addSectionParam(msg->sectionId, msg->parameter);
 }
 
 void ProcessTuner::handleGetInitialValuesMessage() {
+	createSectionsTuners();
+	vector<SectionsTuner*>::iterator secIt;
+	for(secIt = sectionsTuners.begin(); secIt != sectionsTuners.end(); secIt++) {
+		(*secIt)-> printInfo();
+	}
 	optimizer->setInitialConfig();
 	//mcHandler->changeAllParamsToValue(global%3);
 	//global++;
@@ -262,7 +266,6 @@ void ProcessTuner::addSectionParam(int sectionId, int* address) {
 void ProcessTuner::createSectionsTuners() {
 	list<int>::iterator sectionIdsIt;
 	map<int, SectionsTuner*>::iterator sectionsTunersMapIt; 
-	vector<SectionsTuner*> sectionsTuners;
 
 	for(sectionIdsIt = sectionIds.begin(); sectionIdsIt != sectionIds.end(); sectionIdsIt++) {
 		if(sectionsTunersMap.find(*sectionIdsIt) == sectionsTunersMap.end()) {
