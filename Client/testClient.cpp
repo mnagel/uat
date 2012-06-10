@@ -41,15 +41,17 @@ int main(int argc, char *argv[]) {
 	myTuner->tRegisterSectionParameter(3, variables+2);
 
 	myTuner->tGetInitialValues();
-
+	int sectionOne = 1;
+	int sectionTwo = 2;
+	int sectionThree = 3;
 	for(int i=0; i<numberThreads-1; i++) {
-		int section = 1;
-		if(i==2)
-			section = 2;
-		pthread_create (pthreads+i, NULL, &run, (void*) &section);
+		if(i==0) {
+			pthread_create (pthreads+i, NULL, &run, (void*) &sectionOne);
+		} else {
+			pthread_create (pthreads+i, NULL, &run, (void*) &sectionTwo);
+		}
 	}
-	int section = 3;
-	run((void*) &section);
+	run((void*) &sectionThree);
 }
 
 void finished() {
@@ -64,6 +66,7 @@ void finished() {
 
 void* run(void* voidsection) {
 	int section = *((int*) voidsection);
+	printf("run with sectionId %d\n", section);
 	//printf("T self: %lu\n", pthread_self()); 
 	//printf("T tid: %lu\n", syscall(SYS_gettid)); 
 	//printf("T pid: %u\n", getpid()); 

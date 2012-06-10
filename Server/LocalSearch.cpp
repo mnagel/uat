@@ -34,7 +34,7 @@ int LocalSearch::doLocalSearch() {
 		goOn = true;
 	} else {
 		printf("found worse config\n");
-		int numExecutions = curMc->getNumMeasurements();
+		int numExecutions = curMc->getMinNumMeasurementsOfSectionsMeasured();
 		if(numExecutions < retryCount) {
 			printf("retry worse config\n");
 			//try that config again

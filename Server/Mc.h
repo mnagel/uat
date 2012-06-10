@@ -28,7 +28,8 @@ class Mc {
 		bool isInNeighborhood(Mc* mc, int len);
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		int getRelativePerformance(Mc* mc);
-		int getNumMeasurements();
+		int getMinNumMeasurementsOfSectionsMeasured();
+		int getMinNumMeasurementsOfSections(std::vector<int>* sections);
 
 		std::vector<struct opt_param_t> config;
 	private:

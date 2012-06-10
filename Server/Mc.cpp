@@ -1,3 +1,5 @@
+#include <limits.h>
+
 #include "Mc.h"
 
 using namespace std;
@@ -66,18 +68,27 @@ void Mc::print(bool longVersion) {
 		} else {
 			printf("\tmeas: ");
 		}
-		// TODO measurements printing has to be changed
-		/*
-		vector<struct timespec>::iterator ts_iterator;
-		for ( ts_iterator=mc->measurements.begin() ; ts_iterator < mc->measurements.end(); ts_iterator++ ) {
-			if(longVersion) {
-				printf("\t\tmeasurement value: sec: %ld nsec: %d\n", ts_iterator->tv_sec, (int) ts_iterator->tv_nsec);
-			} else {
-				printf("%ld.%09d ", ts_iterator->tv_sec, (int) ts_iterator->tv_nsec);
-			}
+			
+	vector<int>::iterator it;
+	vector<struct timespec>::iterator tsIt;
+	map<int, vector<struct timespec>*>::iterator mapit;
+	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
+		if(longVersion) {
+			printf("\t\t section %d\n", *it);
+		} else {
+			printf(" section %d: ", *it);
 		}
-		*/
-		printf("\n");
+		mapit = measurements.find(*it);
+		for(tsIt = mapit->second->begin(); tsIt != mapit->second->end(); tsIt++) {
+			if(longVersion) {
+				printf("\t\tmeasurement value: sec: %ld nsec: %d\n", tsIt->tv_sec, (int) tsIt->tv_nsec);
+			} else {
+				printf("%ld.%09d ", tsIt->tv_sec, (int) tsIt->tv_nsec);
+			}
+
+		}
+	}
+	printf("\n");
 }
 
 void Mc::addParam(struct opt_param_t* param) {
@@ -168,9 +179,24 @@ int Mc::getRelativePerformance(Mc* mc) {
 	return 80;
 }
 
-int Mc::getNumMeasurements() {
-	// TODO change
-	return 2;
+int Mc::getMinNumMeasurementsOfSectionsMeasured() {
+	return getMinNumMeasurementsOfSections(&measuredSections);
+}
+
+int Mc::getMinNumMeasurementsOfSections(vector<int>* sections) {
+	int min = INT_MAX;
+	vector<int>::iterator sectionsIt;
+	map<int, std::vector<timespec>*>::iterator mapIt;
+	for(sectionsIt = sections->begin(); sectionsIt != sections->end(); sectionsIt++) {
+		mapIt = measurements.find(*sectionsIt);
+		if(mapIt == measurements.end()) {
+			min = 0;
+		} else {
+			int numMeas = mapIt->second->size();
+			min = numMeas<min ? numMeas : min;
+		}
+	}
+	return min;
 }
 
 

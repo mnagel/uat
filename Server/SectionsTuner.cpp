@@ -44,6 +44,10 @@ void SectionsTuner::printInfo() {
 	}
 }
 
+void SectionsTuner::chooseInitialConfig() {
+	optimizer->setInitialConfig();
+}
+
 void SectionsTuner::startMeasurement(pid_t tid) {
 	Mc* mc = mcHandler->getMcForCurrentConfigOrCreate();
 	threadMcMap.erase(tid);
@@ -58,17 +62,25 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec ts
 		//struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
 		mcHandler->addMeasurementToMc(mc, sectionId, ts);
 		mcHandler->printAllMc(false);
-		// TODO change optimizer thus he chooses new values
-		//optimizer->chooseNewValues();
+
+		// all sections have been measured in that mc?
+		if(mc->getMinNumMeasurementsOfSections(&sectionIds) > 0) {
+			optimizer->chooseNewValues();
+		}
 	}
 	
-	// TODO check if measurements have to be invalidated
-	// invalidate all other measurements, if there are changed params
-	/*
-	if(param_changed) {
-		printf("delete all measurements except that of %d\n", this->currentTid);
+	list<opt_param_t*>::iterator paramsIt;
+	bool paramChanged = false;
+	for(paramsIt=mcHandler->getParams()->begin(); paramsIt != mcHandler->getParams()->end(); paramsIt++) {
+		if((*paramsIt)->changed) {
+			paramChanged = true;
+			break;
+		}
+	}
+
+	if(paramChanged) {
+		printf("delete all measurements except that of %d\n", tid);
 		threadMcMap.clear();
 	}
-	*/
 
 }

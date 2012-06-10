@@ -157,10 +157,8 @@ void ProcessTuner::handleGetInitialValuesMessage() {
 	vector<SectionsTuner*>::iterator secIt;
 	for(secIt = sectionsTuners.begin(); secIt != sectionsTuners.end(); secIt++) {
 		(*secIt)-> printInfo();
+		(*secIt)->chooseInitialConfig();
 	}
-	//TODO optimizer can't be called here any longer, params stay unchanged, but sendAllChangedParams has to be called anyway for mutex in client to unlock
-	//optimizer->setInitialConfig();
-
 	this->sendAllChangedParams();
 }
 
