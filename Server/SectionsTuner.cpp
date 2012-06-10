@@ -63,6 +63,11 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec ts
 		mcHandler->addMeasurementToMc(mc, sectionId, ts);
 		mcHandler->printAllMc(false);
 
+		// TODO what to do, if one section stops being measured, or is never measured at all?
+		// IDEA exponential border reduction, if there is a section being measured ten times and another not at all
+		// choosenewvalues anyway, next time choosenewvalues after 5 times being measured and so on
+		// create exception rules, if a measurement for a section has already started
+
 		// all sections have been measured in that mc?
 		if(mc->getMinNumMeasurementsOfSections(&sectionIds) > 0) {
 			optimizer->chooseNewValues();
