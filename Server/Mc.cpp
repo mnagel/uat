@@ -4,8 +4,9 @@
 
 using namespace std;
 
-Mc::Mc():
+Mc::Mc(vector<int>* sectionIds):
 	config(0),
+	sectionIds(sectionIds),
 	measuredSections(0) {
 
 }
@@ -72,10 +73,19 @@ void Mc::print(bool longVersion) {
 	vector<int>::iterator it;
 	vector<struct timespec>::iterator tsIt;
 	map<int, vector<struct timespec>*>::iterator mapit;
+	int counter = 0;
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		if(longVersion) {
 			printf("\t\t section %d\n", *it);
 		} else {
+			if(counter%3 == 0) {
+				printf("\033[1;31m");
+			} else if(counter%3 == 1) {
+				printf("\033[1;32m");
+			} else {
+				printf("\033[1;35m");
+			}
+			counter++;
 			printf(" section %d: ", *it);
 		}
 		mapit = measurements.find(*it);
@@ -87,6 +97,7 @@ void Mc::print(bool longVersion) {
 			}
 
 		}
+		printf("\033[0m");
 	}
 	printf("\n");
 }
@@ -100,7 +111,7 @@ void Mc::addMeasurement(int sectionId, struct timespec ts) {
 	map<int, vector<timespec>*>::iterator mapIt;
 	mapIt = measurements.find(sectionId);
 	if(mapIt == measurements.end()) {
-		measuredSections.push_back(sectionId);
+		sortedInsert(&measuredSections, sectionId);
 		specs = new vector<timespec>;
 		measurements.insert(pair<int, vector<timespec>*>(sectionId, specs));
 	} else {
@@ -145,7 +156,7 @@ unsigned long Mc::getHash() {
 }
 
 Mc* Mc::getCopyWithoutMeasurements() {
-	Mc* copiedMc = new Mc;
+	Mc* copiedMc = new Mc(sectionIds);
 	copiedMc->config = this->config;
 	return copiedMc;
 }
@@ -175,8 +186,39 @@ bool Mc::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct op
 }
 
 int Mc::getRelativePerformance(Mc* mc) {
-	// TODO do the intelligent compare things
-	return 80;
+	//long long relative = 0;
+	long long thisSum = 0;
+	long long otherSum = 0;
+
+	vector<int>::iterator it;
+	map<int, std::vector<timespec>*>::iterator mapIt;
+
+	int numTotalMeas = 0;
+	for(it=measuredSections.begin(); it != measuredSections.end(); it++) {
+		mapIt = measurements.find(*it);
+		numTotalMeas += mapIt->second->size();
+	}
+
+	for(it=measuredSections.begin(); it != measuredSections.end(); it++) {
+		mapIt = measurements.find(*it);
+		int numMeas = mapIt->second->size();
+		long long thisAverage = getAverage(mapIt->second); 
+		long long otherAverage = mc->getAverage(*it);
+		thisSum += numMeas*thisAverage;
+		otherSum += numMeas*otherAverage;
+
+		//long long difference = thisAverage - otherAverage;
+		//long long prod = difference * numMeas;
+		//relative += prod;
+	}
+	//relative /= numTotalMeas;
+
+	//printf("relative performance %lld\n ", relative);
+	return (100*thisSum)/otherSum;
+}
+
+int Mc::getMinNumMeasurementsOfAllSection() {
+	return getMinNumMeasurementsOfSections(sectionIds);
 }
 
 int Mc::getMinNumMeasurementsOfSectionsMeasured() {
@@ -199,6 +241,28 @@ int Mc::getMinNumMeasurementsOfSections(vector<int>* sections) {
 	return min;
 }
 
+long long Mc::getAverage(int sectionId) {
+	long long average = 0;
+
+	map<int, vector<struct timespec>*>::iterator mapIt;
+	mapIt = measurements.find(sectionId);
+	if(mapIt != measurements.end()) {
+		average = getAverage(mapIt->second);
+	}
+	return average;
+}
+
+long long Mc::getAverage(vector<struct timespec>* meas) {
+	long long average;
+	long long sum = 0;
+
+	vector<struct timespec>::iterator it;
+	for(it = meas->begin(); it != meas->end(); it++) {
+		sum += timespecToLongLong(*it);
+	}
+	average = sum/meas->size();
+	return average;
+}
 
 
 

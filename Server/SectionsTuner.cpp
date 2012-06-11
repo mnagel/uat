@@ -7,9 +7,9 @@
 using namespace std;
 
 SectionsTuner::SectionsTuner(): 
-	mcHandler(new McHandler()),
-	optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)),
-	sectionIds(0) {
+	sectionIds(0), 
+	mcHandler(new McHandler(&sectionIds)), 
+	optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)) {
 
 }
 

@@ -9,7 +9,8 @@
 
 using namespace std;
 
-McHandler::McHandler():
+McHandler::McHandler(vector<int>* sectionIds):
+	sectionIds(sectionIds),
 	mcs(0),
 	currentConfig(0),
 	bestMc(NULL),
@@ -81,7 +82,7 @@ Mc* McHandler::getMcIfExists(Mc* mc) {
  * doesn't check if that mc is already existing
  */
 Mc* McHandler::addMcForCurrentConfig(unsigned long currentConfigHash) {
-	Mc* newMc = new Mc;
+	Mc* newMc = new Mc(sectionIds);
 
 	list<struct opt_param_t*>::iterator paramsit;
 	for ( paramsit=this->currentConfig.begin() ; paramsit != this->currentConfig.end(); paramsit++ ) {
@@ -99,7 +100,7 @@ void McHandler::addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts) {
 	lastMc = mc;
 	lastTs = ts;
 	//short evaluation important here
-	if(bestMc == NULL || mc->getRelativePerformance(bestMc)<100) {
+	if(bestMc == NULL || (mc->getMinNumMeasurementsOfAllSection() > 0 && mc->getRelativePerformance(bestMc)<100)) {
 		bestMc = mc;
 	}
 
@@ -263,7 +264,7 @@ int McHandler::computeNumPossibleConfigs() {
 }
 
 Mc* McHandler::createRandomMc() {
-	Mc* randomMc = new Mc;
+	Mc* randomMc = new Mc(sectionIds);
 	opt_param_t curParam;
 	list<struct opt_param_t*>::iterator it;
 	for(it = currentConfig.begin(); it != currentConfig.end(); it++) {

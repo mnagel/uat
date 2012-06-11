@@ -12,7 +12,7 @@
 class McHandler {
 
 	public:
-		McHandler();
+		McHandler(std::vector<int>* sectionIds);
 		~McHandler();
 		Mc* getMcForCurrentConfigOrCreate();
 		Mc* getMcIfExists(Mc* mc);
@@ -41,6 +41,7 @@ class McHandler {
 		static int sortedInsert(std::list<struct opt_param_t*>* l, struct opt_param_t* param);
 
 	private:
+		std::vector<int>* sectionIds;
 		std::vector<Mc*> mcs;
 		std::list<struct opt_param_t*> currentConfig;
 		std::map<unsigned long, std::vector<Mc*>*> mcsMap;

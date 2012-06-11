@@ -163,7 +163,7 @@ int Tuner::tStop(int sectionId) {
 	timespec tsMeasureStop;
 	timespec tsMeasureDiff;
 	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStop);
-	diff(&(tcb->tsMeasureStart), &tsMeasureStop, &tsMeasureDiff);
+	tsMeasureDiff = diff(tcb->tsMeasureStart, tsMeasureStop);
 
 	struct tmsgStopMeas msg;
 	msg.tsMeasureDiff = tsMeasureDiff;

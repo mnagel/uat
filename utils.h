@@ -11,8 +11,9 @@
 using namespace std;
 
 void errorExit(string msg); 
-void diff(timespec* start, timespec* end, timespec* diff);
-bool isTimespecLower(timespec* first, timespec* second);
+timespec diff(timespec start, timespec end);
+long long timespecToLongLong(timespec ts);
+bool isTimespecLower(timespec first, timespec second);
 int getRelativePerformance(timespec* first, timespec* second);
 int sortedInsert(std::list<int>* l, int i);
 int sortedInsert(std::vector<int>* l, int i);

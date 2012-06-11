@@ -18,9 +18,9 @@ class SectionsTuner {
 		void stopMeasurement(pid_t tid, int sectionId, struct timespec ts);
 
 	private:
+		std::vector<int> sectionIds;
 		McHandler* mcHandler;
 		Optimizer* optimizer;
-		std::vector<int> sectionIds;
 		std::map<pid_t, Mc*> threadMcMap;
 
 };

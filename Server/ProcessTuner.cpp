@@ -19,7 +19,7 @@ int global = 0;
 
 ProcessTuner::ProcessTuner(int fdConn):
 	udsComm(new UDSCommunicator(fdConn)),
-	mcHandler(new McHandler()),
+	mcHandler(new McHandler(NULL)),
 	optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)),
 	processTunerListener(0),
 	runLoop(true),
