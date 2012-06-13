@@ -6,7 +6,7 @@
 HeuristicOptimizer::HeuristicOptimizer(McHandler* handler):
 	Optimizer(handler),
 	randSearch(new RandomSearch(handler,  0.1d, 3)),
-	locSearch(new LocalSearch(handler, 105, 2)) {
+	locSearch(new LocalSearch(handler, 101, 2)) {
 
 }
 
