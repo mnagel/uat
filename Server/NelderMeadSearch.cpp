@@ -39,7 +39,7 @@ int NelderMeadSearch::doNelderMeadSearch() {
 				return 1;
 				//TODO also return if distance between best and worst gets too low
 			}
-			list<int>* center; 
+			list<double>* center; 
 			center = NULL;
 			Mc* existingMc;
 
@@ -181,11 +181,11 @@ int NelderMeadSearch::doNelderMeadSearch() {
 /**
  * params have to be in same order
  */
-list<int>* NelderMeadSearch::getCenter(list<Mc*>* mcList, Mc* exceptMc) {
-	list<int>* center = new list<int>(mcHandler->getNumParams(), 0);
+list<double>* NelderMeadSearch::getCenter(list<Mc*>* mcList, Mc* exceptMc) {
+	list<double>* center = new list<double>(mcHandler->getNumParams(), 0.0d);
 	list<Mc*>::iterator mcIt;
 	vector<struct opt_param_t>::iterator paramIt;
-	list<int>::iterator centerIt;
+	list<double>::iterator centerIt;
 
 	int counter = 0;
 	for(mcIt = mcList->begin(); mcIt != mcList->end(); mcIt++) {
@@ -206,11 +206,11 @@ list<int>* NelderMeadSearch::getCenter(list<Mc*>* mcList, Mc* exceptMc) {
 	return center;
 }
 
-Mc* NelderMeadSearch::getReflectedMc(Mc* mc, list<int>* center, double factor) {
+Mc* NelderMeadSearch::getReflectedMc(Mc* mc, list<double>* center, double factor) {
 	Mc* refMc = mc->getCopyWithoutMeasurements();
 	
 	vector<struct opt_param_t>::iterator paramIt;
-	list<int>::iterator centerIt;
+	list<double>::iterator centerIt;
 
 	for(paramIt = refMc->config.begin(), centerIt = center->begin();
 			paramIt != refMc->config.end(), centerIt != center->end();

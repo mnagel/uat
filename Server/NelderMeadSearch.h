@@ -31,8 +31,8 @@ class NelderMeadSearch {
 		Mc* worstMc;
 
 		void print();
-		list<int>* getCenter(list<Mc*>* mcList, Mc* exceptMc);
-		Mc* getReflectedMc(Mc* mc, list<int>* center, double factor); 
+		list<double>* getCenter(list<Mc*>* mcList, Mc* exceptMc);
+		Mc* getReflectedMc(Mc* mc, list<double>* center, double factor); 
 		void reduceSimplex();
 		void insertIntoSimplex(Mc* mc); 
 		NELD_OPT_STATE optState;
