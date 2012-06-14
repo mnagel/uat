@@ -29,13 +29,15 @@ class McHandler {
 		struct opt_param_t* getParam(int* address);
 		int getNumParams();
 		Mc* getBestMc();
+		std::list<Mc*>* getBestMcs();
+		Mc* getWorstMc();
 		void setBestMcAsConfig();
 		void setMcAsConfig(Mc* mc);
 		int computeNumPossibleConfigs();
 		Mc* createRandomMc();
 		void addMc(Mc* newMc);
 		bool isMcInNeighborhood(Mc* mc, int len);
-		int setNextNotMeasuredConfig();
+		Mc* setNextNotMeasuredConfig();
 		Mc* copyMcWithoutMeasurements(Mc* mc);
 
 		static int sortedInsert(std::list<struct opt_param_t*>* l, struct opt_param_t* param);
@@ -43,15 +45,18 @@ class McHandler {
 	private:
 		std::vector<int>* sectionIds;
 		std::vector<Mc*> mcs;
+		std::list<Mc*> bestMcs;
 		std::list<struct opt_param_t*> currentConfig;
 		std::map<unsigned long, std::vector<Mc*>*> mcsMap;
-		Mc* bestMc;
+		//Mc* bestMc;
+		Mc* worstMc;
 		Mc* lastMc;
 		struct timespec lastTs; 
 
 		bool matchesCurrentConfig(Mc* mc);
 		bool configsMatch(Mc* first, Mc* second);
 		unsigned long getHash(std::list<struct opt_param_t*>* paramList);
+		void insertMcIntoBestMcs(Mc* mc);
 
 
 

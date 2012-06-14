@@ -122,7 +122,8 @@ void Mc::addMeasurement(int sectionId, struct timespec ts) {
 }
 
 bool Mc::isMeasured() {
-	return measuredSections.size() != 0;
+	return getMinNumMeasurementsOfAllSection() > 0;
+	//return measuredSections.size() != 0;
 }
 
 void Mc::copyConfigIntoList(list<struct opt_param_t*>* params) {
@@ -185,6 +186,10 @@ bool Mc::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct op
 	return false;
 }
 
+bool Mc::isBetterThan(Mc* mc) {
+	return this->getRelativePerformance(mc) < 100;
+}
+
 int Mc::getRelativePerformance(Mc* mc) {
 	//long long relative = 0;
 	long long thisSum = 0;
@@ -213,6 +218,11 @@ int Mc::getRelativePerformance(Mc* mc) {
 	}
 	//relative /= numTotalMeas;
 
+	if(thisSum == 0 || otherSum == 0) {
+		printf("thisSum or otherSum is 0 in getRelativePerformance in Mc class\n");
+		this->print(false);
+		mc->print(false);
+	}
 	//printf("relative performance %lld\n ", relative);
 	return (100*thisSum)/otherSum;
 }

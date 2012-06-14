@@ -3,10 +3,11 @@
 #include "RandomSearch.h"
 
 
-RandomSearch::RandomSearch(McHandler* handler, double relCov, int nHopNH):
+RandomSearch::RandomSearch(McHandler* handler, double relCov, int nHopNH, bool nelderMead):
 	mcHandler(handler),
 	relCov(relCov),
 	nHopNH(nHopNH),
+	nelderMead(nelderMead),
 	optState(FIRST_RUN) {
 }
 
@@ -18,12 +19,16 @@ RandomSearch::~RandomSearch() {
 int RandomSearch::doRandSearch() {
 	switch(this->optState) {
 		case FIRST_RUN:
-			calcNumNeededConfigs();
+			if(nelderMead) {
+				numConfigs = mcHandler->getNumParams() + 1;
+			} else {
+				calcNumNeededConfigs();
+			}
 			generateRandomConfigs();
 			this->optState = LATER_RUN;
 			//no break wanted
 		case LATER_RUN:
-			if(mcHandler->setNextNotMeasuredConfig() != 0) {
+			if(mcHandler->setNextNotMeasuredConfig() == NULL) {
 				this->optState = FINISHED;
 				return 1;
 			}

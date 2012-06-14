@@ -12,8 +12,10 @@ using namespace std;
 McHandler::McHandler(vector<int>* sectionIds):
 	sectionIds(sectionIds),
 	mcs(0),
+	bestMcs(0),
 	currentConfig(0),
-	bestMc(NULL),
+	//bestMc(NULL),
+	worstMc(NULL),
 	lastMc(NULL)
 {
 	srandom(time(NULL));
@@ -100,8 +102,16 @@ void McHandler::addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts) {
 	lastMc = mc;
 	lastTs = ts;
 	//short evaluation important here
+	if(mc->getMinNumMeasurementsOfAllSection() > 0) {
+		insertMcIntoBestMcs(mc);
+	}
+	/*
 	if(bestMc == NULL || (mc->getMinNumMeasurementsOfAllSection() > 0 && mc->getRelativePerformance(bestMc)<100)) {
 		bestMc = mc;
+	}
+	*/
+	if(worstMc == NULL || (mc->getMinNumMeasurementsOfAllSection() > 0 && mc->getRelativePerformance(worstMc)>100)) {
+		worstMc = mc;
 	}
 
 	/*
@@ -218,11 +228,25 @@ int McHandler::getNumParams() {
 	return currentConfig.size();
 }
 
+list<Mc*>* McHandler::getBestMcs() {
+	return &bestMcs;
+}
+
 Mc* McHandler::getBestMc() {
-	return bestMc;
+	if(bestMcs.size()>0) {
+		return bestMcs.front();
+	} else {
+		return NULL;
+	}
+	//return bestMc;
+}
+
+Mc* McHandler::getWorstMc() {
+	return worstMc;
 }
 
 void McHandler::setBestMcAsConfig() {
+	Mc* bestMc = getBestMc();
 	if(bestMc == NULL) return;
 	setMcAsConfig(bestMc);
 }
@@ -233,15 +257,15 @@ void McHandler::setBestMcAsConfig() {
   * the not measured mc won't be retrieved by getMcForCurrentConfigOrCreate and WILL NEVER GET A MEASURE.
   * DANGER of an endless loop, for example in RandomSearch, as there will always be a not measured config
   */
-int McHandler::setNextNotMeasuredConfig() {
+Mc* McHandler::setNextNotMeasuredConfig() {
 	vector<Mc*>::iterator mcIt;
 	for(mcIt = mcs.begin(); mcIt != mcs.end(); mcIt++) {
 		if(!(*mcIt)->isMeasured()) {
 			setMcAsConfig(*mcIt);
-			return 0;
+			return *mcIt;
 		}
 	}
-	return -1;
+	return NULL;
 }
 
 /**
@@ -343,7 +367,28 @@ int McHandler::sortedInsert(list<struct opt_param_t*>* l, struct opt_param_t* pa
 	return 0;
 }
 
+void McHandler::insertMcIntoBestMcs(Mc* mc) {
+	list<Mc*>::iterator it;
+	for(it = bestMcs.begin(); it!=bestMcs.end(); it++) {
+		if(*it == mc) 
+			return;
+	}
 
+	for(it = bestMcs.begin(); it!=bestMcs.end(); it++) {
+		if(mc->getRelativePerformance(*it) < 100) {
+			bestMcs.insert(it, mc);
+			return;
+		}
+	}
+
+	if(it == bestMcs.end()) {
+		bestMcs.push_back(mc);
+	}
+
+	while(bestMcs.size() > (unsigned) getNumParams() + 1) {
+		bestMcs.pop_back();
+	}
+}
 
 
 

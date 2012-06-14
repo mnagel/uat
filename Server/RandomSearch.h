@@ -10,7 +10,7 @@ enum RAND_OPT_STATE {
 
 class RandomSearch {
 	public:
-		RandomSearch(McHandler* handler, double relCov, int nHopNH);
+		RandomSearch(McHandler* handler, double relCov, int nHopNH, bool nelderMead);
 		~RandomSearch();
 		int doRandSearch();
 
@@ -19,8 +19,10 @@ class RandomSearch {
 		void generateRandomConfigs();
 
 		McHandler* mcHandler;
+
+		int numConfigs;
 		double relCov;
 		int nHopNH;
+		bool nelderMead;
 		RAND_OPT_STATE optState;
-		int numConfigs;
 };

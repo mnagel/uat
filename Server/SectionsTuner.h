@@ -4,7 +4,6 @@
 
 #include "McHandler.h"
 #include "Optimizer.h"
-#include "HeuristicOptimizer.h"
 
 class SectionsTuner {
 	public:
