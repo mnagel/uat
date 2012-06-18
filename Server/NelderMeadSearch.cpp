@@ -75,7 +75,8 @@ int NelderMeadSearch::doNelderMeadSearch() {
 					}
 					break;
 				case REFLECTION:
-					printf("NelderMeadSearch REFLECTION\n");
+					printf("NelderMeadSearch REFLECTION ");
+					reflectedMc->print(false);
 					if(reflectedMc->isBetterThan(simplex.front())) {
 						center = getCenter(&simplex, worstMc);
 						expandedMc = getReflectedMc(worstMc, center, 2);
@@ -119,7 +120,8 @@ int NelderMeadSearch::doNelderMeadSearch() {
 					}
 					break;
 				case EXPANSION:
-					printf("NelderMeadSearch EXPANSION\n");
+					printf("NelderMeadSearch EXPANSION ");
+					expandedMc->print(false);
 					simplex.pop_back();
 					if(expandedMc->isBetterThan(reflectedMc)) {
 						// reflectedMc needn't be deleted here, as it's added to the mcHandler
@@ -131,7 +133,8 @@ int NelderMeadSearch::doNelderMeadSearch() {
 					action = START;
 					break;
 				case CONTRACTION:
-					printf("NelderMeadSearch CONTRACTION\n");
+					printf("NelderMeadSearch CONTRACTION ");
+					contractedMc->print(false);
 					if(contractedMc->isBetterThan(worstMc)) {
 						simplex.pop_back();
 						insertIntoSimplex(contractedMc);
@@ -200,7 +203,6 @@ list<double>* NelderMeadSearch::getCenter(list<Mc*>* mcList, Mc* exceptMc) {
 	}
 
 	for(centerIt = center->begin(); centerIt != center->end(); centerIt++) {
-		//TODO maybe doubles needed?
 		*centerIt /= counter;	
 	}
 	return center;
@@ -215,7 +217,7 @@ Mc* NelderMeadSearch::getReflectedMc(Mc* mc, list<double>* center, double factor
 	for(paramIt = refMc->config.begin(), centerIt = center->begin();
 			paramIt != refMc->config.end(), centerIt != center->end();
 			paramIt++, centerIt++) {
-		paramIt->curval = *centerIt + factor * (*centerIt - paramIt->curval);
+		paramIt->curval = iround(*centerIt + factor * (*centerIt - paramIt->curval));
 		//TODO round on next step
 		if(paramIt->curval < paramIt->min || paramIt->curval > paramIt->max) {
 			delete refMc;	
@@ -239,7 +241,6 @@ void NelderMeadSearch::insertIntoSimplex(Mc* mc) {
 }
 
 void NelderMeadSearch::reduceSimplex() {
-	// TODO check here and in all other steps, if new mc is really a new one
 	Mc* existingMc;
 	list<Mc*> addList;
 	while(simplex.size() > 1) {
@@ -253,7 +254,7 @@ void NelderMeadSearch::reduceSimplex() {
 				bestParamIt != simplex.front()->config.end(),  paramIt != copy->config.end();
 				bestParamIt++, paramIt++) {
 			// can't be out of bounds
-			paramIt->curval = (bestParamIt->curval + paramIt->curval)/2;
+			paramIt->curval = iround((bestParamIt->curval + paramIt->curval)/2.0d);
 			//TODO round on next step
 		}
 		if((existingMc = mcHandler->getMcIfExists(copy))==NULL) {

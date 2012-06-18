@@ -1,4 +1,5 @@
 #include <math.h>
+#include <iterator>
 
 #include "RandomSearch.h"
 
@@ -21,10 +22,11 @@ int RandomSearch::doRandSearch() {
 		case FIRST_RUN:
 			if(nelderMead) {
 				numConfigs = mcHandler->getNumParams() + 1;
+				generateSimplexConfigs();
 			} else {
 				calcNumNeededConfigs();
+				generateRandomConfigs();
 			}
-			generateRandomConfigs();
 			this->optState = LATER_RUN;
 			//no break wanted
 		case LATER_RUN:
@@ -49,6 +51,19 @@ void RandomSearch::calcNumNeededConfigs() {
 	this->numConfigs = numConfigs/numLocalNeighbors;
 	if(numConfigs - this->numConfigs*numLocalNeighbors != 0) {
 		(this->numConfigs)++;
+	}
+}
+
+void RandomSearch::generateSimplexConfigs() {
+	Mc* midMc = mcHandler->createMcInMid();
+	mcHandler->addMc(midMc);
+	vector<struct opt_param_t>::iterator it;
+	for(int i=0; i< mcHandler->getNumParams(); i++) {
+		Mc* nextMc = midMc->getCopyWithoutMeasurements();
+		it = nextMc->config.begin();
+		advance(it, i);
+		it->curval += 1;
+		mcHandler->addMc(nextMc);
 	}
 }
 

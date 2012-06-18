@@ -13,9 +13,9 @@ using namespace std;
 
 
 Tuner* myTuner;
-#define numParas 4
-#define numSections 4
-#define numThreads 4
+#define numParas 2
+#define numSections 1
+#define numThreads 1
 
 
 int variables[] = {1, 2, 3, 4};
@@ -25,7 +25,7 @@ int optimum[] = {10, 5, 3, 46};
 pthread_t pthreads[numThreads-1];
 int finishCount = 0;
 int sections[] = {1,2,3,4,5,6,7,8,9,10};
-int parasUsedBySection[numSections][4] = {{true , true , false, false},
+int parasUsedBySection[4][4] = {{true , true , true, false},
 						        {false, false, true , false},
 						        {false, true , true , false},
 								{false, false, false, true }};
@@ -54,15 +54,17 @@ int main(int argc, char *argv[]) {
 	myTuner->tGetInitialValues();
 
 	for(int i=0; i<numThreads-1; i++) {
-		if(i==0 || i==1) {
+		if(i==0) {
 			pthread_create (pthreads+i, NULL, &run, (void*) sections);
-		} else if(i==2) {
+		} else if(i==1) {
 			pthread_create (pthreads+i, NULL, &run, (void*) (sections+1));
+		} else if(i==2) {
+			pthread_create (pthreads+i, NULL, &run, (void*) (sections+2));
 		} else {
 			pthread_create (pthreads+i, NULL, &run, (void*) (sections+3));
 		}
 	}
-	run((void*) (sections+2));
+	run((void*) (sections));
 }
 
 void finished() {

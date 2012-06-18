@@ -34,6 +34,7 @@ class McHandler {
 		void setBestMcAsConfig();
 		void setMcAsConfig(Mc* mc);
 		int computeNumPossibleConfigs();
+		Mc* createMcInMid();
 		Mc* createRandomMc();
 		void addMc(Mc* newMc);
 		bool isMcInNeighborhood(Mc* mc, int len);

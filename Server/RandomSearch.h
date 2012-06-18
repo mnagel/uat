@@ -16,6 +16,7 @@ class RandomSearch {
 
 	private:
 		void calcNumNeededConfigs();
+		void generateSimplexConfigs();
 		void generateRandomConfigs();
 
 		McHandler* mcHandler;

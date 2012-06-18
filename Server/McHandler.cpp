@@ -287,6 +287,28 @@ int McHandler::computeNumPossibleConfigs() {
 	return posConfigs;
 }
 
+Mc* McHandler::createMcInMid() {
+	Mc* midMc = new Mc(sectionIds);
+	opt_param_t curParam;
+	list<struct opt_param_t*>::iterator it;
+	for(it = currentConfig.begin(); it != currentConfig.end(); it++) {
+		// param is copied here
+		curParam = (**it);
+		curParam.curval = (curParam.max - curParam.min)/2;  
+
+		int modulo = (curParam.curval - curParam.min) % curParam.step;
+		if(modulo!=0) {
+			if(modulo > curParam.step/2) {
+				curParam.curval = curParam.curval - modulo + curParam.step;
+			} else {
+				curParam.curval = curParam.curval - modulo;
+			}
+		}
+		midMc->addParam(&curParam);
+	}
+	return midMc;
+}
+
 Mc* McHandler::createRandomMc() {
 	Mc* randomMc = new Mc(sectionIds);
 	opt_param_t curParam;
