@@ -22,7 +22,8 @@ int RandomSearch::doRandSearch() {
 		case FIRST_RUN:
 			if(nelderMead) {
 				numConfigs = mcHandler->getNumParams() + 1;
-				generateSimplexConfigs();
+				//generateSimplexConfigs();
+				generateRandomConfigs();
 			} else {
 				calcNumNeededConfigs();
 				generateRandomConfigs();

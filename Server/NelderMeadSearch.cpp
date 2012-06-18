@@ -219,10 +219,12 @@ Mc* NelderMeadSearch::getReflectedMc(Mc* mc, list<double>* center, double factor
 			paramIt++, centerIt++) {
 		paramIt->curval = iround(*centerIt + factor * (*centerIt - paramIt->curval));
 		//TODO round on next step
-		if(paramIt->curval < paramIt->min || paramIt->curval > paramIt->max) {
+		paramIt->curval = (paramIt->curval < paramIt->min) ? paramIt->min : paramIt->curval;
+		paramIt->curval = (paramIt->curval > paramIt->max) ? paramIt->max : paramIt->curval;
+		/*if(paramIt->curval < paramIt->min || paramIt->curval > paramIt->max) {
 			delete refMc;	
 			return NULL;
-		}
+		}*/
 	}
 	return refMc;
 }
