@@ -166,11 +166,46 @@ bool Mc::isInNeighborhood(Mc* mc, int len) {
 	return areParamsInRegion(&(this->config), &(mc->config), len);
 }
 
+bool Mc::isParamInNeighborhood(struct opt_param_t* param, int len) {
+	vector<struct opt_param_t>::iterator paramsIt;
+	for(paramsIt = config.begin(); paramsIt != config.end(); paramsIt++) {
+		if(paramsIt->address == param->address) {
+			if(abs(paramsIt->curval - param->curval) <= len) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+int Mc::getMaxDistance(Mc* mc) {
+	return getParamsMaxDistance(&(this->config), &(mc->config));
+}
+int Mc::getParamsMaxDistance(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2) {
+	vector<struct opt_param_t>::iterator params1It;
+	vector<struct opt_param_t>::iterator params2It;
+	int maxDist = 0;
+	for(params1It = params1->begin(), params2It = params2->begin();
+			params1It != params1->end(), params2It != params2->end();) {
+		if(params1It->address == params2It->address) {
+			if(abs(params1It->curval - params2It->curval) > maxDist) {
+				maxDist = abs(params1It->curval - params2It->curval); 
+			}
+			params1It++;
+			params2It++;
+		} else if(params1It->address < params2It->address) {
+			params1It++;
+		} else {
+			params2It++;
+		}
+	}
+	return maxDist;
+}
+
 bool Mc::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct opt_param_t>* params2, int len) {
 	vector<struct opt_param_t>::iterator params1It;
 	vector<struct opt_param_t>::iterator params2It;
 	for(params1It = params1->begin(), params2It = params2->begin();
-		params1It != params1->end(), params2It != params2->end();) {
+			params1It != params1->end(), params2It != params2->end();) {
 		if(params1It->address == params2It->address) {
 			if(abs(params1It->curval - params2It->curval) <= len) {
 				return true;

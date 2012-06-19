@@ -36,8 +36,10 @@ class McHandler {
 		int computeNumPossibleConfigs();
 		Mc* createMcInMid();
 		Mc* createRandomMc();
+		void setRandomValueForParam(struct opt_param_t* param);
 		void addMc(Mc* newMc);
 		bool isMcInNeighborhood(Mc* mc, int len);
+		bool isParamInNeighborhood(struct opt_param_t* param, int len);
 		Mc* setNextNotMeasuredConfig();
 		Mc* copyMcWithoutMeasurements(Mc* mc);
 

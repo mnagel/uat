@@ -31,13 +31,23 @@ int NelderMeadSearch::doNelderMeadSearch() {
 			this->optState = NELD_LATER_RUN;
 			//no break wanted
 		case NELD_LATER_RUN:
-			this->print();
+			//this->print();
 
-			if(action != REDUCTION && simplex.front() == simplex.back()) {
-				//when reducted there may be only one point in simplex and second statement will be always true
-				printf("NelderMeadSearch best and worst point of simplex are the same\n");
-				return 1;
-				//TODO also return if distance between best and worst gets too low
+			if(action != REDUCTION) {
+				//when reducted there may be only one point in simplex
+				list<Mc*>::iterator it;
+				int greatestMaxDist = 0;
+				for(it = simplex.begin(); it != simplex.end(); it++) {
+					if(*it == simplex.front()) {
+						continue;
+					}
+					int dist = simplex.front()->getMaxDistance(*it);
+					greatestMaxDist = dist > greatestMaxDist ? dist : greatestMaxDist;
+				}
+				if(greatestMaxDist <= 1) {
+					printf("NelderMeadSearch finished\n");
+					return 1;
+				}
 			}
 			list<double>* center; 
 			center = NULL;

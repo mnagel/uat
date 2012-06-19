@@ -63,7 +63,7 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec ts
 		Mc* mc = mapit->second;
 		//struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
 		mcHandler->addMeasurementToMc(mc, sectionId, ts);
-		//mcHandler->printAllMc(false);
+		mcHandler->printAllMc(false);
 
 		// TODO what to do, if one section stops being measured, or is never measured at all?
 		// IDEA exponential border reduction, if there is a section being measured ten times and another not at all

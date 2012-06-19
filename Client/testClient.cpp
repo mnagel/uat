@@ -13,9 +13,9 @@ using namespace std;
 
 
 Tuner* myTuner;
-#define numParas 2
-#define numSections 1
-#define numThreads 1
+#define numParas 4
+#define numSections 3
+#define numThreads 4
 
 
 int variables[] = {1, 2, 3, 4};

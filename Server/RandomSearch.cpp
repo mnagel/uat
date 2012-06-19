@@ -71,7 +71,6 @@ void RandomSearch::generateSimplexConfigs() {
 void RandomSearch::generateRandomConfigs() {
 	/* create random configurations: be sure to create cfgs which are not
 	 * in the neighborhood of existing cfgs */
-	int nhopFactor = 3;
 	for (int i = 0; i < this->numConfigs; i++) {
 		Mc* randomMc = mcHandler->createRandomMc();
 
@@ -88,21 +87,30 @@ void RandomSearch::generateRandomConfigs() {
 		 * der Nachbarschaft liegt und wann nicht; Semantik wäre dann
 		 * leicht anders, wenn man z.B. sagt, dass der Abstand
 		 * mindestens num_params*nHopNH betragen muss!
-		 *
-		 * TODO: Heuristik wird schlecht umgesetzt, gibt es nur einen Parameter, der 
-		 * aufgrund seines kleinen Wertebereichs die neighborhood Bedingungen
-		 * 1-3 kaum einhalten kann, so wird dies automatisch auch für alle anderen
-		 * Paramter nicht mehr gefordert
 		 */
-		if (nhopFactor > 0) {
+		vector<struct opt_param_t>::iterator it;
+		for(it = randomMc->config.begin(); it != randomMc->config.end(); it++) {
+			int nhopFactor = 3;
+			int currentDist = nhopFactor*nHopNH;
+			while(currentDist > 0 && mcHandler->isParamInNeighborhood(&(*it), currentDist)) {
+				// Abstandsbedingung ist einzuhalten:
+				if((it->max - it->min) > currentDist * (i+1)) {
+					mcHandler->setRandomValueForParam(&(*it));
+					for(int randTry = 0; randTry < 3 && mcHandler->isParamInNeighborhood(&(*it), currentDist); randTry++) {
+						mcHandler->setRandomValueForParam(&(*it));
+					}
+				}
+				currentDist -= nHopNH;
+			}
+		}
+		/*if (nhopFactor > 0) {
 			if (mcHandler->isMcInNeighborhood(randomMc, nhopFactor*nHopNH)) {
 				i--;
 				delete randomMc;
 				nhopFactor--;
 				continue ;
 			}
-		}
+		}*/
 		mcHandler->addMc(randomMc);
-		nhopFactor = 3;
 	}
 }

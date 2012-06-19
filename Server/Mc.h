@@ -26,6 +26,9 @@ class Mc {
 		unsigned long getHash();
 		Mc* getCopyWithoutMeasurements();
 		bool isInNeighborhood(Mc* mc, int len);
+		bool isParamInNeighborhood(struct opt_param_t* param, int len);
+		int getMaxDistance(Mc* mc);
+		int getParamsMaxDistance(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2);
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		bool isBetterThan(Mc* mc);
 		int getRelativePerformance(Mc* mc);

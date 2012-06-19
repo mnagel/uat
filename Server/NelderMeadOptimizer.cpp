@@ -4,6 +4,7 @@ NelderMeadOptimizer::NelderMeadOptimizer(McHandler* handler):
 	Optimizer(handler),
 	randSearch(new RandomSearch(handler,  0.1d, 3, true)),
 	neldSearch(new NelderMeadSearch(handler)), 
+	locSearch(new LocalSearch(handler, 101, 2)),
 	optState(NELD_RANDOM_SEARCH) {
 
 }
@@ -26,6 +27,12 @@ void NelderMeadOptimizer::chooseNewValues() {
 			break;
 		case NELD_NELDER_MEAD_SEARCH:
 			if(neldSearch->doNelderMeadSearch()>0) {
+				this->optState = NELD_LOCAL_SEARCH;
+				this->chooseNewValues();
+			}
+			break;
+		case NELD_LOCAL_SEARCH:
+			if(locSearch->doLocalSearch()>0) {
 				this->optState = NELD_FULLY_OPTIMIZED;
 				this->chooseNewValues();
 			}

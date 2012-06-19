@@ -316,20 +316,24 @@ Mc* McHandler::createRandomMc() {
 	for(it = currentConfig.begin(); it != currentConfig.end(); it++) {
 		// param is copied here
 		curParam = (**it);
-		int range = curParam.max - curParam.min + 1;
-		curParam.curval = rand() % range + curParam.min;  
-
-		int modulo = (curParam.curval - curParam.min) % curParam.step;
-		if(modulo!=0) {
-			if(modulo > curParam.step/2) {
-				curParam.curval = curParam.curval - modulo + curParam.step;
-			} else {
-				curParam.curval = curParam.curval - modulo;
-			}
-		}
+		setRandomValueForParam(&curParam);
 		randomMc->addParam(&curParam);
 	}
 	return randomMc;
+}
+
+void McHandler::setRandomValueForParam(struct opt_param_t* param) {
+		int range = param->max - param->min + 1;
+		param->curval = rand() % range + param->min;  
+
+		int modulo = (param->curval - param->min) % param->step;
+		if(modulo!=0) {
+			if(modulo > param->step/2) {
+				param->curval = param->curval - modulo + param->step;
+			} else {
+				param->curval = param->curval - modulo;
+			}
+		}
 }
 
 void McHandler::addMc(Mc* newMc) {
@@ -353,6 +357,16 @@ bool McHandler::isMcInNeighborhood(Mc* mc, int len) {
 	vector<Mc*>::iterator mcIt;
 	for(mcIt = mcs.begin(); mcIt != mcs.end(); mcIt++) {
 		if(mc->isInNeighborhood(*mcIt, len)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool McHandler::isParamInNeighborhood(struct opt_param_t* param, int len) {
+	vector<Mc*>::iterator mcIt;
+	for(mcIt = mcs.begin(); mcIt != mcs.end(); mcIt++) {
+		if((*mcIt)->isParamInNeighborhood(param, len)) {
 			return true;
 		}
 	}
