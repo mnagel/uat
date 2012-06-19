@@ -9,8 +9,10 @@
 
 using namespace std;
 
-McHandler::McHandler(vector<int>* sectionIds):
+McHandler::McHandler(vector<int>* sectionIds, map<int, list<struct opt_param_t*>*>* sectionParamsMap, map<struct opt_param_t*, list<int>*>* paramSectionsMap):
 	sectionIds(sectionIds),
+	sectionParamsMap(sectionParamsMap),
+	paramSectionsMap(paramSectionsMap),
 	mcs(0),
 	bestMcs(0),
 	currentConfig(0),

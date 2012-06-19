@@ -12,7 +12,7 @@
 class McHandler {
 
 	public:
-		McHandler(std::vector<int>* sectionIds);
+		McHandler(std::vector<int>* sectionIds, std::map<int, list<struct opt_param_t*>*>* sectionParamsMap, std::map<struct opt_param_t*, list<int>*>* paramSectionsMap);
 		~McHandler();
 		Mc* getMcForCurrentConfigOrCreate();
 		Mc* getMcIfExists(Mc* mc);
@@ -47,6 +47,8 @@ class McHandler {
 
 	private:
 		std::vector<int>* sectionIds;
+		std::map<int, list<struct opt_param_t*>*>* sectionParamsMap;
+		std::map<struct opt_param_t*, list<int>*>* paramSectionsMap;
 		std::vector<Mc*> mcs;
 		std::list<Mc*> bestMcs;
 		std::list<struct opt_param_t*> currentConfig;

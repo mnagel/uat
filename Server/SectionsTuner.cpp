@@ -7,15 +7,19 @@
 #include "NelderMeadOptimizer.h"
 
 using namespace std;
-
-SectionsTuner::SectionsTuner(): 
+// TODO it would be better to copy the two maps but lists being pointed at would also have to be copied
+SectionsTuner::SectionsTuner(map<int, list<struct opt_param_t*>*>* sectionParamsMap, map<struct opt_param_t*, list<int>*>* paramSectionsMap): 
 	sectionIds(0), 
-	mcHandler(new McHandler(&sectionIds)), 
+	sectionParamsMap(sectionParamsMap),
+	paramSectionsMap(paramSectionsMap),
+	mcHandler(new McHandler(&sectionIds, sectionParamsMap, paramSectionsMap)), 
 	optimizer((Optimizer*) new NelderMeadOptimizer(mcHandler)) {
 
 }
 
 SectionsTuner::~SectionsTuner() {
+	delete optimizer;
+	delete mcHandler;
 
 }
 

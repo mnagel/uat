@@ -19,7 +19,7 @@ int global = 0;
 
 ProcessTuner::ProcessTuner(int fdConn):
 	udsComm(new UDSCommunicator(fdConn)),
-	mcHandler(new McHandler(NULL)),
+	mcHandler(new McHandler(NULL, NULL, NULL)),
 	optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)),
 	processTunerListener(0),
 	runLoop(true),
@@ -261,7 +261,7 @@ void ProcessTuner::createSectionsTuners() {
 
 	for(sectionIdsIt = sectionIds.begin(); sectionIdsIt != sectionIds.end(); sectionIdsIt++) {
 		if(sectionsTunersMap.find(*sectionIdsIt) == sectionsTunersMap.end()) {
-			SectionsTuner* newSectionsTuner = new SectionsTuner();
+			SectionsTuner* newSectionsTuner = new SectionsTuner(&sectionParamsMap, &paramSectionsMap);
 			newSectionsTuner->addSectionId(*sectionIdsIt);
 			sectionsTunersMap.insert(pair<int, SectionsTuner*>(*sectionIdsIt, newSectionsTuner));
 			sectionsTuners.push_back(newSectionsTuner);

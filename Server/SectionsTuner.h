@@ -7,7 +7,7 @@
 
 class SectionsTuner {
 	public:
-		SectionsTuner();
+		SectionsTuner(std::map<int, list<struct opt_param_t*>*>* sectionParamsMap, std::map<struct opt_param_t*, list<int>*>* paramSectionsMap);
 		~SectionsTuner();
 		int addSectionId(int sectionId);
 		int addParam(struct opt_param_t* param);
@@ -18,6 +18,8 @@ class SectionsTuner {
 
 	private:
 		std::vector<int> sectionIds;
+		std::map<int, list<struct opt_param_t*>*>* sectionParamsMap;
+		std::map<struct opt_param_t*, list<int>*>* paramSectionsMap;
 		McHandler* mcHandler;
 		Optimizer* optimizer;
 		std::map<pid_t, Mc*> threadMcMap;
