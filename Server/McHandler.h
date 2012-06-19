@@ -42,6 +42,8 @@ class McHandler {
 		bool isParamInNeighborhood(struct opt_param_t* param, int len);
 		Mc* setNextNotMeasuredConfig();
 		Mc* copyMcWithoutMeasurements(Mc* mc);
+		double getParamImportanceForSection(int sectionId, int* paramAddress);
+
 
 		static int sortedInsert(std::list<struct opt_param_t*>* l, struct opt_param_t* param);
 

@@ -379,6 +379,29 @@ Mc* McHandler::copyMcWithoutMeasurements(Mc* mc) {
 	return mc->getCopyWithoutMeasurements();
 }
 
+double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress) {
+	vector<Mc*>::iterator outerIt;
+	vector<Mc*>::iterator innerIt;
+	int numComparisons = 0;
+	double improvement;
+	for(outerIt = mcs.begin(); outerIt != mcs.end(); outerIt++) {
+		for(innerIt = outerIt + 1; innerIt != mcs.end(); innerIt++) {
+			int distInSteps;
+			if((distInSteps = (*outerIt)->differsOnlyInParamByDist(*innerIt, paramAddress)) != -1) {
+				numComparisons++;
+				long long outerAverage = (*outerIt)->getAverage(sectionId);	
+				long long innerAverage = (*innerIt)->getAverage(sectionId);	
+				if(innerAverage < outerAverage) {
+					improvement += (outerAverage - innerAverage)/((double) outerAverage)/distInSteps;
+				} else {
+					improvement += (innerAverage - outerAverage)/((double) innerAverage)/distInSteps;
+				}
+			}
+		}
+	}
+	return improvement/numComparisons;
+}
+
 unsigned long McHandler::getHash(list<struct opt_param_t*>* paramList) {
 	list<struct opt_param_t*>::iterator paramIterator;
 	unsigned long hash = 0;

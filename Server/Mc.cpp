@@ -221,6 +221,40 @@ bool Mc::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct op
 	return false;
 }
 
+/*
+ * returns -1 if also differs in other param
+ */
+int Mc::differsOnlyInParamByDist(Mc* mc, int* paramAddress) {
+	vector<struct opt_param_t>::iterator params1It;
+	vector<struct opt_param_t>::iterator params2It;
+	bool differsOnlyInParam = true;
+	int distInSteps = -1;
+	for(params1It = this->config.begin(), params2It = mc->config.begin();
+			params1It != this->config.end(), params2It != mc->config.end();) {
+		if(params1It->address == params2It->address) {
+			if(params1It->address == paramAddress) {					
+				distInSteps = abs(params1It->curval - params2It->curval)/params1It->step;
+			} else {
+				if(abs(params1It->curval - params2It->curval) > 0) {
+					differsOnlyInParam = false;
+					break;
+				}
+			}
+			params1It++;
+			params2It++;
+		} else if(params1It->address < params2It->address) {
+			params1It++;
+		} else {
+			params2It++;
+		}
+	}
+
+	if(!differsOnlyInParam) {
+		distInSteps = -1;
+	}
+	return distInSteps;
+}
+
 bool Mc::isBetterThan(Mc* mc) {
 	return this->getRelativePerformance(mc) < 100;
 }
