@@ -51,6 +51,7 @@ struct tmsgSetValue {
 };
 
 struct tmsgStopMeas {
-	timespec tsMeasureDiff;
+	timespec tsMeasureStart;
+	timespec tsMeasureStop;
 	int sectionId;
 };

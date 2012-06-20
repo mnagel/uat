@@ -8,7 +8,8 @@ using namespace std;
 Mc::Mc(vector<int>* sectionIds):
 	config(0),
 	sectionIds(sectionIds),
-	measuredSections(0) {
+	measuredSections(0),
+	measurementsRunning(false) {
 		runtimeOfMeasurements.tv_sec = 0;
 		runtimeOfMeasurements.tv_nsec = 0;
 
@@ -17,9 +18,12 @@ Mc::Mc(vector<int>* sectionIds):
 Mc::~Mc() {
 	vector<int>::iterator it;
 	map<int, vector<struct optThreadMeas>*>::iterator mapit;
+	map<int, vector<struct optThreadMeas>*>::iterator runtimesMapit;
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		mapit = measurements.find(*it);
 		delete mapit->second;	
+		runtimesMapit = runtimes.find(*it);
+		delete runtimesMapit->second;	
 	}
 }
 bool Mc::matchesConfig(list<opt_param_t*>* params) {
@@ -59,20 +63,25 @@ bool Mc::matchesMc(Mc* mc) {
 }
 
 void Mc::print(bool longVersion) {
-		vector<struct opt_param_t>::iterator param_iterator;
-		for ( param_iterator=this->config.begin() ; param_iterator < this->config.end(); param_iterator++ ) {
-			if(longVersion) {
-				printf("\t\tparameter value: %d\n", param_iterator->curval);
-			} else {
-				printf("\t\t%d ", param_iterator->curval);
-			}
-		}
+	vector<struct opt_param_t>::iterator param_iterator;
+	for ( param_iterator=this->config.begin() ; param_iterator < this->config.end(); param_iterator++ ) {
 		if(longVersion) {
-			printf("\n\t\tmeasurements:\n");
+			printf("\t\tparameter value: %d\n", param_iterator->curval);
 		} else {
-			printf("\tmeas: ");
+			printf("\t\t%d ", param_iterator->curval);
 		}
-			
+	}
+	if(longVersion) {
+		printf("\n\t\truntime measurements: %ld.%09d\n", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
+	} else {
+		printf("\truntime measurements: %ld.%09d", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
+	}
+	if(longVersion) {
+		printf("\n\t\tmeasurements:\n");
+	} else {
+		printf("\tmeas: ");
+	}
+
 	vector<int>::iterator it;
 	vector<struct optThreadMeas>::iterator tsIt;
 	map<int, vector<struct optThreadMeas>*>::iterator mapit;
@@ -106,7 +115,7 @@ void Mc::print(bool longVersion) {
 }
 
 void Mc::addParam(struct opt_param_t* param) {
-		this->config.push_back(*param);
+	this->config.push_back(*param);
 }
 
 void Mc::addMeasurement(pid_t tid, int sectionId, struct timespec ts) {
@@ -124,9 +133,63 @@ void Mc::addMeasurement(pid_t tid, int sectionId, struct timespec ts) {
 	struct optThreadMeas threadMeas;
 	threadMeas.tid = tid;
 	threadMeas.ts = ts;
-	
+
 
 	specs->push_back(threadMeas);
+}
+
+void Mc::addRuntimeForThreadAndSection(pid_t tid, int sectionId, struct timespec tsStart, struct timespec tsStop, bool stillRunning) {
+	// get runtimes vector for that section
+	vector<struct optThreadMeas>* sectionRuntimes;
+	map<int, vector<struct optThreadMeas>*>::iterator mapIt;
+	mapIt = runtimes.find(sectionId);
+	if(mapIt == runtimes.end()) {
+		sectionRuntimes = new vector<struct optThreadMeas>;
+		runtimes.insert(pair<int, vector<struct optThreadMeas>*>(sectionId, sectionRuntimes));
+	} else {
+		sectionRuntimes = mapIt->second;
+	}
+
+	// adjust start and stop time for special cases
+	map<pid_t, struct timespec>::iterator insertedIt;
+	insertedIt = runtimeInsertedTill.find(tid);
+
+	if(insertedIt != runtimeInsertedTill.end()) {
+		if(isTimespecLower(tsStart, insertedIt->second)) {
+			tsStart = insertedIt->second;
+		}
+		runtimeInsertedTill.erase(insertedIt);
+	}
+
+	if(isTimespecLower(tsStart, startOfMeasurements)) {
+		tsStart = startOfMeasurements;
+	}
+
+	if(stillRunning) {
+		clock_gettime(CLOCK_MONOTONIC, &tsStop);
+	}
+	runtimeInsertedTill.insert(pair<pid_t, struct timespec>(tid, tsStop));
+
+	//insert runtime
+	struct timespec tsToAdd;
+	tsToAdd = diff(tsStart, tsStop);
+
+	vector<struct optThreadMeas>::iterator measIt;
+	bool found = false;
+	for(measIt = sectionRuntimes->begin(); measIt != sectionRuntimes->end(); measIt++) {
+		if(measIt->tid == tid) {
+			found = true;
+			measIt->ts = tsAdd(measIt->ts, tsToAdd);
+			break;
+		}
+	}
+
+	if(!found) {
+		struct optThreadMeas newThreadMeas;
+		newThreadMeas.tid = tid;
+		newThreadMeas.ts = tsToAdd;
+		sectionRuntimes->push_back(newThreadMeas);
+	}
 }
 
 bool Mc::isMeasured() {
@@ -352,15 +415,21 @@ long long Mc::getAverage(vector<struct optThreadMeas>* meas) {
 }
 
 void Mc::startMeasurements() {
-	clock_gettime(CLOCK_MONOTONIC, &startOfMeasurements);
+	if(!measurementsRunning) {
+		clock_gettime(CLOCK_MONOTONIC, &startOfMeasurements);
+		measurementsRunning = true;
+	}
 }
 
 void Mc::stopMeasurements() {
-	timespec stopOfMeasurements;
-	timespec tsDiff;
-	clock_gettime(CLOCK_MONOTONIC, &stopOfMeasurements); 
-	tsDiff = diff(startOfMeasurements, stopOfMeasurements);
-	this->runtimeOfMeasurements = tsAdd(tsDiff, this->runtimeOfMeasurements);
+	if(measurementsRunning) {
+		timespec stopOfMeasurements;
+		timespec tsDiff;
+		clock_gettime(CLOCK_MONOTONIC, &stopOfMeasurements); 
+		tsDiff = diff(startOfMeasurements, stopOfMeasurements);
+		this->runtimeOfMeasurements = tsAdd(tsDiff, this->runtimeOfMeasurements);
+		measurementsRunning = false;
+	}
 }
 
 

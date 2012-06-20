@@ -161,12 +161,14 @@ int Tuner::tStop(int sectionId) {
 	threadControlBlock_t* tcb = getOrCreateTcb();
 
 	timespec tsMeasureStop;
-	timespec tsMeasureDiff;
+	//timespec tsMeasureDiff;
 	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStop);
-	tsMeasureDiff = diff(tcb->tsMeasureStart, tsMeasureStop);
+	//tsMeasureDiff = diff(tcb->tsMeasureStart, tsMeasureStop);
 
 	struct tmsgStopMeas msg;
-	msg.tsMeasureDiff = tsMeasureDiff;
+	//msg.tsMeasureDiff = tsMeasureDiff;
+	msg.tsMeasureStart = tcb->tsMeasureStart;
+	msg.tsMeasureStop = tsMeasureStop;
 	msg.sectionId = sectionId;
 
 	sem_wait(&sendSem);

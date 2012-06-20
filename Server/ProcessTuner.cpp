@@ -167,7 +167,7 @@ void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartM
 	map<int, SectionsTuner*>::iterator it;
 	it = sectionsTunersMap.find(msg->sectionId);
 	if(it != sectionsTunersMap.end()) {
-		it->second->startMeasurement(currentTid);
+		it->second->startMeasurement(currentTid, msg->sectionId);
 	}
 	udsComm->sendMsgHead(TMSG_GRANT_START_MEASUREMENT, this->currentTid);
 }
@@ -176,7 +176,8 @@ void ProcessTuner::handleStopMeasurementMessage(tmsgStopMeas* msg) {
 	map<int, SectionsTuner*>::iterator it;
 	it = sectionsTunersMap.find(msg->sectionId);
 	if(it != sectionsTunersMap.end()) {
-		it->second->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureDiff);
+		//it->second->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureDiff);
+		it->second->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureStart, msg->tsMeasureStop);
 	}
 	/* params are global and exist only once -> if sectionsTuner changes them in stopMeasurement they will be also changed for this ProcessTuner */
 	this->sendAllChangedParams();

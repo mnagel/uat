@@ -12,6 +12,11 @@
 #include "../utils.h"
 #include "../UDSCommunicator.h"
 
+struct threadSectionKey {
+	pid_t tid;
+	int sectionId;
+};
+
 class Mc {
 	public:
 		Mc(std::vector<int>* sectionIds);
@@ -21,6 +26,7 @@ class Mc {
 		void print(bool longVersion);
 		void addParam(struct opt_param_t* param);
 		void addMeasurement(pid_t tid, int sectionId, struct timespec ts);
+		void addRuntimeForThreadAndSection(pid_t tid, int sectionId, struct timespec tsStart, struct timespec tsStop, bool stillRunning);
 		bool isMeasured();
 		void copyConfigIntoList(list<struct opt_param_t*>* params);
 		unsigned long getHash();
@@ -45,7 +51,10 @@ class Mc {
 	private:
 		std::vector<int>* sectionIds;
 		std::map<int, std::vector<struct optThreadMeas>*> measurements;
+		std::map<int, std::vector<struct optThreadMeas>*> runtimes;
+		std::map<pid_t, struct timespec> runtimeInsertedTill;
 		std::vector<int> measuredSections;
+		bool measurementsRunning;
 		timespec startOfMeasurements;
 		timespec runtimeOfMeasurements;
 };
