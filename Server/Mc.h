@@ -38,10 +38,14 @@ class Mc {
 		int getMinNumMeasurementsOfSections(std::vector<int>* sections);
 		long long getAverage(int sectionId);
 		long long getAverage(vector<struct optThreadMeas>* meas);
+		void startMeasurements();
+		void stopMeasurements();
 
 		std::vector<struct opt_param_t> config;
 	private:
 		std::vector<int>* sectionIds;
 		std::map<int, std::vector<struct optThreadMeas>*> measurements;
 		std::vector<int> measuredSections;
+		timespec startOfMeasurements;
+		timespec runtimeOfMeasurements;
 };

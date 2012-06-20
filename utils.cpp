@@ -25,6 +25,18 @@ timespec diff(timespec start, timespec end) {
 	return diff;
 }
 
+timespec tsAdd(timespec ts1, timespec ts2) {
+	timespec sum;
+	if ((ts1.tv_nsec + ts2.tv_nsec)>=1000000000) {
+		sum.tv_sec = ts1.tv_sec + ts2.tv_sec + 1;
+		sum.tv_nsec = ts1.tv_nsec + ts2.tv_nsec - 1000000000;
+	} else {
+		sum.tv_sec = ts1.tv_sec + ts2.tv_sec;
+		sum.tv_nsec = ts1.tv_nsec + ts2.tv_nsec;
+	}
+	return sum;
+}
+
 long long timespecToLongLong(timespec ts) {
 	return ((long long) ts.tv_sec) * 1000000000 + ts.tv_nsec;
 }

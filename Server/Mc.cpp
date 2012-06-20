@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <time.h>
 
 #include "Mc.h"
 
@@ -8,6 +9,8 @@ Mc::Mc(vector<int>* sectionIds):
 	config(0),
 	sectionIds(sectionIds),
 	measuredSections(0) {
+		runtimeOfMeasurements.tv_sec = 0;
+		runtimeOfMeasurements.tv_nsec = 0;
 
 }
 
@@ -348,6 +351,17 @@ long long Mc::getAverage(vector<struct optThreadMeas>* meas) {
 	return average;
 }
 
+void Mc::startMeasurements() {
+	clock_gettime(CLOCK_MONOTONIC, &startOfMeasurements);
+}
+
+void Mc::stopMeasurements() {
+	timespec stopOfMeasurements;
+	timespec tsDiff;
+	clock_gettime(CLOCK_MONOTONIC, &stopOfMeasurements); 
+	tsDiff = diff(startOfMeasurements, stopOfMeasurements);
+	this->runtimeOfMeasurements = tsAdd(tsDiff, this->runtimeOfMeasurements);
+}
 
 
 
