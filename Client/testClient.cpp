@@ -25,7 +25,7 @@ int optimum[] = {10, 5, 3, 46};
 pthread_t pthreads[numThreads-1];
 int finishCount = 0;
 int sections[] = {1,2,3,4,5,6,7,8,9,10};
-int parasUsedBySection[4][4] = {{true , true , true, false},
+int parasUsedBySection[4][4] = {{true , true , false, false},
 						        {false, false, true , false},
 						        {false, true , true , false},
 								{false, false, false, true }};

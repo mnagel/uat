@@ -66,7 +66,7 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec ts
 	if(mapit != threadMcMap.end()) {
 		Mc* mc = mapit->second;
 		//struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
-		mcHandler->addMeasurementToMc(mc, sectionId, ts);
+		mcHandler->addMeasurementToMc(mc, tid, sectionId, ts);
 		mcHandler->printAllMc(false);
 
 		// TODO what to do, if one section stops being measured, or is never measured at all?

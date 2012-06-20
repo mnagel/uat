@@ -205,6 +205,7 @@ void LocalSearch::setNextCurParamValue() {
 		vector<struct opt_param_t*> paramsInfluencingNSectionsAndHavingDirection;
 		vector<struct opt_param_t*>::iterator paramsIt;
 		for(paramsIt = paramsInfluencingNSections.begin(); paramsIt != paramsInfluencingNSections.end(); paramsIt++) {
+			printf("param influencing %d sections at address: %p\n", n, (*paramsIt)->address);
 			int index = mcHandler->getParamIndexInConfig(*paramsIt);	
 			if(getNextDirectionForParam(index) != 0) {
 				paramsInfluencingNSectionsAndHavingDirection.push_back(*paramsIt);	
@@ -224,7 +225,10 @@ void LocalSearch::setNextCurParamValue() {
 				list<int>* sectionsInfluenced = mcHandler->getSectionsInfluencedByParam(*paramsIt);
 				double importance = 0.0d;
 				for(sectionsIt = sectionsInfluenced->begin(); sectionsIt != sectionsInfluenced->end(); sectionsIt++) {
+					double printImportance = importance;
 					importance += mcHandler->getParamImportanceForSection(*sectionsIt, (*paramsIt)->address); 
+					printImportance = importance - printImportance;
+					printf("param importance of %p for section %d is %f\n", (*paramsIt)->address, *sectionsIt, printImportance);
 				}
 				if(importance > maxImportance) {
 					bestParam = *paramsIt;

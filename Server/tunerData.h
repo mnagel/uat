@@ -37,6 +37,11 @@ struct opt_param_t {
 	bool newHint;
 };
 
+struct optThreadMeas {
+	pid_t tid;
+	timespec ts;
+};
+
 struct opt_mc_t {
 	/* the configuration which was / shall be used for the measure */
 	std::vector<opt_param_t> config;

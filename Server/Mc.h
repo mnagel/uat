@@ -20,7 +20,7 @@ class Mc {
 		bool matchesMc(Mc* mc);
 		void print(bool longVersion);
 		void addParam(struct opt_param_t* param);
-		void addMeasurement(int sectionId, struct timespec ts);
+		void addMeasurement(pid_t tid, int sectionId, struct timespec ts);
 		bool isMeasured();
 		void copyConfigIntoList(list<struct opt_param_t*>* params);
 		unsigned long getHash();
@@ -37,11 +37,11 @@ class Mc {
 		int getMinNumMeasurementsOfSectionsMeasured();
 		int getMinNumMeasurementsOfSections(std::vector<int>* sections);
 		long long getAverage(int sectionId);
-		long long getAverage(vector<struct timespec>* meas);
+		long long getAverage(vector<struct optThreadMeas>* meas);
 
 		std::vector<struct opt_param_t> config;
 	private:
 		std::vector<int>* sectionIds;
-		std::map<int, std::vector<timespec>*> measurements;
+		std::map<int, std::vector<struct optThreadMeas>*> measurements;
 		std::vector<int> measuredSections;
 };

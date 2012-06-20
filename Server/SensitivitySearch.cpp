@@ -32,10 +32,14 @@ int SensitivitySearch::doSensSearch() {
 }
 
 void SensitivitySearch::generateSensitivityConfigs() {
-	Mc* bestMc = mcHandler->getBestMc();
+	Mc* startMc = mcHandler->getBestMc();
+	if(startMc == NULL) {
+		startMc = mcHandler->createMcInMid();
+		mcHandler->addMc(startMc);
+	}
 	vector<struct opt_param_t>::iterator it;
 	for(int i=0; i< mcHandler->getNumParams()*2; i++) {
-		Mc* nextMc = bestMc->getCopyWithoutMeasurements();
+		Mc* nextMc = startMc->getCopyWithoutMeasurements();
 		it = nextMc->config.begin();
 		advance(it, i/2);
 		if(i%2 == 0) {

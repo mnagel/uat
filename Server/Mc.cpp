@@ -13,7 +13,7 @@ Mc::Mc(vector<int>* sectionIds):
 
 Mc::~Mc() {
 	vector<int>::iterator it;
-	map<int, vector<struct timespec>*>::iterator mapit;
+	map<int, vector<struct optThreadMeas>*>::iterator mapit;
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		mapit = measurements.find(*it);
 		delete mapit->second;	
@@ -71,8 +71,8 @@ void Mc::print(bool longVersion) {
 		}
 			
 	vector<int>::iterator it;
-	vector<struct timespec>::iterator tsIt;
-	map<int, vector<struct timespec>*>::iterator mapit;
+	vector<struct optThreadMeas>::iterator tsIt;
+	map<int, vector<struct optThreadMeas>*>::iterator mapit;
 	int counter = 0;
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		if(longVersion) {
@@ -91,9 +91,9 @@ void Mc::print(bool longVersion) {
 		mapit = measurements.find(*it);
 		for(tsIt = mapit->second->begin(); tsIt != mapit->second->end(); tsIt++) {
 			if(longVersion) {
-				printf("\t\tmeasurement value: sec: %ld nsec: %d\n", tsIt->tv_sec, (int) tsIt->tv_nsec);
+				printf("\t\tmeasurement value: sec: %ld nsec: %d\n", tsIt->ts.tv_sec, (int) tsIt->ts.tv_nsec);
 			} else {
-				printf("%ld.%09d ", tsIt->tv_sec, (int) tsIt->tv_nsec);
+				printf("%ld.%09d ", tsIt->ts.tv_sec, (int) tsIt->ts.tv_nsec);
 			}
 
 		}
@@ -106,19 +106,24 @@ void Mc::addParam(struct opt_param_t* param) {
 		this->config.push_back(*param);
 }
 
-void Mc::addMeasurement(int sectionId, struct timespec ts) {
-	vector<timespec>* specs;
-	map<int, vector<timespec>*>::iterator mapIt;
+void Mc::addMeasurement(pid_t tid, int sectionId, struct timespec ts) {
+	vector<struct optThreadMeas>* specs;
+	map<int, vector<struct optThreadMeas>*>::iterator mapIt;
 	mapIt = measurements.find(sectionId);
 	if(mapIt == measurements.end()) {
 		sortedInsert(&measuredSections, sectionId);
-		specs = new vector<timespec>;
-		measurements.insert(pair<int, vector<timespec>*>(sectionId, specs));
+		specs = new vector<struct optThreadMeas>;
+		measurements.insert(pair<int, vector<struct optThreadMeas>*>(sectionId, specs));
 	} else {
 		specs = mapIt->second;
 	}
 
-	specs->push_back(ts);
+	struct optThreadMeas threadMeas;
+	threadMeas.tid = tid;
+	threadMeas.ts = ts;
+	
+
+	specs->push_back(threadMeas);
 }
 
 bool Mc::isMeasured() {
@@ -265,7 +270,7 @@ int Mc::getRelativePerformance(Mc* mc) {
 	long long otherSum = 0;
 
 	vector<int>::iterator it;
-	map<int, std::vector<timespec>*>::iterator mapIt;
+	map<int, std::vector<struct optThreadMeas>*>::iterator mapIt;
 
 	int numTotalMeas = 0;
 	for(it=measuredSections.begin(); it != measuredSections.end(); it++) {
@@ -307,7 +312,7 @@ int Mc::getMinNumMeasurementsOfSectionsMeasured() {
 int Mc::getMinNumMeasurementsOfSections(vector<int>* sections) {
 	int min = INT_MAX;
 	vector<int>::iterator sectionsIt;
-	map<int, std::vector<timespec>*>::iterator mapIt;
+	map<int, std::vector<struct optThreadMeas>*>::iterator mapIt;
 	for(sectionsIt = sections->begin(); sectionsIt != sections->end(); sectionsIt++) {
 		mapIt = measurements.find(*sectionsIt);
 		if(mapIt == measurements.end()) {
@@ -323,7 +328,7 @@ int Mc::getMinNumMeasurementsOfSections(vector<int>* sections) {
 long long Mc::getAverage(int sectionId) {
 	long long average = 0;
 
-	map<int, vector<struct timespec>*>::iterator mapIt;
+	map<int, vector<struct optThreadMeas>*>::iterator mapIt;
 	mapIt = measurements.find(sectionId);
 	if(mapIt != measurements.end()) {
 		average = getAverage(mapIt->second);
@@ -331,13 +336,13 @@ long long Mc::getAverage(int sectionId) {
 	return average;
 }
 
-long long Mc::getAverage(vector<struct timespec>* meas) {
+long long Mc::getAverage(vector<struct optThreadMeas>* meas) {
 	long long average;
 	long long sum = 0;
 
-	vector<struct timespec>::iterator it;
+	vector<struct optThreadMeas>::iterator it;
 	for(it = meas->begin(); it != meas->end(); it++) {
-		sum += timespecToLongLong(*it);
+		sum += timespecToLongLong(it->ts);
 	}
 	average = sum/meas->size();
 	return average;

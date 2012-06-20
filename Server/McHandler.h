@@ -17,7 +17,7 @@ class McHandler {
 		Mc* getMcForCurrentConfigOrCreate();
 		Mc* getMcIfExists(Mc* mc);
 		Mc* addMcForCurrentConfig(unsigned long currentConfigHash);
-		void addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts);
+		void addMeasurementToMc(Mc* mc, pid_t tid, int sectionId, struct timespec ts);
 		void addParam(struct opt_param_t* param);
 		void printCurrentConfig();
 		void printAllMc(bool longVersion);

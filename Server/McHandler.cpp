@@ -99,8 +99,8 @@ Mc* McHandler::addMcForCurrentConfig(unsigned long currentConfigHash) {
 	return newMc;
 }
 
-void McHandler::addMeasurementToMc(Mc* mc, int sectionId, struct timespec ts) {
-	mc->addMeasurement(sectionId, ts);
+void McHandler::addMeasurementToMc(Mc* mc, pid_t tid, int sectionId, struct timespec ts) {
+	mc->addMeasurement(tid, sectionId, ts);
 	lastMc = mc;
 	lastTs = ts;
 	//short evaluation important here
@@ -404,7 +404,12 @@ double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress)
 			}
 		}
 	}
-	return improvement/numComparisons;
+	if(numComparisons > 0) {
+		return improvement/numComparisons;
+	} else {
+		// return high importance, as that param has never been tested for that section
+		return 1.0;
+	}
 }
 
 int McHandler::getNumSections() {
