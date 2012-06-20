@@ -379,6 +379,9 @@ Mc* McHandler::copyMcWithoutMeasurements(Mc* mc) {
 	return mc->getCopyWithoutMeasurements();
 }
 
+//TODO O(#mcs^2 * #params) -> only method having such a bad bad runtime
+// tuner must be really fast not to produce tuning overhead
+// -> insert some fancy runtime improvements
 double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress) {
 	vector<Mc*>::iterator outerIt;
 	vector<Mc*>::iterator innerIt;

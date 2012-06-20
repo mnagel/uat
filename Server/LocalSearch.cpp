@@ -194,7 +194,9 @@ Mc* LocalSearch::changeCurrentParamOfCurrentMc(int factor) {
 }
 
 void LocalSearch::setNextCurParamValue() {
-	// TODO if there are more than one param influencing for example 2 sections, the run frequence of the sections should be taken into consideration and not only the importance of the params for the maybe different section combinations
+	// TODO importance is the average relative runtime improvement, but a lower value may be absolutely better for a higher average runtime and/or higher run frequency
+	// maybe use frequency and runtime from bestMc to decide importance
+	// TODO if importance is too low, don't select param influencing most sections
 	for(int n=mcHandler->getNumSections(); n>0; n--) {
 		vector<struct opt_param_t*> paramsInfluencingNSections;
 		mcHandler->getParamsInfluencingNSections(&paramsInfluencingNSections, n);
