@@ -21,9 +21,13 @@ Mc::~Mc() {
 	map<int, vector<struct optThreadMeas>*>::iterator runtimesMapit;
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		mapit = measurements.find(*it);
-		delete mapit->second;	
+		if(mapit != measurements.end()) {
+			delete mapit->second;	
+		}
 		runtimesMapit = runtimes.find(*it);
-		delete runtimesMapit->second;	
+		if(runtimesMapit != runtimes.end()) {
+			delete runtimesMapit->second;	
+		}
 	}
 }
 bool Mc::matchesConfig(list<opt_param_t*>* params) {
@@ -111,7 +115,15 @@ void Mc::print(bool longVersion) {
 		}
 		printf("\033[0m");
 	}
+
 	printf("\n");
+}
+
+void Mc::printRelativeRuntimes() {
+	vector<int>::iterator sectionsIt;
+	for(sectionsIt = sectionIds->begin(); sectionsIt != sectionIds->end(); sectionsIt++) {
+		printf("section %d relative runtime: %f\n", *sectionsIt, getRelativeRuntimeForSection(*sectionsIt));
+	}
 }
 
 void Mc::addParam(struct opt_param_t* param) {
@@ -139,6 +151,7 @@ void Mc::addMeasurement(pid_t tid, int sectionId, struct timespec ts) {
 }
 
 void Mc::addRuntimeForThreadAndSection(pid_t tid, int sectionId, struct timespec tsStart, struct timespec tsStop, bool stillRunning) {
+	//printf("\t\tmc:%p sectionId: %d, tid: %d, start: %lld startMc: %lld ",this, sectionId,tid, timespecToLongLong(tsStart), timespecToLongLong(startOfMeasurements));
 	// get runtimes vector for that section
 	vector<struct optThreadMeas>* sectionRuntimes;
 	map<int, vector<struct optThreadMeas>*>::iterator mapIt;
@@ -157,22 +170,26 @@ void Mc::addRuntimeForThreadAndSection(pid_t tid, int sectionId, struct timespec
 	if(insertedIt != runtimeInsertedTill.end()) {
 		if(isTimespecLower(tsStart, insertedIt->second)) {
 			tsStart = insertedIt->second;
+			//printf(" runtime from inserted till ");
 		}
 		runtimeInsertedTill.erase(insertedIt);
 	}
 
 	if(isTimespecLower(tsStart, startOfMeasurements)) {
 		tsStart = startOfMeasurements;
+		//printf(" runtime from before Mc ");
 	}
 
 	if(stillRunning) {
 		clock_gettime(CLOCK_MONOTONIC, &tsStop);
+		//printf(" runtime from stillRunning ");
 	}
 	runtimeInsertedTill.insert(pair<pid_t, struct timespec>(tid, tsStop));
 
 	//insert runtime
 	struct timespec tsToAdd;
 	tsToAdd = diff(tsStart, tsStop);
+	//printf(" tsToAdd: %lld ", timespecToLongLong(tsToAdd));
 
 	vector<struct optThreadMeas>::iterator measIt;
 	bool found = false;
@@ -190,6 +207,7 @@ void Mc::addRuntimeForThreadAndSection(pid_t tid, int sectionId, struct timespec
 		newThreadMeas.ts = tsToAdd;
 		sectionRuntimes->push_back(newThreadMeas);
 	}
+	//printf("\n");
 }
 
 bool Mc::isMeasured() {
@@ -421,6 +439,17 @@ void Mc::startMeasurements() {
 	}
 }
 
+void Mc::storeRuntimeOfMeasurements() {
+	if(measurementsRunning) {
+		timespec stopOfMeasurements;
+		timespec tsDiff;
+		clock_gettime(CLOCK_MONOTONIC, &stopOfMeasurements); 
+		tsDiff = diff(startOfMeasurements, stopOfMeasurements);
+		this->runtimeOfMeasurements = tsAdd(tsDiff, this->runtimeOfMeasurements);
+		startOfMeasurements = stopOfMeasurements;
+	}
+}
+
 void Mc::stopMeasurements() {
 	if(measurementsRunning) {
 		timespec stopOfMeasurements;
@@ -432,6 +461,22 @@ void Mc::stopMeasurements() {
 	}
 }
 
+double Mc::getRelativeRuntimeForSection(int sectionId) {
+	map<int, vector<struct optThreadMeas>*>::iterator runtimesMapIt;
+	runtimesMapIt = runtimes.find(sectionId);
+	if(runtimesMapIt != runtimes.end()) {
+		vector<struct optThreadMeas>* sectionRuntimes;
+		sectionRuntimes = runtimesMapIt->second;
+		vector<struct optThreadMeas>::iterator sectionRuntimesIt;
+		double sum = 0.0d;
+		for(sectionRuntimesIt = sectionRuntimes->begin(); sectionRuntimesIt != sectionRuntimes->end(); sectionRuntimesIt++) {
+			//printf("section: %d, tid: %d, runtime: %lld\n", sectionId, sectionRuntimesIt->tid, timespecToLongLong(sectionRuntimesIt->ts));
+			sum += timespecToLongLong(sectionRuntimesIt->ts)/((double) timespecToLongLong(runtimeOfMeasurements));
+		}
+		return sum/sectionRuntimes->size();
+	}
+	return -1.0d;
+}
 
 
 

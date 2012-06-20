@@ -24,6 +24,7 @@ class Mc {
 		bool matchesConfig(std::list<opt_param_t*>* params);
 		bool matchesMc(Mc* mc);
 		void print(bool longVersion);
+		void printRelativeRuntimes();
 		void addParam(struct opt_param_t* param);
 		void addMeasurement(pid_t tid, int sectionId, struct timespec ts);
 		void addRuntimeForThreadAndSection(pid_t tid, int sectionId, struct timespec tsStart, struct timespec tsStop, bool stillRunning);
@@ -45,7 +46,9 @@ class Mc {
 		long long getAverage(int sectionId);
 		long long getAverage(vector<struct optThreadMeas>* meas);
 		void startMeasurements();
+		void storeRuntimeOfMeasurements();
 		void stopMeasurements();
+		double getRelativeRuntimeForSection(int sectionId);
 
 		std::vector<struct opt_param_t> config;
 	private:

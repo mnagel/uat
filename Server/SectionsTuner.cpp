@@ -56,7 +56,9 @@ void SectionsTuner::chooseInitialConfig() {
 
 void SectionsTuner::startMeasurement(pid_t tid, int sectionId) {
 	Mc* mc = mcHandler->getMcForCurrentConfigOrCreate();
+	//only needed for very first mc
 	mc->startMeasurements();
+
 	threadStartInfoMap.erase(tid);
 
 	struct threadStartInfo startInfo;
@@ -82,7 +84,6 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 		tsDiff = diff(measurementStart, measurementStop); 
 		mcHandler->addMeasurementToMc(mc, tid, sectionId, tsDiff);
 		mc->addRuntimeForThreadAndSection(tid, sectionId, measurementStart, measurementStop, false);
-		mcHandler->printAllMc(false);
 
 		// TODO what to do, if one section stops being measured, or is never measured at all?
 		// IDEA exponential border reduction, if there is a section being measured ten times and another not at all
@@ -101,10 +102,13 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 				infoIt = threadStartInfoMap.find(*tidIt);	
 				if(infoIt != threadStartInfoMap.end()) {
 					//generates a really tiny error, as guessedStartTime isn't the true startTime, that is only known by tunerClient until measurement is finished
-					(infoIt->mcMeasured)->addRuntimeForThreadAndSection(*tidIt, infoIt->second.sectionId, infoIt->second.guessedStartTime, emptyTsStop, true);
+					mc->addRuntimeForThreadAndSection(*tidIt, infoIt->second.sectionId, infoIt->second.guessedStartTime, emptyTsStop, true);
 				}
 			}
+			mc->storeRuntimeOfMeasurements();
 
+			mc->printRelativeRuntimes();
+			mcHandler->printAllMc(false);
 			optimizer->chooseNewValues();
 
 			//check if there are new params
@@ -121,6 +125,8 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 				printf("delete all measurements except that of %d\n", tid);
 				invalidateAllRunningMeasurements();
 				mc->stopMeasurements();
+				Mc* nextMc = mcHandler->getMcForCurrentConfigOrCreate();
+				nextMc->startMeasurements();	
 			}
 		}
 	} else {

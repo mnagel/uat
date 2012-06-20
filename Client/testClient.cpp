@@ -94,6 +94,7 @@ void* run(void* voidsection) {
 		}
 		usleep(sleep*1000);
 		myTuner->tStop(section);
+		usleep(sleep*1000);
 	}
 	finished();
 	return NULL;
