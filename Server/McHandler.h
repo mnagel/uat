@@ -43,6 +43,11 @@ class McHandler {
 		Mc* setNextNotMeasuredConfig();
 		Mc* copyMcWithoutMeasurements(Mc* mc);
 		double getParamImportanceForSection(int sectionId, int* paramAddress);
+		int getNumSections();
+		void getParamsInfluencingNSections(std::vector<struct opt_param_t*>* params, unsigned int n);
+		std::list<int>* getSectionsInfluencedByParam(struct opt_param_t* param);
+		int getParamIndexInConfig(struct opt_param_t* param);
+
 
 
 		static int sortedInsert(std::list<struct opt_param_t*>* l, struct opt_param_t* param);

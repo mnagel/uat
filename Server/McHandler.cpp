@@ -388,6 +388,8 @@ double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress)
 		for(innerIt = outerIt + 1; innerIt != mcs.end(); innerIt++) {
 			int distInSteps;
 			if((distInSteps = (*outerIt)->differsOnlyInParamByDist(*innerIt, paramAddress)) != -1) {
+				//TODO if distInSteps is too high, runtimes shouldn't be compared maybe, as a min could lie between them
+				// improvement might be very very low, as it's also divided by distInSteps
 				numComparisons++;
 				long long outerAverage = (*outerIt)->getAverage(sectionId);	
 				long long innerAverage = (*innerIt)->getAverage(sectionId);	
@@ -400,6 +402,43 @@ double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress)
 		}
 	}
 	return improvement/numComparisons;
+}
+
+int McHandler::getNumSections() {
+	return sectionIds->size();
+}
+
+void McHandler::getParamsInfluencingNSections(std::vector<struct opt_param_t*>* params, unsigned int n) {
+	list<struct opt_param_t*>::iterator it;
+	for(it = currentConfig.begin(); it != currentConfig.end(); it++) {
+		if(getSectionsInfluencedByParam(*it)->size() ==  n) {
+			params->push_back(*it);
+		}
+	}
+}
+
+list<int>* McHandler::getSectionsInfluencedByParam(struct opt_param_t* param) {
+	map<struct opt_param_t*, list<int>*>::iterator it;
+	it = paramSectionsMap->find(param);
+	if(it != paramSectionsMap->end()) {
+		return it->second;
+	}
+	return NULL;
+}
+
+int McHandler::getParamIndexInConfig(struct opt_param_t* param) {
+	int index = -1;
+	list<struct opt_param_t*>::iterator it;
+	for(it = currentConfig.begin(); it != currentConfig.end(); it++) {
+		index++;
+		if(*it == param) {
+			break;
+		}
+	}
+	if((unsigned int) index > currentConfig.size()) {
+		index = -1;
+	}
+	return index;
 }
 
 unsigned long McHandler::getHash(list<struct opt_param_t*>* paramList) {

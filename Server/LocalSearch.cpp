@@ -51,11 +51,12 @@ int LocalSearch::doLocalSearch() {
 		while(!allDirectionsTested() && nextMc == NULL) {
 			//"if" should be enough, but safer this way
 			while(getNextDirectionForCurrentParam() == 0) {
-				if(curParam+1<numParams) {
+				setNextCurParamValue();
+				/*if(curParam+1<numParams) {
 					curParam++;
 				} else {
 					curParam = 0;
-				}
+				}*/
 			}
 			nextMc = getNextCfgForCurrentDirection();
 
@@ -91,7 +92,8 @@ void LocalSearch::initLocalSearch() {
 		for(int i=0; i<2*numParams; i++) {
 			directions[i] = true;
 		}
-		this->curParam = 0;
+		setNextCurParamValue();
+		//this->curParam = 0;
 
 }
 
@@ -121,14 +123,18 @@ void LocalSearch::unsetCurrentDirection() {
 	}
 }
 
-int LocalSearch::getNextDirectionForCurrentParam() {
-	if(directions[2*curParam]) {
+int LocalSearch::getNextDirectionForParam(int index) {
+	if(directions[2*index]) {
 		return 1;
-	} else if(directions[2*curParam + 1]) {
+	} else if(directions[2*index + 1]) {
 		return -1;
 	} else {
 		return 0;
 	}
+}
+
+int LocalSearch::getNextDirectionForCurrentParam() {
+	return getNextDirectionForParam(curParam);
 }
 
 bool LocalSearch::isCurrentConfigBetter() {
@@ -186,4 +192,69 @@ Mc* LocalSearch::changeCurrentParamOfCurrentMc(int factor) {
 	}
 	return changedMc;
 }
+
+void LocalSearch::setNextCurParamValue() {
+	// TODO if there are more than one param influencing for example 2 sections, the run frequence of the sections should be taken into consideration and not only the importance of the params for the maybe different section combinations
+	for(int n=mcHandler->getNumSections(); n>0; n--) {
+		vector<struct opt_param_t*> paramsInfluencingNSections;
+		mcHandler->getParamsInfluencingNSections(&paramsInfluencingNSections, n);
+
+		// kick params having no direction
+		vector<struct opt_param_t*> paramsInfluencingNSectionsAndHavingDirection;
+		vector<struct opt_param_t*>::iterator paramsIt;
+		for(paramsIt = paramsInfluencingNSections.begin(); paramsIt != paramsInfluencingNSections.end(); paramsIt++) {
+			int index = mcHandler->getParamIndexInConfig(*paramsIt);	
+			if(getNextDirectionForParam(index) != 0) {
+				paramsInfluencingNSectionsAndHavingDirection.push_back(*paramsIt);	
+			}
+		}
+
+		if(paramsInfluencingNSectionsAndHavingDirection.size() == 1) {
+			curParam = mcHandler->getParamIndexInConfig(paramsInfluencingNSectionsAndHavingDirection[0]);
+			break;
+		} else if (paramsInfluencingNSectionsAndHavingDirection.size() > 1) {
+			double maxImportance = -1.0d;
+			struct opt_param_t* bestParam;
+			vector<struct opt_param_t*>::iterator paramsIt;
+			list<int>::iterator sectionsIt;
+
+			for(paramsIt = paramsInfluencingNSectionsAndHavingDirection.begin(); paramsIt != paramsInfluencingNSectionsAndHavingDirection.end(); paramsIt++) {
+				list<int>* sectionsInfluenced = mcHandler->getSectionsInfluencedByParam(*paramsIt);
+				double importance = 0.0d;
+				for(sectionsIt = sectionsInfluenced->begin(); sectionsIt != sectionsInfluenced->end(); sectionsIt++) {
+					importance += mcHandler->getParamImportanceForSection(*sectionsIt, (*paramsIt)->address); 
+				}
+				if(importance > maxImportance) {
+					bestParam = *paramsIt;
+					maxImportance = importance;
+				}
+			}
+			curParam = mcHandler->getParamIndexInConfig(bestParam);
+			break;
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

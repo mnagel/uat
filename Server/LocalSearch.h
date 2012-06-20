@@ -22,11 +22,13 @@ class LocalSearch {
 		bool allDirectionsTested(); 
 		void setAllDirectionsExceptCurrent();
 		void unsetCurrentDirection();
+		int getNextDirectionForParam(int index);
 		int getNextDirectionForCurrentParam();
 		bool isCurrentConfigBetter();
 		bool isCurrentConfigSimilar();
 		bool isConfigSimilar(Mc* mc);
 		Mc* getNextCfgForCurrentDirection();
 		Mc* changeCurrentParamOfCurrentMc(int factor);
+		void setNextCurParamValue();
 
 };
