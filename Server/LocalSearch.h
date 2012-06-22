@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "McHandler.h"
 
 class LocalSearch {
@@ -10,6 +12,7 @@ class LocalSearch {
 
 	private:
 		McHandler* mcHandler;
+		std::vector<Mc*> bestMcHistory;
 		int threshold;
 		int retryCount;
 		Mc* bestMc;
@@ -21,6 +24,7 @@ class LocalSearch {
 		void initLocalSearch();
 		bool allDirectionsTested(); 
 		void setAllDirectionsExceptCurrent();
+		void setAllDirections();
 		void unsetCurrentDirection();
 		int getNextDirectionForParam(int index);
 		int getNextDirectionForCurrentParam();
@@ -30,5 +34,6 @@ class LocalSearch {
 		Mc* getNextCfgForCurrentDirection();
 		Mc* changeCurrentParamOfCurrentMc(int factor);
 		void setNextCurParamValue();
+		bool adjustBestMcAccordingWorkload();
 
 };

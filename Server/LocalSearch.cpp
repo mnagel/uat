@@ -20,6 +20,14 @@ int LocalSearch::doLocalSearch() {
 		initLocalSearch();
 	}
 
+	if(mcHandler->differsPastWorkloadFromCurrent(4, 0.3d)) {
+		if(adjustBestMcAccordingWorkload()) {
+			mcHandler->setMcAsConfig(bestMc);
+			curMc = bestMc;
+			return 0;
+		}
+	}
+
 	bool goOn;
 
 	if(bestMc == curMc) {
@@ -27,6 +35,7 @@ int LocalSearch::doLocalSearch() {
 	} else if(isCurrentConfigBetter()) {
 		printf("found new best mc\n");
 		bestMc = curMc;
+		bestMcHistory.push_back(bestMc);
 		setAllDirectionsExceptCurrent();
 		goOn = true;
 	} else if(isCurrentConfigSimilar()) {
@@ -83,6 +92,7 @@ int LocalSearch::doLocalSearch() {
 void LocalSearch::initLocalSearch() {
 
 		this->bestMc = mcHandler->getBestMc();
+		this->bestMcHistory.push_back(this->bestMc);
 		this->curMc = this->bestMc;
 		this->numParams = mcHandler->getNumParams();
 		if(this->directions != NULL) {
@@ -115,6 +125,13 @@ void LocalSearch::setAllDirectionsExceptCurrent() {
 	}
 }
 
+void LocalSearch::setAllDirections() {
+	for(int i=0; i<numParams; i++) {
+		directions[i] = true;
+		directions[i+1] = true;
+	}
+}
+
 void LocalSearch::unsetCurrentDirection() {
 	if(directions[2*curParam]) {
 		directions[2*curParam] = false;
@@ -139,7 +156,7 @@ int LocalSearch::getNextDirectionForCurrentParam() {
 
 bool LocalSearch::isCurrentConfigBetter() {
 	//return isTimespecLower(&(curMc->bestMeasurement), &(bestMc->bestMeasurement));
-	return curMc->getRelativePerformance(bestMc) < 100;
+	return curMc->getRelativePerformance(bestMc, NULL) < 100;
 }
 
 bool LocalSearch::isCurrentConfigSimilar() {
@@ -148,7 +165,7 @@ bool LocalSearch::isCurrentConfigSimilar() {
 
 bool LocalSearch::isConfigSimilar(Mc* mc) {
 	//return getRelativePerformance(&(mc->bestMeasurement), &(bestMc->bestMeasurement)) < this->threshold;
-	return mc->getRelativePerformance(bestMc) < this->threshold;
+	return mc->getRelativePerformance(bestMc, NULL) < this->threshold;
 	
 }
 
@@ -166,7 +183,11 @@ Mc* LocalSearch::getNextCfgForCurrentDirection() {
 		} else {
 			mcExisting = mcHandler->getMcIfExists(nextMc);
 			if(mcExisting != NULL) {
-				if(!isConfigSimilar(mcExisting)) {
+				if(mcHandler->differsFromCurrentWorkload(mcExisting, 0.3)) {
+					mcExisting->resetAllMeasurements();
+					delete nextMc;
+					nextMc = mcExisting;
+				} else if(!isConfigSimilar(mcExisting)) {
 					delete nextMc;
 					return NULL;
 				} else {
@@ -239,6 +260,28 @@ void LocalSearch::setNextCurParamValue() {
 			break;
 		}
 	}
+}
+/*
+ * return true if it had to be adjusted
+ */
+bool LocalSearch::adjustBestMcAccordingWorkload() {
+	map<int,double>* currentWorkload = mcHandler->getWorkload(0);
+	vector<Mc*>::iterator bestMcHistIt;
+	Mc* lastMc = NULL;
+	for(bestMcHistIt = bestMcHistory.begin(); bestMcHistIt != bestMcHistory.end(); bestMcHistIt++) {
+		//check if history would be the same with other workload and if not set bestMc on mc where it first fails
+		//has to be only similar to be accepted
+		if(lastMc != NULL) {
+			if((*bestMcHistIt)->getRelativePerformance(lastMc, currentWorkload) > threshold) {
+				bestMc = lastMc;
+				bestMc->resetAllMeasurements();
+				setAllDirections();
+				setNextCurParamValue();
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 

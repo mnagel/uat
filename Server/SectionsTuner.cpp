@@ -106,6 +106,7 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 				}
 			}
 			mc->storeRuntimeOfMeasurements();
+			mcHandler->adjustWorkloadWithMc(mc);
 
 			mc->printRelativeRuntimes();
 			mcHandler->printAllMc(false);

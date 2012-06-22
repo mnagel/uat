@@ -47,6 +47,11 @@ class McHandler {
 		void getParamsInfluencingNSections(std::vector<struct opt_param_t*>* params, unsigned int n);
 		std::list<int>* getSectionsInfluencedByParam(struct opt_param_t* param);
 		int getParamIndexInConfig(struct opt_param_t* param);
+		void adjustWorkloadWithMc(Mc* mc);
+		double getWorkload(int sectionId, unsigned int workloadInPast);
+		std::map<int, double>* getWorkload(unsigned int workloadInPast);
+		bool differsFromCurrentWorkload(Mc* mc, double diffBorder);
+		bool differsPastWorkloadFromCurrent(unsigned int workloadInPast, double diffBorder);
 
 
 
@@ -56,6 +61,9 @@ class McHandler {
 		std::vector<int>* sectionIds;
 		std::map<int, list<struct opt_param_t*>*>* sectionParamsMap;
 		std::map<struct opt_param_t*, list<int>*>* paramSectionsMap;
+		std::vector<std::map<int, double>*> sectionWorkloadHistory;
+		Mc* lastWorkloadMc;
+		int workloadMcNeededMeasurements;
 		std::vector<Mc*> mcs;
 		std::list<Mc*> bestMcs;
 		std::list<struct opt_param_t*> currentConfig;

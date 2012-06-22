@@ -39,7 +39,7 @@ class Mc {
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		int differsOnlyInParamByDist(Mc* mc, int* paramAddress);
 		bool isBetterThan(Mc* mc);
-		int getRelativePerformance(Mc* mc);
+		int getRelativePerformance(Mc* mc, map<int,double>* curWorkload);
 		int getMinNumMeasurementsOfAllSection(); 
 		int getMinNumMeasurementsOfSectionsMeasured();
 		int getMinNumMeasurementsOfSections(std::vector<int>* sections);
@@ -49,6 +49,7 @@ class Mc {
 		void storeRuntimeOfMeasurements();
 		void stopMeasurements();
 		double getRelativeRuntimeForSection(int sectionId);
+		void resetAllMeasurements();
 
 		std::vector<struct opt_param_t> config;
 	private:

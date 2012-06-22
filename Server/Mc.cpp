@@ -345,10 +345,10 @@ int Mc::differsOnlyInParamByDist(Mc* mc, int* paramAddress) {
 }
 
 bool Mc::isBetterThan(Mc* mc) {
-	return this->getRelativePerformance(mc) < 100;
+	return this->getRelativePerformance(mc, NULL) < 100;
 }
 
-int Mc::getRelativePerformance(Mc* mc) {
+int Mc::getRelativePerformance(Mc* mc, map<int,double>* curWorkload) {
 	//long long relative = 0;
 	long long thisSum = 0;
 	long long otherSum = 0;
@@ -367,8 +367,17 @@ int Mc::getRelativePerformance(Mc* mc) {
 		int numMeas = mapIt->second->size();
 		long long thisAverage = getAverage(mapIt->second); 
 		long long otherAverage = mc->getAverage(*it);
-		thisSum += numMeas*thisAverage;
-		otherSum += numMeas*otherAverage;
+
+		if(curWorkload != NULL) {
+			map<int, double>::iterator workloadIt;
+			workloadIt = curWorkload->find(*it);
+			double workloadAdjusted = numMeas * workloadIt->second / getRelativeRuntimeForSection(*it);
+			thisSum += workloadAdjusted * thisAverage;
+			otherSum += workloadAdjusted * otherAverage;
+		} else {
+			thisSum += numMeas * thisAverage;
+			otherSum += numMeas * otherAverage;
+		}
 
 		//long long difference = thisAverage - otherAverage;
 		//long long prod = difference * numMeas;
@@ -476,6 +485,31 @@ double Mc::getRelativeRuntimeForSection(int sectionId) {
 		return sum/sectionRuntimes->size();
 	}
 	return -1.0d;
+}
+
+void Mc::resetAllMeasurements() {
+	vector<int>::iterator it;
+	map<int, vector<struct optThreadMeas>*>::iterator mapit;
+	map<int, vector<struct optThreadMeas>*>::iterator runtimesMapit;
+	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
+		mapit = measurements.find(*it);
+		if(mapit != measurements.end()) {
+			delete mapit->second;	
+		}
+		runtimesMapit = runtimes.find(*it);
+		if(runtimesMapit != runtimes.end()) {
+			delete runtimesMapit->second;	
+		}
+	}
+
+	measurements.clear();
+	runtimes.clear();
+	runtimeInsertedTill.clear();
+	measuredSections.clear();
+
+	clock_gettime(CLOCK_MONOTONIC, &startOfMeasurements);
+	runtimeOfMeasurements.tv_sec = 0;
+	runtimeOfMeasurements.tv_nsec = 0;
 }
 
 

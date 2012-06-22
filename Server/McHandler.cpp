@@ -13,6 +13,8 @@ McHandler::McHandler(vector<int>* sectionIds, map<int, list<struct opt_param_t*>
 	sectionIds(sectionIds),
 	sectionParamsMap(sectionParamsMap),
 	paramSectionsMap(paramSectionsMap),
+	sectionWorkloadHistory(0),
+	lastWorkloadMc(NULL),
 	mcs(0),
 	bestMcs(0),
 	currentConfig(0),
@@ -27,6 +29,10 @@ McHandler::~McHandler() {
 	vector<Mc*>::iterator it;
 	for ( it=mcs.begin() ; it < mcs.end(); it++ ) {
 		delete *it;
+	}
+	vector<map<int, double>*>::iterator workloadIt;
+	for(workloadIt = sectionWorkloadHistory.begin(); workloadIt != sectionWorkloadHistory.end(); workloadIt++) {
+		delete *workloadIt;
 	}
 	/*
 	list<struct opt_param_t*>::iterator paramsit;
@@ -112,7 +118,7 @@ void McHandler::addMeasurementToMc(Mc* mc, pid_t tid, int sectionId, struct time
 		bestMc = mc;
 	}
 	*/
-	if(worstMc == NULL || (mc->getMinNumMeasurementsOfAllSection() > 0 && mc->getRelativePerformance(worstMc)>100)) {
+	if(worstMc == NULL || (mc->getMinNumMeasurementsOfAllSection() > 0 && mc->getRelativePerformance(worstMc, NULL)>100)) {
 		worstMc = mc;
 	}
 
@@ -339,20 +345,22 @@ void McHandler::setRandomValueForParam(struct opt_param_t* param) {
 }
 
 void McHandler::addMc(Mc* newMc) {
-	this->mcs.push_back(newMc);
+	if(getMcIfExists(newMc) == NULL) {
+		this->mcs.push_back(newMc);
 
-	unsigned long hash = newMc->getHash();
-	map<unsigned long, vector<Mc*>*>::iterator it;
-	vector<Mc*>* hashedMcs;
+		unsigned long hash = newMc->getHash();
+		map<unsigned long, vector<Mc*>*>::iterator it;
+		vector<Mc*>* hashedMcs;
 
-	it = mcsMap.find(hash);
-	if(it == mcsMap.end()) {
-		hashedMcs = new vector<Mc*>;
-		mcsMap.insert(pair<unsigned long, vector<Mc*>*>(hash, hashedMcs));
-	} else {
-		hashedMcs = it->second;
+		it = mcsMap.find(hash);
+		if(it == mcsMap.end()) {
+			hashedMcs = new vector<Mc*>;
+			mcsMap.insert(pair<unsigned long, vector<Mc*>*>(hash, hashedMcs));
+		} else {
+			hashedMcs = it->second;
+		}
+		hashedMcs->push_back(newMc);
 	}
-	hashedMcs->push_back(newMc);
 }
 
 bool McHandler::isMcInNeighborhood(Mc* mc, int len) {
@@ -449,6 +457,96 @@ int McHandler::getParamIndexInConfig(struct opt_param_t* param) {
 	return index;
 }
 
+void McHandler::adjustWorkloadWithMc(Mc* mc) {
+	if(mc == lastWorkloadMc && mc->getMinNumMeasurementsOfAllSection() < workloadMcNeededMeasurements) {
+		return;	
+	}
+	vector<int>::iterator sectionsIt;
+	map<int, double>::iterator workloadMapIt;
+	map<int, double>* oldSectionWorkload;
+	map<int, double>* newSectionWorkload;
+	if(sectionWorkloadHistory.size() > 0) {
+		oldSectionWorkload = sectionWorkloadHistory.back();	
+	} else {
+		oldSectionWorkload = NULL;
+	}
+	newSectionWorkload = new map<int, double>;
+
+	for(sectionsIt = sectionIds->begin(); sectionsIt != sectionIds->end(); sectionsIt++) {
+		double workload = mc->getRelativeRuntimeForSection(*sectionsIt);
+		if(oldSectionWorkload != NULL) {
+			workloadMapIt = oldSectionWorkload->find(*sectionsIt);
+			workload = 0.2*workload + 0.8*workloadMapIt->second;
+		}
+		newSectionWorkload->insert(pair<int,double>(*sectionsIt, workload));
+	}
+	sectionWorkloadHistory.push_back(newSectionWorkload);
+	lastWorkloadMc = mc;
+	workloadMcNeededMeasurements = mc->getMinNumMeasurementsOfAllSection() + 1;
+}
+/*
+ * workloadInPast = 0 is the current workload 
+ */
+double McHandler::getWorkload(int sectionId, unsigned int workloadInPast) {
+	if(sectionWorkloadHistory.size() < workloadInPast + 1) {
+		return -1.0d;
+	}
+	int mapIndex = sectionWorkloadHistory.size() - workloadInPast - 1;
+	map<int, double>* workloadMap = sectionWorkloadHistory[mapIndex];
+	map<int, double>::iterator workloadIt;
+	workloadIt = workloadMap->find(sectionId);
+	if(workloadIt != workloadMap->end()) {
+		return workloadIt->second;
+	}
+	return -1.0d;
+}
+
+map<int,double>* McHandler::getWorkload(unsigned int workloadInPast) {
+	if(sectionWorkloadHistory.size() < workloadInPast + 1) {
+		return NULL;
+	}
+	int mapIndex = sectionWorkloadHistory.size() - workloadInPast - 1;
+	return sectionWorkloadHistory[mapIndex];
+}
+
+bool McHandler::differsFromCurrentWorkload(Mc* mc, double diffBorder) {
+	vector<int>::iterator sectionsIt;
+	bool differs = false;
+	for(sectionsIt = sectionIds->begin(); sectionsIt != sectionIds->end(); sectionsIt++) {
+		double currentWorkload;
+		if((currentWorkload = getWorkload(*sectionsIt, 0)) == -1.0d) {
+			return false;
+		}
+		double mcWorkload = mc->getRelativeRuntimeForSection(*sectionsIt);
+		if(abs(mcWorkload - currentWorkload) > diffBorder) {
+			differs = true;
+		}
+	}
+	return differs;
+}
+
+bool McHandler::differsPastWorkloadFromCurrent(unsigned int workloadInPast, double diffBorder) {
+	vector<int>::iterator sectionsIt;
+	bool differs = false;
+	for(sectionsIt = sectionIds->begin(); sectionsIt != sectionIds->end(); sectionsIt++) {
+		double currentWorkload;
+		double pastWorkload;
+		if((currentWorkload = getWorkload(*sectionsIt, 0)) == -1.0d) {
+			return false;
+		}
+
+		if((pastWorkload = getWorkload(*sectionsIt, workloadInPast)) == -1.0d) {
+			return false;
+		}
+
+		if(abs(pastWorkload - currentWorkload) > diffBorder) {
+			differs = true;
+		}
+	}
+	return differs;
+}
+
+
 unsigned long McHandler::getHash(list<struct opt_param_t*>* paramList) {
 	list<struct opt_param_t*>::iterator paramIterator;
 	unsigned long hash = 0;
@@ -483,7 +581,7 @@ void McHandler::insertMcIntoBestMcs(Mc* mc) {
 	}
 
 	for(it = bestMcs.begin(); it!=bestMcs.end(); it++) {
-		if(mc->getRelativePerformance(*it) < 100) {
+		if(mc->getRelativePerformance(*it, NULL) < 100) {
 			bestMcs.insert(it, mc);
 			return;
 		}

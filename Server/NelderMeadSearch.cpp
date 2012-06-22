@@ -242,7 +242,7 @@ Mc* NelderMeadSearch::getReflectedMc(Mc* mc, list<double>* center, double factor
 void NelderMeadSearch::insertIntoSimplex(Mc* mc) {
 	list<Mc*>::iterator it;
 	for(it = simplex.begin(); it!=simplex.end(); it++) {
-		if(mc->getRelativePerformance(*it) < 100) {
+		if(mc->getRelativePerformance(*it, NULL) < 100) {
 			simplex.insert(it, mc);
 			return;
 		}
