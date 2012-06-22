@@ -21,6 +21,7 @@ class McHandler {
 		void addParam(struct opt_param_t* param);
 		void printCurrentConfig();
 		void printAllMc(bool longVersion);
+		void printCurrentWorkload();
 		void changeAllParamsToValue(int value);
 		void setConfigToMin();
 		void raiseConfig();

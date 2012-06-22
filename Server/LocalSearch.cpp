@@ -7,6 +7,7 @@ LocalSearch::LocalSearch(McHandler* handler, int threshold, int retryCount):
 	mcHandler(handler),
 	threshold(threshold),
 	retryCount(retryCount),
+	minAdjustDueToWorkloadTimer(6),
 	directions(NULL) {
 }
 
@@ -20,7 +21,10 @@ int LocalSearch::doLocalSearch() {
 		initLocalSearch();
 	}
 
-	if(mcHandler->differsPastWorkloadFromCurrent(4, 0.3d)) {
+	minAdjustDueToWorkloadTimer--;
+	if(minAdjustDueToWorkloadTimer <= 0 && mcHandler->differsPastWorkloadFromCurrent(6, 0.3d)) {
+		// reset timer even if adjustment hasn't changed bestMc 
+		minAdjustDueToWorkloadTimer = 6;
 		if(adjustBestMcAccordingWorkload()) {
 			mcHandler->setMcAsConfig(bestMc);
 			curMc = bestMc;
@@ -183,14 +187,22 @@ Mc* LocalSearch::getNextCfgForCurrentDirection() {
 		} else {
 			mcExisting = mcHandler->getMcIfExists(nextMc);
 			if(mcExisting != NULL) {
+				printf("existing mc: ");
+				mcExisting->print(false);
 				if(mcHandler->differsFromCurrentWorkload(mcExisting, 0.3)) {
 					mcExisting->resetAllMeasurements();
+					printf("===============================================\n");
+					printf("=== reseted measurements due to exists  =======\n");
+					printf("===============================================\n");
+					mcHandler->printAllMc(false);
 					delete nextMc;
 					nextMc = mcExisting;
 				} else if(!isConfigSimilar(mcExisting)) {
+					printf("existing mc not similar\n");
 					delete nextMc;
 					return NULL;
 				} else {
+					printf("existing mc similar, raise factor\n");
 					delete nextMc;
 					nextMc = NULL;
 					factor++;
@@ -226,7 +238,7 @@ void LocalSearch::setNextCurParamValue() {
 		vector<struct opt_param_t*> paramsInfluencingNSectionsAndHavingDirection;
 		vector<struct opt_param_t*>::iterator paramsIt;
 		for(paramsIt = paramsInfluencingNSections.begin(); paramsIt != paramsInfluencingNSections.end(); paramsIt++) {
-			printf("param influencing %d sections at address: %p\n", n, (*paramsIt)->address);
+			//printf("param influencing %d sections at address: %p\n", n, (*paramsIt)->address);
 			int index = mcHandler->getParamIndexInConfig(*paramsIt);	
 			if(getNextDirectionForParam(index) != 0) {
 				paramsInfluencingNSectionsAndHavingDirection.push_back(*paramsIt);	
@@ -249,7 +261,7 @@ void LocalSearch::setNextCurParamValue() {
 					double printImportance = importance;
 					importance += mcHandler->getParamImportanceForSection(*sectionsIt, (*paramsIt)->address); 
 					printImportance = importance - printImportance;
-					printf("param importance of %p for section %d is %f\n", (*paramsIt)->address, *sectionsIt, printImportance);
+					//printf("param importance of %p for section %d is %f\n", (*paramsIt)->address, *sectionsIt, printImportance);
 				}
 				if(importance > maxImportance) {
 					bestParam = *paramsIt;
@@ -265,6 +277,9 @@ void LocalSearch::setNextCurParamValue() {
  * return true if it had to be adjusted
  */
 bool LocalSearch::adjustBestMcAccordingWorkload() {
+	printf("===============================================\n");
+	printf("=== workload has changed, adjust best mc=======\n");
+	printf("===============================================\n");
 	map<int,double>* currentWorkload = mcHandler->getWorkload(0);
 	vector<Mc*>::iterator bestMcHistIt;
 	Mc* lastMc = NULL;
@@ -273,13 +288,22 @@ bool LocalSearch::adjustBestMcAccordingWorkload() {
 		//has to be only similar to be accepted
 		if(lastMc != NULL) {
 			if((*bestMcHistIt)->getRelativePerformance(lastMc, currentWorkload) > threshold) {
+				//TODO cut history
 				bestMc = lastMc;
 				bestMc->resetAllMeasurements();
+
+				printf("===============================================\n");
+				printf("=== reseted measurements due to adjust  =======\n");
+				printf("===============================================\n");
+
+				mcHandler->printAllMc(false);
 				setAllDirections();
 				setNextCurParamValue();
+				printf("curparam %d\n",curParam);
 				return true;
 			}
 		}
+		lastMc = *bestMcHistIt;
 	}
 	return false;
 }

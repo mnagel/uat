@@ -15,6 +15,7 @@ class LocalSearch {
 		std::vector<Mc*> bestMcHistory;
 		int threshold;
 		int retryCount;
+		int minAdjustDueToWorkloadTimer;
 		Mc* bestMc;
 		Mc* curMc;
 		bool* directions;

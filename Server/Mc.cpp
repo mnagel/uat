@@ -76,19 +76,25 @@ void Mc::print(bool longVersion) {
 		}
 	}
 	if(longVersion) {
-		printf("\n\t\truntime measurements: %ld.%09d\n", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
+		printf("\n\t\truntime: %ld.%09d\n ", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
 	} else {
-		printf("\truntime measurements: %ld.%09d", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
+		printf("\truntime: %ld.%09d ", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
 	}
+
+	vector<int>::iterator it;
+	vector<struct optThreadMeas>::iterator tsIt;
+	map<int, vector<struct optThreadMeas>*>::iterator mapit;
+
+	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
+		printf("s%d rel:%lf ", *it, getRelativeRuntimeForSection(*it));
+	}
+
 	if(longVersion) {
 		printf("\n\t\tmeasurements:\n");
 	} else {
 		printf("\tmeas: ");
 	}
 
-	vector<int>::iterator it;
-	vector<struct optThreadMeas>::iterator tsIt;
-	map<int, vector<struct optThreadMeas>*>::iterator mapit;
 	int counter = 0;
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		if(longVersion) {
@@ -349,6 +355,9 @@ bool Mc::isBetterThan(Mc* mc) {
 }
 
 int Mc::getRelativePerformance(Mc* mc, map<int,double>* curWorkload) {
+	//if(curWorkload != NULL) {
+	//	return 130;
+	//}
 	//long long relative = 0;
 	long long thisSum = 0;
 	long long otherSum = 0;

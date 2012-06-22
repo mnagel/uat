@@ -108,8 +108,9 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 			mc->storeRuntimeOfMeasurements();
 			mcHandler->adjustWorkloadWithMc(mc);
 
-			mc->printRelativeRuntimes();
+			//mc->printRelativeRuntimes();
 			mcHandler->printAllMc(false);
+			//mcHandler->printCurrentWorkload();
 			optimizer->chooseNewValues();
 
 			//check if there are new params
@@ -123,7 +124,7 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 			}
 
 			if(paramChanged) {
-				printf("delete all measurements except that of %d\n", tid);
+				//printf("delete all measurements except that of %d\n", tid);
 				invalidateAllRunningMeasurements();
 				mc->stopMeasurements();
 				Mc* nextMc = mcHandler->getMcForCurrentConfigOrCreate();

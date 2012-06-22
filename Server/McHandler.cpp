@@ -177,6 +177,19 @@ void McHandler::printAllMc(bool longVersion) {
 	}
 }
 
+void McHandler::printCurrentWorkload() {
+	if(sectionWorkloadHistory.size() == 0) {
+		return;
+	}
+
+	vector<int>::iterator sectionsIt;
+	for(sectionsIt = sectionIds->begin(); sectionsIt != sectionIds->end(); sectionsIt++) {
+		map<int, double>::iterator workIt;	
+		workIt = sectionWorkloadHistory.back()->find(*sectionsIt);
+		printf("Section %d has workload %lf\n", *sectionsIt, workIt->second);
+	}
+}
+
 void McHandler::changeAllParamsToValue(int value) {
 	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
@@ -518,7 +531,8 @@ bool McHandler::differsFromCurrentWorkload(Mc* mc, double diffBorder) {
 			return false;
 		}
 		double mcWorkload = mc->getRelativeRuntimeForSection(*sectionsIt);
-		if(abs(mcWorkload - currentWorkload) > diffBorder) {
+		printf("Mc differs in Section %d by %lf =  %lf - %lf\n", *sectionsIt, fabs(mcWorkload - currentWorkload), mcWorkload, currentWorkload);
+		if(fabs(mcWorkload - currentWorkload) > diffBorder) {
 			differs = true;
 		}
 	}
@@ -539,8 +553,9 @@ bool McHandler::differsPastWorkloadFromCurrent(unsigned int workloadInPast, doub
 			return false;
 		}
 
-		if(abs(pastWorkload - currentWorkload) > diffBorder) {
+		if(fabs(pastWorkload - currentWorkload) > diffBorder) {
 			differs = true;
+			break;
 		}
 	}
 	return differs;

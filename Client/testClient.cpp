@@ -25,7 +25,7 @@ int optimum[] = {10, 5, 3, 46};
 pthread_t pthreads[numThreads-1];
 int finishCount = 0;
 int sections[] = {1,2,3,4,5,6,7,8,9,10};
-int parasUsedBySection[4][4] = {{true , true , false, false},
+int parasUsedBySection[4][4] = {{true , true , true, false},
 						        {false, false, true , false},
 						        {false, true , true , false},
 								{false, false, false, true }};
@@ -94,7 +94,9 @@ void* run(void* voidsection) {
 		}
 		usleep(sleep*1000);
 		myTuner->tStop(section);
-		usleep(sleep*1000);
+		if(i>60 && section == 2) {
+			usleep(sleep*1000);
+		}
 	}
 	finished();
 	return NULL;
