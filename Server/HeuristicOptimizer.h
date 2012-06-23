@@ -16,7 +16,7 @@ class HeuristicOptimizer : public Optimizer {
 		HeuristicOptimizer(McHandler* handler);
 		~HeuristicOptimizer();
 		void setInitialConfig();
-		void chooseNewValues();
+		OptimizerMsg chooseNewValues();
 
 	private:
 		RandomSearch* randSearch;

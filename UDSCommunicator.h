@@ -12,6 +12,7 @@ class UDSCommunicator {
 	void receiveStopMeasMessage(struct tmsgStopMeas* o_msg);
 	void receiveRequestStartMeasMessage(struct tmsgRequestStartMeas* o_msg);
 	void receiveRegisterSectionParamMessage(struct tmsgRegisterSectionParam* o_msg);
+	void receiveFinishedTuningMessage(struct tmsgFinishedTuning* o_msg);
 	void receiveInt(int* o_msg);
 	void receiveMsgType(MsgType* o_msg);
 	void receiveMsgHead(struct tmsgHead* o_msg);

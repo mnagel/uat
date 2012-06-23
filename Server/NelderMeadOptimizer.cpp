@@ -22,7 +22,7 @@ void NelderMeadOptimizer::setInitialConfig() {
 	this->chooseNewValues();
 }
 
-void NelderMeadOptimizer::chooseNewValues() {
+OptimizerMsg NelderMeadOptimizer::chooseNewValues() {
 	switch(optState) {
 		case NELD_RANDOM_SEARCH:
 			if(randSearch->doRandSearch()>0) {
@@ -52,10 +52,12 @@ void NelderMeadOptimizer::chooseNewValues() {
 		case NELD_FULLY_OPTIMIZED:
 			printf("set best config\n");
 			mcHandler->setBestMcAsConfig();
+			return FINISHED_TUNING;
 			break;
 		default:
 			break;
 
 	}
+	return RUNNING;
 
 }

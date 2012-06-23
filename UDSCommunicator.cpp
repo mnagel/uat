@@ -78,6 +78,13 @@ void UDSCommunicator::receiveRegisterSectionParamMessage(struct tmsgRegisterSect
 		errorExit("receiveRegisterSectionParamMessage");
 }
 
+void UDSCommunicator::receiveFinishedTuningMessage(struct tmsgFinishedTuning* o_msg) {
+	int iCount;
+	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgFinishedTuning));
+	if(iCount!=sizeof(struct tmsgFinishedTuning))
+		errorExit("receiveFinishedTuningMessage");
+}
+
 
 void UDSCommunicator::receiveInt(int* o_msg) {
 	int iCount;

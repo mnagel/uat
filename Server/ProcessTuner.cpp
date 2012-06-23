@@ -119,6 +119,8 @@ void ProcessTuner::run() {
 }
 
 void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
+	//TODO it isn't checked if initial value is between min max
+	// if tunerClient doesn't get initialConfig that will and hasn't initial between min and max that will fail 
 	printf("add param: parameterpointer: %p from: %d to: %d step: %d type: %d\n",msg->parameter, msg->min, msg->max, msg->step, msg->type);
 	if(mcHandler->getParam(msg->parameter)==NULL) {
 		struct opt_param_t* newParam = new struct opt_param_t;
@@ -225,11 +227,24 @@ void ProcessTuner::handleStopMeasurementMessage(tmsgStopMeas* msg) {
 	map<int, SectionsTuner*>::iterator it;
 	it = sectionsTunersMap.find(msg->sectionId);
 	if(it != sectionsTunersMap.end()) {
-		//it->second->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureDiff);
-		it->second->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureStart, msg->tsMeasureStop);
+		SectionsTuner* tuner = it->second;
+		OptimizerMsg optMsg;
+		optMsg = tuner->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureStart, msg->tsMeasureStop);
+		/* params are global and exist only once -> if sectionsTuner changes them in stopMeasurement they will be also changed for this ProcessTuner */
+		this->sendAllChangedParams();
+
+		if(optMsg == FINISHED_TUNING) {
+			vector<int>* finishedSections = tuner->getSectionsBeingTuned();
+			vector<int>::iterator finishedIt;
+			for(finishedIt = finishedSections->begin(); finishedIt != finishedSections->end(); finishedIt++) {
+
+				struct tmsgFinishedTuning finishedMsg;
+				finishedMsg.sectionId = *finishedIt;
+				udsComm->sendMsgHead(TMSG_FINISHED_TUNING, this->currentTid);
+				udsComm->send((const char*) &finishedMsg, sizeof(struct tmsgFinishedTuning));
+			}
+		}
 	}
-	/* params are global and exist only once -> if sectionsTuner changes them in stopMeasurement they will be also changed for this ProcessTuner */
-	this->sendAllChangedParams();
 }
 
 void ProcessTuner::handleFinishTuningMessage() {

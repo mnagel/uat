@@ -20,7 +20,7 @@ void HeuristicOptimizer::setInitialConfig() {
 	this->chooseNewValues();
 }
 
-void HeuristicOptimizer::chooseNewValues() {
+OptimizerMsg HeuristicOptimizer::chooseNewValues() {
 	switch(optState) {
 		case RANDOM_SEARCH:
 			if(randSearch->doRandSearch()>0) {
@@ -37,10 +37,11 @@ void HeuristicOptimizer::chooseNewValues() {
 		case FULLY_OPTIMIZED:
 			printf("set best config\n");
 			mcHandler->setBestMcAsConfig();
+			return FINISHED_TUNING;
 			break;
 		default:
 			break;
 
 	}
-
+	return RUNNING;
 }

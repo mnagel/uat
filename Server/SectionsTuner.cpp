@@ -72,7 +72,11 @@ void SectionsTuner::startMeasurement(pid_t tid, int sectionId) {
 	runningThreads.push_back(tid);
 }
 
-void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop) {
+OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop) {
+	OptimizerMsg returnMsg;
+	//default value
+	returnMsg = RUNNING;
+
 	runningThreads.remove(tid);
 
 	map<pid_t, struct threadStartInfo>::iterator mapit;
@@ -80,7 +84,7 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 
 	if(mapit == threadStartInfoMap.end()) {
 		//this happens if a param for a section is added after measurements already started and new SectionsTuners are created
-		return;
+		return returnMsg;
 	}
 	
 	struct threadStartInfo startInfo = mapit->second;
@@ -118,7 +122,7 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 			//mc->printRelativeRuntimes();
 			mcHandler->printAllMc(false);
 			//mcHandler->printCurrentWorkload();
-			optimizer->chooseNewValues();
+			returnMsg = optimizer->chooseNewValues();
 
 			//check if there are new params
 			list<opt_param_t*>::iterator paramsIt;
@@ -145,6 +149,7 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 		//TODO maybe fix that tiny runtime error here as only the guessedStartTime has been used in old mcMeasured (not really important)
 		
 	}
+	return returnMsg;
 }
 
 void SectionsTuner::invalidateAllRunningMeasurements() {

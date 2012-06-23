@@ -10,7 +10,10 @@ enum MsgType {
 	TMSG_SET_VALUE,
 	TMSG_DONT_SET_VALUE,
 	TMSG_GET_INITIAL_VALUES,
-	TMSG_FINISH_TUNING
+	//from client
+	TMSG_FINISH_TUNING,
+	//from server
+	TMSG_FINISHED_TUNING
 };
 
 enum ParameterType {
@@ -53,5 +56,9 @@ struct tmsgSetValue {
 struct tmsgStopMeas {
 	timespec tsMeasureStart;
 	timespec tsMeasureStop;
+	int sectionId;
+};
+
+struct tmsgFinishedTuning {
 	int sectionId;
 };

@@ -4,6 +4,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <map>
+#include <list>
 
 #include "../UDSCommunicator.h"
 
@@ -35,6 +36,8 @@ class Tuner {
 	void receiveLoop();
 	void handleSetValueMessage(struct tmsgSetValue* msg);
 	void handleDontSetValueMessage();
+	void handleFinishedTuningMessage(struct tmsgFinishedTuning* msg);
+	bool isSectionFinished(int sectionId);
 
 	threadControlBlock_t* getOrCreateTcb();
 	threadControlBlock_t* getOrCreateTcb(pid_t tid);
@@ -42,6 +45,7 @@ class Tuner {
 
 	sem_t sendSem;
 	std::map<pid_t, threadControlBlock_t*> tcbMap;
+	std::list<int> finishedSections;
 };
 
 struct threadControlBlock_t {

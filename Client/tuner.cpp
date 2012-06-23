@@ -55,6 +55,12 @@ void Tuner::receiveLoop() {
 				break;
 			case TMSG_GRANT_START_MEASUREMENT:
 				this->postOnStartMutex(msgHead.tid);
+				break;
+			case TMSG_FINISHED_TUNING:
+				struct tmsgFinishedTuning fmsg; 
+				udsComm->receiveFinishedTuningMessage(&fmsg);
+				this->handleFinishedTuningMessage(&fmsg);
+				break;
 			default:
 				break;
 		}
@@ -105,6 +111,24 @@ void Tuner::handleDontSetValueMessage() {
 	printf("dontSetValueMessage - no params have been changed\n");
 }
 
+void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
+	printf("section %d is finished\n", msg->sectionId);
+	if(!isSectionFinished(msg->sectionId)) {
+		finishedSections.push_back(msg->sectionId);
+	}
+}
+
+bool Tuner::isSectionFinished(int sectionId) {
+	list<int>::iterator sectionIt;
+	for(sectionIt = finishedSections.begin(); sectionIt != finishedSections.end(); sectionIt++) {
+		if(*sectionIt == sectionId) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
 int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to, int step) {
 	return this->tRegisterParameter(name, parameter, from, to, step, TYPE_DEFAULT);
 }
@@ -145,15 +169,19 @@ int Tuner::tGetInitialValues() {
 int Tuner::tRequestStart(int sectionId) {
 	threadControlBlock_t* tcb = getOrCreateTcb();
 
-	struct tmsgRequestStartMeas msg;
-	msg.sectionId = sectionId;
 
-	sem_wait(&sendSem);
-	udsComm->sendMsgHead(TMSG_REQUEST_START_MEASUREMENT);
-	udsComm->send((const char*) &msg, sizeof(tmsgRequestStartMeas));
-	sem_post(&sendSem);
-	sem_wait(&(tcb->sem));
-	clock_gettime(CLOCK_MONOTONIC, &(tcb->tsMeasureStart));
+	if(!isSectionFinished(sectionId)) {
+		sem_wait(&sendSem);
+		udsComm->sendMsgHead(TMSG_REQUEST_START_MEASUREMENT);
+
+		struct tmsgRequestStartMeas msg;
+		msg.sectionId = sectionId;
+		udsComm->send((const char*) &msg, sizeof(tmsgRequestStartMeas));
+		sem_post(&sendSem);
+
+		sem_wait(&(tcb->sem));
+		clock_gettime(CLOCK_MONOTONIC, &(tcb->tsMeasureStart));
+	}
 	return 0;
 }
 
@@ -165,16 +193,18 @@ int Tuner::tStop(int sectionId) {
 	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStop);
 	//tsMeasureDiff = diff(tcb->tsMeasureStart, tsMeasureStop);
 
-	struct tmsgStopMeas msg;
-	//msg.tsMeasureDiff = tsMeasureDiff;
-	msg.tsMeasureStart = tcb->tsMeasureStart;
-	msg.tsMeasureStop = tsMeasureStop;
-	msg.sectionId = sectionId;
+	if(!isSectionFinished(sectionId)) {
+		struct tmsgStopMeas msg;
+		//msg.tsMeasureDiff = tsMeasureDiff;
+		msg.tsMeasureStart = tcb->tsMeasureStart;
+		msg.tsMeasureStop = tsMeasureStop;
+		msg.sectionId = sectionId;
 
-	sem_wait(&sendSem);
-	udsComm->sendMsgHead(TMSG_STOP_MEASUREMENT);
-	udsComm->send((const char*) &msg, sizeof(tmsgStopMeas));
-	sem_post(&sendSem);
+		sem_wait(&sendSem);
+		udsComm->sendMsgHead(TMSG_STOP_MEASUREMENT);
+		udsComm->send((const char*) &msg, sizeof(tmsgStopMeas));
+		sem_post(&sendSem);
+	}
 
 	return 0;
 }

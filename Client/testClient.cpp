@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	
-	//myTuner->tGetInitialValues();
+	myTuner->tGetInitialValues();
 
 	for(int i=0; i<numThreads-1; i++) {
 		if(i==0) {
@@ -95,9 +95,9 @@ void* run(void* voidsection) {
 		usleep(sleep*1000);
 		myTuner->tStop(section);
 
-		if(i == 2 && section == 3) {
+		/*if(i == 2 && section == 3) {
 			myTuner->tRegisterSectionParameter(3, variables+3); 
-		}
+		}*/
 			
 		if(i>60 && section == 2) {
 			usleep(sleep*1000);

@@ -20,7 +20,7 @@ class NelderMeadOptimizer : public Optimizer{
 		NelderMeadOptimizer(McHandler* handler);
 		~NelderMeadOptimizer();
 		void setInitialConfig();
-		void chooseNewValues();
+		OptimizerMsg chooseNewValues();
 
 	private:
 		RandomSearch* randSearch;
