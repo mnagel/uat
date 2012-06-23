@@ -9,6 +9,7 @@
 using namespace std;
 // TODO it would be better to copy the two maps but lists being pointed at would also have to be copied
 SectionsTuner::SectionsTuner(map<int, list<struct opt_param_t*>*>* sectionParamsMap, map<struct opt_param_t*, list<int>*>* paramSectionsMap): 
+	markedForDeletion(false),
 	sectionIds(0), 
 	sectionParamsMap(sectionParamsMap),
 	paramSectionsMap(paramSectionsMap),
@@ -76,6 +77,12 @@ void SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec me
 
 	map<pid_t, struct threadStartInfo>::iterator mapit;
 	mapit = threadStartInfoMap.find(tid);
+
+	if(mapit == threadStartInfoMap.end()) {
+		//this happens if a param for a section is added after measurements already started and new SectionsTuners are created
+		return;
+	}
+	
 	struct threadStartInfo startInfo = mapit->second;
 	if(startInfo.valid) {
 		Mc* mc = startInfo.mcMeasured;
@@ -151,3 +158,9 @@ void SectionsTuner::invalidateAllRunningMeasurements() {
 	}
 
 }
+
+vector<int>* SectionsTuner::getSectionsBeingTuned() {
+	return &sectionIds;
+}
+
+

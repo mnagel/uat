@@ -287,8 +287,8 @@ bool LocalSearch::adjustBestMcAccordingWorkload() {
 		//check if history would be the same with other workload and if not set bestMc on mc where it first fails
 		//has to be only similar to be accepted
 		if(lastMc != NULL) {
+			//TODO create testclient to check that case, bestMcHist cutting couldn't be tested so far
 			if((*bestMcHistIt)->getRelativePerformance(lastMc, currentWorkload) > threshold) {
-				//TODO cut history
 				bestMc = lastMc;
 				bestMc->resetAllMeasurements();
 
@@ -299,6 +299,7 @@ bool LocalSearch::adjustBestMcAccordingWorkload() {
 				mcHandler->printAllMc(false);
 				setAllDirections();
 				setNextCurParamValue();
+				bestMcHistory.erase(bestMcHistIt, bestMcHistory.end());
 				printf("curparam %d\n",curParam);
 				return true;
 			}

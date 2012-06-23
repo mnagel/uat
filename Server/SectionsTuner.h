@@ -22,6 +22,10 @@ class SectionsTuner {
 		void startMeasurement(pid_t tid, int sectionId);
 		void stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop);
 		void invalidateAllRunningMeasurements();
+		std::vector<int>* getSectionsBeingTuned();
+
+		// needed for c++ low level memory management
+		bool markedForDeletion;
 
 	private:
 		std::vector<int> sectionIds;
