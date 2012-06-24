@@ -37,7 +37,10 @@ class Tuner {
 	void handleSetValueMessage(struct tmsgSetValue* msg);
 	void handleDontSetValueMessage();
 	void handleFinishedTuningMessage(struct tmsgFinishedTuning* msg);
+	void handleRestartTuningMessage(struct tmsgRestartTuning* msg);
+
 	bool isSectionFinished(int sectionId);
+	void checkRestartTuningForSection(int sectionId);
 
 	threadControlBlock_t* getOrCreateTcb();
 	threadControlBlock_t* getOrCreateTcb(pid_t tid);
@@ -45,6 +48,8 @@ class Tuner {
 
 	sem_t sendSem;
 	std::map<pid_t, threadControlBlock_t*> tcbMap;
+	std::map<int, timespec> finishedTuningAverageTime;
+	std::map<int, timespec> averageRunTime;
 	std::list<int> finishedSections;
 };
 

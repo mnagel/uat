@@ -41,6 +41,13 @@ long long timespecToLongLong(timespec ts) {
 	return ((long long) ts.tv_sec) * 1000000000 + ts.tv_nsec;
 }
 
+timespec longLongToTimespec(long long l) {
+	timespec ts;
+	ts.tv_sec = l/1000000000;
+	ts.tv_nsec = l - ts.tv_sec * 1000000000;
+	return ts;
+}
+
 /*
 timespec diff(timespec start, timespec end) {
 	start.tv_sec = -start.tv_sec;

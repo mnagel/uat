@@ -85,6 +85,13 @@ void UDSCommunicator::receiveFinishedTuningMessage(struct tmsgFinishedTuning* o_
 		errorExit("receiveFinishedTuningMessage");
 }
 
+void UDSCommunicator::receiveRestartTuningMessage(struct tmsgRestartTuning* o_msg) {
+	int iCount;
+	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgRestartTuning));
+	if(iCount!=sizeof(struct tmsgRestartTuning))
+		errorExit("receiveRestartTuningMessage");
+}
+
 
 void UDSCommunicator::receiveInt(int* o_msg) {
 	int iCount;

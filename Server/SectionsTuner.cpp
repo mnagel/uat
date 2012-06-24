@@ -168,4 +168,10 @@ vector<int>* SectionsTuner::getSectionsBeingTuned() {
 	return &sectionIds;
 }
 
+timespec SectionsTuner::getAverageRuntimeForCurrentMcAndSection(int sectionId) {
+	Mc* mc = mcHandler->getMcForCurrentConfigOrCreate();
+	return longLongToTimespec(mc->getAverage(sectionId));
+}
+
+
 

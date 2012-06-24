@@ -111,6 +111,11 @@ void ProcessTuner::run() {
 			case TMSG_FINISH_TUNING:
 				this->handleFinishTuningMessage();
 				break;
+			case TMSG_RESTART_TUNING:
+				struct tmsgRestartTuning restartMsg;
+				udsComm->receiveRestartTuningMessage(&restartMsg);
+				this->handleRestartTuningMessage(&restartMsg);
+				break;
 			default:
 				printf("default case shouldn't happen");
 				break;
@@ -157,34 +162,18 @@ void ProcessTuner::handleRegisterSectionParamMessage(struct tmsgRegisterSectionP
 
 	if(sectionsCreated) {
 		//change sections that have to be changed
-		SectionsTuner* newSectionsTuner = new SectionsTuner(&sectionParamsMap, &paramSectionsMap);
-		sectionsTuners.push_back(newSectionsTuner);
-		newSectionsTuner->addSectionId(sectionId);
-		addParamsOfSection(sectionId, newSectionsTuner);
-
+		SectionsTuner* newSectionsTuner = createNewSectionsTunerForSection(msg->sectionId);
+		//maybe one of the other sections has already finished tuning, send restart tuning to all
 		vector<int>* sectionsBeingTuned = newSectionsTuner->getSectionsBeingTuned();
 		vector<int>::iterator newSectionsIt;
-		map<int, SectionsTuner*>::iterator sectionsMapIt;
 		for(newSectionsIt = sectionsBeingTuned->begin(); newSectionsIt != sectionsBeingTuned->end(); newSectionsIt++) {
-			sectionsMapIt = sectionsTunersMap.find(*newSectionsIt);
-			if(sectionsMapIt != sectionsTunersMap.end()) {
-				printf("mark for deletion section: %d\n", *newSectionsIt);
-				sectionsTunersMap.erase(sectionsMapIt);
-				sectionsMapIt->second->markedForDeletion = true;
-
-			}
-			sectionsTunersMap.insert(pair<int, SectionsTuner*>(*newSectionsIt, newSectionsTuner));
+			tmsgRestartTuning msg;
+			msg.sectionId = *newSectionsIt;
+			udsComm->sendMsgHead(TMSG_RESTART_TUNING);
+			udsComm->send((const char*) &msg, sizeof(tmsgRestartTuning));
 		}
 
 		vector<SectionsTuner*>::iterator tunersIt;
-		for(tunersIt = sectionsTuners.begin(); tunersIt != sectionsTuners.end(); tunersIt++) {
-			if((*tunersIt)->markedForDeletion) {
-				delete *tunersIt;
-				sectionsTuners.erase(tunersIt);
-				tunersIt = sectionsTuners.begin() - 1;
-			}
-
-		}
 		printf("New SectionsTuners\n");
 		for(tunersIt = sectionsTuners.begin(); tunersIt != sectionsTuners.end(); tunersIt++) {
 			(*tunersIt)->printInfo();
@@ -223,7 +212,7 @@ void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartM
 	udsComm->sendMsgHead(TMSG_GRANT_START_MEASUREMENT, this->currentTid);
 }
 
-void ProcessTuner::handleStopMeasurementMessage(tmsgStopMeas* msg) {
+void ProcessTuner::handleStopMeasurementMessage(struct tmsgStopMeas* msg) {
 	map<int, SectionsTuner*>::iterator it;
 	it = sectionsTunersMap.find(msg->sectionId);
 	if(it != sectionsTunersMap.end()) {
@@ -240,6 +229,7 @@ void ProcessTuner::handleStopMeasurementMessage(tmsgStopMeas* msg) {
 
 				struct tmsgFinishedTuning finishedMsg;
 				finishedMsg.sectionId = *finishedIt;
+				finishedMsg.finishedAverageTime = tuner->getAverageRuntimeForCurrentMcAndSection(*finishedIt);
 				udsComm->sendMsgHead(TMSG_FINISHED_TUNING, this->currentTid);
 				udsComm->send((const char*) &finishedMsg, sizeof(struct tmsgFinishedTuning));
 			}
@@ -251,11 +241,31 @@ void ProcessTuner::handleFinishTuningMessage() {
 	this->runLoop = false;
 }
 
+void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
+	printf("restart Tuning called for section %d\n", msg->sectionId);
+	SectionsTuner* newSectionsTuner = createNewSectionsTunerForSection(msg->sectionId);
+	vector<int>* sectionsBeingTuned = newSectionsTuner->getSectionsBeingTuned();
+	vector<int>::iterator newSectionsIt;
+	for(newSectionsIt = sectionsBeingTuned->begin(); newSectionsIt != sectionsBeingTuned->end(); newSectionsIt++) {
+		tmsgRestartTuning msg;
+		msg.sectionId = *newSectionsIt;
+		udsComm->sendMsgHead(TMSG_RESTART_TUNING);
+		udsComm->send((const char*) &msg, sizeof(tmsgRestartTuning));
+	}
+
+	printf("New SectionsTuners\n");
+	vector<SectionsTuner*>::iterator tunersIt;
+	for(tunersIt = sectionsTuners.begin(); tunersIt != sectionsTuners.end(); tunersIt++) {
+		(*tunersIt)->printInfo();
+	}
+
+}
+
 void ProcessTuner::sendAllChangedParams() {
 	list<struct opt_param_t*>* params = mcHandler->getParams();
 	list<struct opt_param_t*>::iterator param_iterator;
 	struct tmsgSetValue setMsg;
-	
+
 	bool param_changed = false;
 
 	// complicated if structure in loop makes it possible to iterate only once over params
@@ -326,7 +336,9 @@ void ProcessTuner::createSectionsTuners() {
 
 	for(sectionIdsIt = sectionIds.begin(); sectionIdsIt != sectionIds.end(); sectionIdsIt++) {
 		if(sectionsTunersMap.find(*sectionIdsIt) == sectionsTunersMap.end()) {
-			SectionsTuner* newSectionsTuner = new SectionsTuner(&sectionParamsMap, &paramSectionsMap);
+			createNewSectionsTunerForSection(*sectionIdsIt);
+
+			/*SectionsTuner* newSectionsTuner = new SectionsTuner(&sectionParamsMap, &paramSectionsMap);
 			sectionsTuners.push_back(newSectionsTuner);
 			newSectionsTuner->addSectionId(*sectionIdsIt);
 			addParamsOfSection(*sectionIdsIt, newSectionsTuner);
@@ -336,9 +348,42 @@ void ProcessTuner::createSectionsTuners() {
 			for(newSectionsIt = sectionsBeingTuned->begin(); newSectionsIt != sectionsBeingTuned->end(); newSectionsIt++) {
 				sectionsTunersMap.insert(pair<int, SectionsTuner*>(*newSectionsIt, newSectionsTuner));
 			}
+			*/
 			
 		}
 	}
+}
+
+SectionsTuner* ProcessTuner::createNewSectionsTunerForSection(int sectionId) {
+	SectionsTuner* newSectionsTuner = new SectionsTuner(&sectionParamsMap, &paramSectionsMap);
+	sectionsTuners.push_back(newSectionsTuner);
+	newSectionsTuner->addSectionId(sectionId);
+	addParamsOfSection(sectionId, newSectionsTuner);
+
+	vector<int>* sectionsBeingTuned = newSectionsTuner->getSectionsBeingTuned();
+	vector<int>::iterator newSectionsIt;
+	map<int, SectionsTuner*>::iterator sectionsMapIt;
+	for(newSectionsIt = sectionsBeingTuned->begin(); newSectionsIt != sectionsBeingTuned->end(); newSectionsIt++) {
+		sectionsMapIt = sectionsTunersMap.find(*newSectionsIt);
+		if(sectionsMapIt != sectionsTunersMap.end()) {
+			printf("mark for deletion section: %d\n", *newSectionsIt);
+			sectionsTunersMap.erase(sectionsMapIt);
+			sectionsMapIt->second->markedForDeletion = true;
+
+		}
+		sectionsTunersMap.insert(pair<int, SectionsTuner*>(*newSectionsIt, newSectionsTuner));
+	}
+
+	vector<SectionsTuner*>::iterator tunersIt;
+	for(tunersIt = sectionsTuners.begin(); tunersIt != sectionsTuners.end(); tunersIt++) {
+		if((*tunersIt)->markedForDeletion) {
+			delete *tunersIt;
+			sectionsTuners.erase(tunersIt);
+			tunersIt = sectionsTuners.begin() - 1;
+		}
+
+	}
+	return newSectionsTuner;
 }
 
 void ProcessTuner::addParamsOfSection(int sectionId, SectionsTuner* secTuner) {

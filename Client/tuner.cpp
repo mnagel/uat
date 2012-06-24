@@ -61,6 +61,11 @@ void Tuner::receiveLoop() {
 				udsComm->receiveFinishedTuningMessage(&fmsg);
 				this->handleFinishedTuningMessage(&fmsg);
 				break;
+			case TMSG_RESTART_TUNING:
+				struct tmsgRestartTuning rmsg; 
+				udsComm->receiveRestartTuningMessage(&rmsg);
+				this->handleRestartTuningMessage(&rmsg);
+				break;
 			default:
 				break;
 		}
@@ -94,7 +99,7 @@ void Tuner::postOnStartMutex(pid_t tid) {
 
 
 void Tuner::handleSetValueMessage(struct tmsgSetValue* msg) {
-	printf("handleSetValueMessage: pointer: %p new value: %d\n", msg->parameter, msg->value);
+	//printf("handleSetValueMessage: pointer: %p new value: %d\n", msg->parameter, msg->value);
 	if(msg->set) {
 		*(msg->parameter) = msg->value;
 	}
@@ -108,13 +113,36 @@ void Tuner::handleSetValueMessage(struct tmsgSetValue* msg) {
 }
 
 void Tuner::handleDontSetValueMessage() {
-	printf("dontSetValueMessage - no params have been changed\n");
+	//printf("dontSetValueMessage - no params have been changed\n");
 }
 
 void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
 	printf("section %d is finished\n", msg->sectionId);
 	if(!isSectionFinished(msg->sectionId)) {
 		finishedSections.push_back(msg->sectionId);
+		map<int, timespec>::iterator sectionIt;
+		sectionIt = finishedTuningAverageTime.find(msg->sectionId);
+		if(sectionIt != finishedTuningAverageTime.end()) {
+			finishedTuningAverageTime.erase(sectionIt);
+		}
+		finishedTuningAverageTime.insert(pair<int, timespec>(msg->sectionId, msg->finishedAverageTime));
+
+		sectionIt = averageRunTime.find(msg->sectionId);
+		if(sectionIt != averageRunTime.end()) {
+			averageRunTime.erase(sectionIt);
+		}
+		averageRunTime.insert(pair<int, timespec>(msg->sectionId, msg->finishedAverageTime));
+
+	}
+}
+
+void Tuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
+	list<int>::iterator sectionIt;
+	for(sectionIt = finishedSections.begin(); sectionIt != finishedSections.end(); sectionIt++) {
+		if(*sectionIt == msg->sectionId) {
+			finishedSections.erase(sectionIt);
+			break;
+		}
 	}
 }
 
@@ -126,6 +154,24 @@ bool Tuner::isSectionFinished(int sectionId) {
 		}
 	}
 	return false;
+}
+void Tuner::checkRestartTuningForSection(int sectionId) {
+	map<int, timespec>::iterator finishedIt;
+	map<int, timespec>::iterator averageIt;
+	finishedIt = finishedTuningAverageTime.find(sectionId);
+	averageIt = averageRunTime.find(sectionId);
+	if(finishedIt != finishedTuningAverageTime.end() && averageIt != averageRunTime.end()) {
+		long long finished = timespecToLongLong(finishedIt->second);
+		long long average = timespecToLongLong(averageIt->second);
+		if((abs(finished-average)/(double) finished) > 0.3) {
+			tmsgRestartTuning msg;
+			msg.sectionId = sectionId;
+			sem_wait(&sendSem);
+			udsComm->sendMsgHead(TMSG_RESTART_TUNING);
+			udsComm->send((const char*) &msg, sizeof(tmsgRestartTuning));
+			sem_post(&sendSem);
+		}
+	}
 }
 
 
@@ -181,6 +227,8 @@ int Tuner::tRequestStart(int sectionId) {
 
 		sem_wait(&(tcb->sem));
 		clock_gettime(CLOCK_MONOTONIC, &(tcb->tsMeasureStart));
+	} else {
+		clock_gettime(CLOCK_MONOTONIC, &(tcb->tsMeasureStart));
 	}
 	return 0;
 }
@@ -189,9 +237,7 @@ int Tuner::tStop(int sectionId) {
 	threadControlBlock_t* tcb = getOrCreateTcb();
 
 	timespec tsMeasureStop;
-	//timespec tsMeasureDiff;
 	clock_gettime(CLOCK_MONOTONIC, &tsMeasureStop);
-	//tsMeasureDiff = diff(tcb->tsMeasureStart, tsMeasureStop);
 
 	if(!isSectionFinished(sectionId)) {
 		struct tmsgStopMeas msg;
@@ -204,6 +250,21 @@ int Tuner::tStop(int sectionId) {
 		udsComm->sendMsgHead(TMSG_STOP_MEASUREMENT);
 		udsComm->send((const char*) &msg, sizeof(tmsgStopMeas));
 		sem_post(&sendSem);
+	} else {
+		timespec tsMeasureDiff;
+		tsMeasureDiff = diff(tcb->tsMeasureStart, tsMeasureStop);
+		map<int, timespec>::iterator runtimeIt;
+		runtimeIt = averageRunTime.find(sectionId);
+		if(runtimeIt != averageRunTime.end()) {
+			timespec newRuntime;
+			newRuntime = longLongToTimespec(timespecToLongLong(runtimeIt->second)*0.8 + timespecToLongLong(tsMeasureDiff)*0.2);
+			printf("average %lld, newruntime %lld, measurediff %lld\n", timespecToLongLong(runtimeIt->second), timespecToLongLong(newRuntime), timespecToLongLong(tsMeasureDiff));
+			averageRunTime.erase(runtimeIt);
+			averageRunTime.insert(pair<int, timespec>(sectionId, newRuntime));
+			printf("check restart tuning for section %d\n", sectionId);
+			checkRestartTuningForSection(sectionId);
+		}
+
 	}
 
 	return 0;

@@ -23,6 +23,8 @@ class SectionsTuner {
 		OptimizerMsg stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop);
 		void invalidateAllRunningMeasurements();
 		std::vector<int>* getSectionsBeingTuned();
+		timespec getAverageRuntimeForCurrentMcAndSection(int sectionId);
+		
 
 		// needed for c++ low level memory management
 		bool markedForDeletion;

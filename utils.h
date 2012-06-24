@@ -15,6 +15,7 @@ void errorExit(string msg);
 timespec diff(timespec start, timespec end);
 timespec tsAdd(timespec ts1, timespec ts2);
 long long timespecToLongLong(timespec ts);
+timespec longLongToTimespec(long long l);
 bool isTimespecLower(timespec first, timespec second);
 int iround(double d);
 int getRelativePerformance(timespec* first, timespec* second);

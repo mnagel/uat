@@ -36,11 +36,13 @@ class ProcessTuner {
 	void handleRequestStartMeasurementMessage(struct tmsgRequestStartMeas* msg);
 	void handleStopMeasurementMessage(struct tmsgStopMeas* msg);
 	void handleFinishTuningMessage();
+	void handleRestartTuningMessage(struct tmsgRestartTuning* msg);
 
 	void sendAllChangedParams();
 	void addSectionIdIfNotExists(int sectionId);
 	void addSectionParam(int sectionId, int* address);
 	void createSectionsTuners();
+	SectionsTuner* createNewSectionsTunerForSection(int sectionId);
 	void addParamsOfSection(int sectionId, SectionsTuner* secTuner);
 	void addSectionsOfParam(struct opt_param_t* param, SectionsTuner* secTuner);
 
