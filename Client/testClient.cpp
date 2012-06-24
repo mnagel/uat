@@ -84,7 +84,6 @@ void* run(void* voidsection) {
 	//printf("T tid: %lu\n", syscall(SYS_gettid)); 
 	//printf("T pid: %u\n", getpid()); 
 	for(int i=0; i<1000; i++) {
-		printf("before start\n");
 		myTuner->tRequestStart(section);
 		int sleep = 100;
 		for(int j=0; j<numParas; j++) {
@@ -98,6 +97,11 @@ void* run(void* voidsection) {
 		/*if(i == 2 && section == 3) {
 			myTuner->tRegisterSectionParameter(3, variables+3); 
 		}*/
+
+		if(i == 150 && section == 1) {
+			optimum[0] = 15;
+			printf("changed optimum\n");
+		}
 			
 		if(i>60 && section == 2) {
 			usleep(sleep*1000);

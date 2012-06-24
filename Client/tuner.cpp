@@ -119,7 +119,6 @@ void Tuner::handleDontSetValueMessage() {
 void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
 	printf("section %d is finished\n", msg->sectionId);
 	if(!isSectionFinished(msg->sectionId)) {
-		finishedSections.push_back(msg->sectionId);
 		map<int, timespec>::iterator sectionIt;
 		sectionIt = finishedTuningAverageTime.find(msg->sectionId);
 		if(sectionIt != finishedTuningAverageTime.end()) {
@@ -133,6 +132,7 @@ void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
 		}
 		averageRunTime.insert(pair<int, timespec>(msg->sectionId, msg->finishedAverageTime));
 
+		finishedSections.push_back(msg->sectionId);
 	}
 }
 
