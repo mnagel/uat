@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	
-	myTuner->tGetInitialValues();
+	//myTuner->tGetInitialValues();
 
 	for(int i=0; i<numThreads-1; i++) {
 		if(i==0) {

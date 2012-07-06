@@ -103,19 +103,8 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 
 		// all sections have been measured in that mc?
 		if(mc->getMinNumMeasurementsOfSections(&sectionIds) > 0) {
-			//insert runtimes for still running measurements
-			list<pid_t>::iterator tidIt;
-			map<pid_t, struct threadStartInfo>::iterator infoIt;
-			struct timespec emptyTsStop;
-			emptyTsStop.tv_sec = 0;
-			emptyTsStop.tv_nsec = 0;
-			for(tidIt = runningThreads.begin(); tidIt != runningThreads.end(); tidIt++) {
-				infoIt = threadStartInfoMap.find(*tidIt);	
-				if(infoIt != threadStartInfoMap.end()) {
-					//generates a really tiny error, as guessedStartTime isn't the true startTime, that is only known by tunerClient until measurement is finished
-					mc->addRuntimeForThreadAndSection(*tidIt, infoIt->second.sectionId, infoIt->second.guessedStartTime, emptyTsStop, true);
-				}
-			}
+			
+			storeRuntimeForThreadsAndSections(mc);
 			mc->storeRuntimeOfMeasurements();
 			mcHandler->adjustWorkloadWithMc(mc);
 
@@ -124,17 +113,7 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 			//mcHandler->printCurrentWorkload();
 			returnMsg = optimizer->chooseNewValues();
 
-			//check if there are new params
-			list<opt_param_t*>::iterator paramsIt;
-			bool paramChanged = false;
-			for(paramsIt=mcHandler->getParams()->begin(); paramsIt != mcHandler->getParams()->end(); paramsIt++) {
-				if((*paramsIt)->changed) {
-					paramChanged = true;
-					break;
-				}
-			}
-
-			if(paramChanged) {
+			if(paramsChanged()) {
 				//printf("delete all measurements except that of %d\n", tid);
 				invalidateAllRunningMeasurements();
 				mc->stopMeasurements();
@@ -150,6 +129,36 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 		
 	}
 	return returnMsg;
+}
+
+bool SectionsTuner::paramsChanged() {
+	//check if there are new params
+	list<opt_param_t*>::iterator paramsIt;
+	bool paramChanged = false;
+	for(paramsIt=mcHandler->getParams()->begin(); paramsIt != mcHandler->getParams()->end(); paramsIt++) {
+		if((*paramsIt)->changed) {
+			paramChanged = true;
+			break;
+		}
+	}
+	return paramChanged;
+}
+
+void SectionsTuner::storeRuntimeForThreadsAndSections(Mc* mc) {
+	//insert runtimes for still running measurements
+	list<pid_t>::iterator tidIt;
+	map<pid_t, struct threadStartInfo>::iterator infoIt;
+	struct timespec emptyTsStop;
+	emptyTsStop.tv_sec = 0;
+	emptyTsStop.tv_nsec = 0;
+	for(tidIt = runningThreads.begin(); tidIt != runningThreads.end(); tidIt++) {
+		infoIt = threadStartInfoMap.find(*tidIt);	
+		if(infoIt != threadStartInfoMap.end()) {
+			//generates a really tiny error, as guessedStartTime isn't the true startTime, that is only known by tunerClient until measurement is finished
+			mc->addRuntimeForThreadAndSection(*tidIt, infoIt->second.sectionId, infoIt->second.guessedStartTime, emptyTsStop, true);
+		}
+	}
+
 }
 
 void SectionsTuner::invalidateAllRunningMeasurements() {

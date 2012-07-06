@@ -123,16 +123,16 @@ bool LocalSearch::allDirectionsTested() {
 void LocalSearch::setAllDirectionsExceptCurrent() {
 	for(int i=0; i<numParams; i++) {
 		if(i != curParam) {
-			directions[i] = true;
-			directions[i+1] = true;
+			directions[2*i] = true;
+			directions[2*i+1] = true;
 		}
 	}
 }
 
 void LocalSearch::setAllDirections() {
 	for(int i=0; i<numParams; i++) {
-		directions[i] = true;
-		directions[i+1] = true;
+		directions[2*i] = true;
+		directions[2*i+1] = true;
 	}
 }
 

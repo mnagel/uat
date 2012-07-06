@@ -21,6 +21,8 @@ class SectionsTuner {
 		void chooseInitialConfig();
 		void startMeasurement(pid_t tid, int sectionId);
 		OptimizerMsg stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop);
+		bool paramsChanged();
+		void storeRuntimeForThreadsAndSections(Mc* mc);
 		void invalidateAllRunningMeasurements();
 		std::vector<int>* getSectionsBeingTuned();
 		timespec getAverageRuntimeForCurrentMcAndSection(int sectionId);

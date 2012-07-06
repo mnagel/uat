@@ -258,7 +258,10 @@ void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
 	for(tunersIt = sectionsTuners.begin(); tunersIt != sectionsTuners.end(); tunersIt++) {
 		(*tunersIt)->printInfo();
 	}
+}
 
+void ProcessTuner::restartTuning() {
+	createSectionsTuners();
 }
 
 void ProcessTuner::sendAllChangedParams() {

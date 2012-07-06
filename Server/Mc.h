@@ -21,6 +21,7 @@ class Mc {
 	public:
 		Mc(std::vector<int>* sectionIds);
 		~Mc();
+
 		bool matchesConfig(std::list<opt_param_t*>* params);
 		bool matchesMc(Mc* mc);
 		void print(bool longVersion);
@@ -53,11 +54,33 @@ class Mc {
 
 		std::vector<struct opt_param_t> config;
 	private:
+		/**
+		 * A pointer on the sectionIds list of the SectionsTuner
+		 */
 		std::vector<int>* sectionIds;
+
+		/**
+		 * Maps sectionIds on a vector holding <tid, measurement> tuples
+		 * There can be more than one tuple per tid
+		 */
 		std::map<int, std::vector<struct optThreadMeas>*> measurements;
+
+		/**
+		 * Maps sectionIds on a vector holding <tid, runtime> tuples
+		 * There should be only one tuple per tid
+		 */
 		std::map<int, std::vector<struct optThreadMeas>*> runtimes;
+		
+		/**
+		 * Saves how far a runtime for a thread has already been inserted in the runtimes map
+		 */
 		std::map<pid_t, struct timespec> runtimeInsertedTill;
+
+		/**
+		 * A list with sectionIds that have already been measured
+		 */
 		std::vector<int> measuredSections;
+
 		bool measurementsRunning;
 		timespec startOfMeasurements;
 		timespec runtimeOfMeasurements;

@@ -23,8 +23,10 @@ class ProcessTuner {
 	void run();
 	void runInNewThread();
 	void addProcessTunerListener(ProcessTunerListener* listener);
+	void restartTuning();
 	McHandler* getMcHandler();
 	static void* threadCreator(void* context);
+
 
 	private:
 	UDSCommunicator* udsComm;
