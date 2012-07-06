@@ -261,6 +261,7 @@ void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
 }
 
 void ProcessTuner::restartTuning() {
+	//TODO send restart tuning message for sections that are already finished!
 	createSectionsTuners();
 }
 

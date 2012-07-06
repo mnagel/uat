@@ -51,6 +51,7 @@ void TunerDaemon::run() {
 	int fdConn;
 	while ((fdConn=accept(this->fdSock, (struct sockaddr*)&(this->strAddr), &(this->lenAddr))) >= 0) {
 		printf("\nConnection !!! receiving data ...\n");
+		globalMcHandler->restartTuningForAllProcessTuners();
 		ProcessTuner* tuner = new ProcessTuner(fdConn);
 		globalMcHandler->addTuner(tuner);
 		tuner->addProcessTunerListener((ProcessTunerListener*) this);

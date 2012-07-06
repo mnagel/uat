@@ -26,6 +26,13 @@ void GlobalMcHandler::getAllParamsHavingType(ParameterType paramType, list<opt_p
 	}
 }
 
+void GlobalMcHandler::restartTuningForAllProcessTuners() {
+	list<ProcessTuner*>::iterator it;
+	for(it=tuners.begin(); it!=tuners.end(); it++) {
+		(*it)->restartTuning();
+	}
+}
+
 //TODO redundant with McHandler print function
 void GlobalMcHandler::printParamsList(list<opt_param_t*>* params) {
 	printf("---------------------------------\n");
