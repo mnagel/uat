@@ -40,9 +40,11 @@ class ProcessTuner {
 	void handleFinishTuningMessage();
 	void handleRestartTuningMessage(struct tmsgRestartTuning* msg);
 
+	void checkRestartTuning();
 	void sendAllChangedParams();
 	void addSectionIdIfNotExists(int sectionId);
 	void addSectionParam(int sectionId, int* address);
+	void deleteAllSectionsTuners();  
 	void createSectionsTuners();
 	SectionsTuner* createNewSectionsTunerForSection(int sectionId);
 	void addParamsOfSection(int sectionId, SectionsTuner* secTuner);
@@ -52,6 +54,7 @@ class ProcessTuner {
 	Optimizer* optimizer;
 	std::vector<ProcessTunerListener*> processTunerListener;
 	bool runLoop;
+	bool restartTuningReceived;
 	pid_t currentTid;
 	int sectionsCreated;
 	std::list<int> sectionIds;

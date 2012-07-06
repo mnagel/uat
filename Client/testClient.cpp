@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
 	printf("main pid: %d\n", pid);
 	myTuner = new Tuner();
 
+	// usleep(10*1000*1000);
 	string name = "testVariable";
 	const char* nameAsChar = name.c_str();
 	for(int i=0; i<numParas; i++) {

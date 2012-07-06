@@ -23,6 +23,7 @@ ProcessTuner::ProcessTuner(int fdConn):
 	optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)),
 	processTunerListener(0),
 	runLoop(true),
+	restartTuningReceived(false),
 	sectionsCreated(false),
 	sectionIds(0),
 	sectionsTuners(0) {
@@ -81,6 +82,7 @@ void* ProcessTuner::threadCreator(void* context) {
 void ProcessTuner::run() {
 	tmsgHead msgHead;
 	while(this->runLoop) {
+		checkRestartTuning();
 		udsComm->receiveMsgHead(&msgHead);
 		this->currentTid = msgHead.tid;
 		//printf("handle message of type: %d\n", msgHead.msgType);
@@ -261,8 +263,18 @@ void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
 }
 
 void ProcessTuner::restartTuning() {
-	//TODO send restart tuning message for sections that are already finished!
-	createSectionsTuners();
+	restartTuningReceived = true;
+}
+
+void ProcessTuner::checkRestartTuning() {
+	if(restartTuningReceived) {
+		restartTuningReceived = false;
+		//TODO send restart tuning message for sections that are already finished!
+		deleteAllSectionsTuners();
+		printf("before create\n");
+		createSectionsTuners();
+		printf("after create\n");
+	}
 }
 
 void ProcessTuner::sendAllChangedParams() {
@@ -332,6 +344,15 @@ void ProcessTuner::addSectionParam(int sectionId, int* address) {
 	paramsIt = paramSectionsMap.find(param);
 	paramSections = paramsIt->second;
 	sortedInsert(paramSections, sectionId);
+}
+
+void ProcessTuner::deleteAllSectionsTuners() {
+	sectionsTunersMap.clear();
+	vector<SectionsTuner*>::iterator tunersIt;
+	for(tunersIt = sectionsTuners.begin(); tunersIt != sectionsTuners.end(); tunersIt++) {
+		delete *tunersIt;
+	}
+	sectionsTuners.clear();
 }
 
 void ProcessTuner::createSectionsTuners() {
