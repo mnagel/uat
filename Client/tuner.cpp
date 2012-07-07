@@ -30,6 +30,7 @@ Tuner::Tuner()
 
 Tuner::~Tuner() {
 	delete udsComm;
+	sem_destroy(&sendSem);
 
 	//TODO iterate over semMap and destroy and delete semaphores
 	//sem_destroy(&(this->startMutex));
@@ -117,7 +118,7 @@ void Tuner::handleDontSetValueMessage() {
 }
 
 void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
-	printf("section %d is finished\n", msg->sectionId);
+	printf("received finishedTuning for section %d\n", msg->sectionId);
 	if(!isSectionFinished(msg->sectionId)) {
 		map<int, timespec>::iterator sectionIt;
 		sectionIt = finishedTuningAverageTime.find(msg->sectionId);
@@ -137,13 +138,8 @@ void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
 }
 
 void Tuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
-	list<int>::iterator sectionIt;
-	for(sectionIt = finishedSections.begin(); sectionIt != finishedSections.end(); sectionIt++) {
-		if(*sectionIt == msg->sectionId) {
-			finishedSections.erase(sectionIt);
-			break;
-		}
-	}
+	printf("received restartTuning for section %d", msg->sectionId);
+	finishedSections.remove(msg->sectionId);
 }
 
 bool Tuner::isSectionFinished(int sectionId) {
@@ -258,10 +254,10 @@ int Tuner::tStop(int sectionId) {
 		if(runtimeIt != averageRunTime.end()) {
 			timespec newRuntime;
 			newRuntime = longLongToTimespec(timespecToLongLong(runtimeIt->second)*0.8 + timespecToLongLong(tsMeasureDiff)*0.2);
-			printf("average %lld, newruntime %lld, measurediff %lld\n", timespecToLongLong(runtimeIt->second), timespecToLongLong(newRuntime), timespecToLongLong(tsMeasureDiff));
+			// printf("average %lld, newruntime %lld, measurediff %lld\n", timespecToLongLong(runtimeIt->second), timespecToLongLong(newRuntime), timespecToLongLong(tsMeasureDiff));
 			averageRunTime.erase(runtimeIt);
 			averageRunTime.insert(pair<int, timespec>(sectionId, newRuntime));
-			printf("check restart tuning for section %d\n", sectionId);
+			// printf("check restart tuning for section %d\n", sectionId);
 			checkRestartTuningForSection(sectionId);
 		}
 

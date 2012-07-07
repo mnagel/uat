@@ -2,8 +2,15 @@ GCC = g++
 CFLAGS = -Wall
 LIBS = -pthread -lrt
 
-SRC =$(wildcard *.cpp)
-OBJ =$(SRC:.cpp=.o)  
+#CLIENTSRC =$(wildcard *.cpp)
+#DUMMYCLIENTSRC =$(wildcard *.cpp)
+
+CLIENTSRC = testClient.cpp tuner.cpp
+DUMMYCLIENTSRC = dummyClient.cpp tuner.cpp
+
+CLIENTOBJ =$(CLIENTSRC:.cpp=.o)  
+DUMMYCLIENTOBJ =$(DUMMYCLIENTSRC:.cpp=.o)  
+
 PARENTSRC =$(wildcard ../*.cpp)
 PARENTOBJ =$(PARENTSRC:.cpp=.o) 
 
@@ -11,11 +18,14 @@ PARENTOBJ =$(PARENTSRC:.cpp=.o)
 	$(GCC) $(CFLAGS) -c $<
 
 .PHONY: all
-all: client
+all: client dummyclient
 
-client: $(OBJ) $(PARENTOBJ)
-	$(GCC) $(OBJ) $(PARENTOBJ) $(CFLAGS) $(LIBS) -o $@
+client: $(CLIENTOBJ) $(PARENTOBJ)
+	$(GCC) $(CLIENTOBJ) $(PARENTOBJ) $(CFLAGS) $(LIBS) -o $@
+
+dummyclient:  $(DUMMYCLIENTOBJ) $(PARENTOBJ)
+	$(GCC) $(DUMMYCLIENTOBJ) $(PARENTOBJ) $(CFLAGS) $(LIBS) -o $@
 
 .PHONY: clean
 clean:
-	rm -rf *o client
+	rm -rf *o client dummyclient

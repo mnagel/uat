@@ -56,4 +56,5 @@ Thumbs.db
 # Special binary files in this project #
 ########################################
 client
+dummyclient
 server

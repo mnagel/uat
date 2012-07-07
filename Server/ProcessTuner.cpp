@@ -18,15 +18,15 @@ using namespace std;
 int global = 0;
 
 ProcessTuner::ProcessTuner(int fdConn):
-	udsComm(new UDSCommunicator(fdConn)),
-	mcHandler(new McHandler(NULL, NULL, NULL)),
-	optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)),
-	processTunerListener(0),
-	runLoop(true),
-	restartTuningReceived(false),
-	sectionsCreated(false),
-	sectionIds(0),
-	sectionsTuners(0) {
+udsComm(new UDSCommunicator(fdConn)),
+mcHandler(new McHandler(NULL, NULL, NULL)),
+optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)),
+processTunerListener(0),
+runLoop(true),
+sectionsCreated(false),
+sectionIds(0),
+sectionsTuners(0) {
+	sem_init(&sectionsTunersSem,1,1);
 }
 
 ProcessTuner::~ProcessTuner() {
@@ -65,8 +65,8 @@ void ProcessTuner::addProcessTunerListener(ProcessTunerListener* listener) {
 }
 
 void ProcessTuner::runInNewThread() {
-		this->pthread = new pthread_t;
-		pthread_create (pthread, NULL, &ProcessTuner::threadCreator, (void*) this);
+	this->pthread = new pthread_t;
+	pthread_create (pthread, NULL, &ProcessTuner::threadCreator, (void*) this);
 }
 
 
@@ -82,46 +82,49 @@ void* ProcessTuner::threadCreator(void* context) {
 void ProcessTuner::run() {
 	tmsgHead msgHead;
 	while(this->runLoop) {
-		checkRestartTuning();
 		udsComm->receiveMsgHead(&msgHead);
+
+		// lock needed as restartTuning is called async by TunerDaemon and shouldn't delete sectionsTuners while those are being used
+		sem_wait(&sectionsTunersSem);
 		this->currentTid = msgHead.tid;
-		//printf("handle message of type: %d\n", msgHead.msgType);
+		// printf("handle message of type: %d\n", msgHead.msgType);
 		switch(msgHead.msgType) {
 			case TMSG_ADD_PARAM:
-				struct tmsgAddParam msg;
-				udsComm->receiveAddParamMessage(&msg);
-				this->handleAddParamMessage(&msg);
-				break;
+			struct tmsgAddParam msg;
+			udsComm->receiveAddParamMessage(&msg);
+			this->handleAddParamMessage(&msg);
+			break;
 			case TMSG_REGISTER_SECTION_PARAM:
-				struct tmsgRegisterSectionParam remsg;
-				udsComm->receiveRegisterSectionParamMessage(&remsg);
-				this->handleRegisterSectionParamMessage(&remsg);
-				break;
+			struct tmsgRegisterSectionParam remsg;
+			udsComm->receiveRegisterSectionParamMessage(&remsg);
+			this->handleRegisterSectionParamMessage(&remsg);
+			break;
 			case TMSG_GET_INITIAL_VALUES:
-				this->handleGetInitialValuesMessage();
-				break;
+			this->handleGetInitialValuesMessage();
+			break;
 			case TMSG_REQUEST_START_MEASUREMENT:
-				struct tmsgRequestStartMeas rmsg;
-				udsComm->receiveRequestStartMeasMessage(&rmsg);
-				this->handleRequestStartMeasurementMessage(&rmsg);
-				break;
+			struct tmsgRequestStartMeas rmsg;
+			udsComm->receiveRequestStartMeasMessage(&rmsg);
+			this->handleRequestStartMeasurementMessage(&rmsg);
+			break;
 			case TMSG_STOP_MEASUREMENT:
-				struct tmsgStopMeas smsg;
-				udsComm->receiveStopMeasMessage(&smsg);
-				this->handleStopMeasurementMessage(&smsg);
-				break;
+			struct tmsgStopMeas smsg;
+			udsComm->receiveStopMeasMessage(&smsg);
+			this->handleStopMeasurementMessage(&smsg);
+			break;
 			case TMSG_FINISH_TUNING:
-				this->handleFinishTuningMessage();
-				break;
+			this->handleFinishTuningMessage();
+			break;
 			case TMSG_RESTART_TUNING:
-				struct tmsgRestartTuning restartMsg;
-				udsComm->receiveRestartTuningMessage(&restartMsg);
-				this->handleRestartTuningMessage(&restartMsg);
-				break;
+			struct tmsgRestartTuning restartMsg;
+			udsComm->receiveRestartTuningMessage(&restartMsg);
+			this->handleRestartTuningMessage(&restartMsg);
+			break;
 			default:
-				printf("default case shouldn't happen");
-				break;
+			printf("default case shouldn't happen");
+			break;
 		}
+		sem_post(&sectionsTunersSem);
 	}
 }
 
@@ -201,20 +204,29 @@ void ProcessTuner::handleGetInitialValuesMessage() {
 }
 
 void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartMeas* msg) {
-	if(!sectionsCreated) {
-		createSectionsTuners();
-		sectionsCreated = true;
+	if(!isSectionFinished(msg->sectionId)) {
+		if(!sectionsCreated) {
+			createSectionsTuners();
+			sectionsCreated = true;
+		}
+
+		// TODO add an error check if sectionId in stopMeas msg is the same
+		map<int, SectionsTuner*>::iterator it;
+		it = sectionsTunersMap.find(msg->sectionId);
+		if(it != sectionsTunersMap.end()) {
+			it->second->startMeasurement(currentTid, msg->sectionId);
+		}
 	}
-	// TODO add an error check if sectionId in stopMeas msg is the same
-	map<int, SectionsTuner*>::iterator it;
-	it = sectionsTunersMap.find(msg->sectionId);
-	if(it != sectionsTunersMap.end()) {
-		it->second->startMeasurement(currentTid, msg->sectionId);
-	}
+
+	// has to be granted in any case, otherwise client will stop waiting for semaphore!
 	udsComm->sendMsgHead(TMSG_GRANT_START_MEASUREMENT, this->currentTid);
 }
 
 void ProcessTuner::handleStopMeasurementMessage(struct tmsgStopMeas* msg) {
+	if(isSectionFinished(msg->sectionId)) {
+		return;
+	}
+
 	map<int, SectionsTuner*>::iterator it;
 	it = sectionsTunersMap.find(msg->sectionId);
 	if(it != sectionsTunersMap.end()) {
@@ -225,15 +237,18 @@ void ProcessTuner::handleStopMeasurementMessage(struct tmsgStopMeas* msg) {
 		this->sendAllChangedParams();
 
 		if(optMsg == FINISHED_TUNING) {
-			vector<int>* finishedSections = tuner->getSectionsBeingTuned();
+			vector<int>* newFinishedSections = tuner->getSectionsBeingTuned();
 			vector<int>::iterator finishedIt;
-			for(finishedIt = finishedSections->begin(); finishedIt != finishedSections->end(); finishedIt++) {
+			for(finishedIt = newFinishedSections->begin(); finishedIt != newFinishedSections->end(); finishedIt++) {
 
 				struct tmsgFinishedTuning finishedMsg;
 				finishedMsg.sectionId = *finishedIt;
 				finishedMsg.finishedAverageTime = tuner->getAverageRuntimeForCurrentMcAndSection(*finishedIt);
 				udsComm->sendMsgHead(TMSG_FINISHED_TUNING, this->currentTid);
 				udsComm->send((const char*) &finishedMsg, sizeof(struct tmsgFinishedTuning));
+				if(!isSectionFinished(*finishedIt)) {
+					finishedSections.push_back(*finishedIt);
+				}
 			}
 		}
 	}
@@ -253,6 +268,8 @@ void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
 		msg.sectionId = *newSectionsIt;
 		udsComm->sendMsgHead(TMSG_RESTART_TUNING);
 		udsComm->send((const char*) &msg, sizeof(tmsgRestartTuning));
+
+		finishedSections.remove(*newSectionsIt);
 	}
 
 	printf("New SectionsTuners\n");
@@ -263,18 +280,32 @@ void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
 }
 
 void ProcessTuner::restartTuning() {
-	restartTuningReceived = true;
+	sem_wait(&sectionsTunersSem);
+	deleteAllSectionsTuners();
+	createSectionsTuners();
+
+
+	list<int>::iterator sectionIdIt;
+	for(sectionIdIt = finishedSections.begin(); sectionIdIt != finishedSections.end(); sectionIdIt++) {
+		tmsgRestartTuning msg;
+		msg.sectionId = *sectionIdIt;
+		udsComm->sendMsgHead(TMSG_RESTART_TUNING);
+		udsComm->send((const char*) &msg, sizeof(tmsgRestartTuning));
+		printf("restart tuning for all: send restart tuning for section: %d\n", *sectionIdIt);
+	}
+	finishedSections.clear();
+	sem_post(&sectionsTunersSem);
 }
 
-void ProcessTuner::checkRestartTuning() {
-	if(restartTuningReceived) {
-		restartTuningReceived = false;
-		//TODO send restart tuning message for sections that are already finished!
-		deleteAllSectionsTuners();
-		printf("before create\n");
-		createSectionsTuners();
-		printf("after create\n");
+//TODO hashset would improve performance
+bool ProcessTuner::isSectionFinished(int sectionId) {
+	list<int>::iterator sectionIdIt;
+	for(sectionIdIt = finishedSections.begin(); sectionIdIt != finishedSections.end(); sectionIdIt++) {
+		if(*sectionIdIt == sectionId) {
+			return true;
+		}
 	}
+	return false;
 }
 
 void ProcessTuner::sendAllChangedParams() {

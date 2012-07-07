@@ -18,7 +18,7 @@ Tuner* myTuner;
 #define numThreads 5
 
 
-int variables[] = {1, 2, 3, 4};
+int variables[] = {1, 20, 3, 30};
 int minValue[] = {1, 5, 1, 10};
 int maxValue[] = {20, 30, 10, 50};
 int optimum[] = {10, 5, 3, 46};

@@ -3,6 +3,7 @@
 #include <vector>
 #include <time.h>
 #include <stdlib.h>
+#include <semaphore.h>
 
 #include "tunerData.h"
 #include "../protocolData.h"
@@ -41,6 +42,7 @@ class ProcessTuner {
 	void handleRestartTuningMessage(struct tmsgRestartTuning* msg);
 
 	void checkRestartTuning();
+	bool isSectionFinished(int sectionId);
 	void sendAllChangedParams();
 	void addSectionIdIfNotExists(int sectionId);
 	void addSectionParam(int sectionId, int* address);
@@ -54,10 +56,11 @@ class ProcessTuner {
 	Optimizer* optimizer;
 	std::vector<ProcessTunerListener*> processTunerListener;
 	bool runLoop;
-	bool restartTuningReceived;
+	sem_t sectionsTunersSem;
 	pid_t currentTid;
 	int sectionsCreated;
 	std::list<int> sectionIds;
+	std::list<int> finishedSections;
 	std::map<int, list<struct opt_param_t*>*> sectionParamsMap;
 	std::map<struct opt_param_t*, list<int>*> paramSectionsMap;
 	std::map<int, SectionsTuner*> sectionsTunersMap; 
