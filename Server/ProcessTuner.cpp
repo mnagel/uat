@@ -6,11 +6,7 @@
 #include <time.h>
 
 #include "ProcessTuner.h"
-#include "tunerData.h"
-#include "../protocolData.h"
 #include "../utils.h"
-#include "../UDSCommunicator.h"
-#include "McHandler.h"
 
 using namespace std;
 
@@ -19,8 +15,7 @@ int global = 0;
 
 ProcessTuner::ProcessTuner(int fdConn):
 udsComm(new UDSCommunicator(fdConn)),
-mcHandler(new McHandler(NULL, NULL, NULL)),
-optimizer((Optimizer*) new HeuristicOptimizer(mcHandler)),
+paramHandler(new ParamHandler()),
 processTunerListener(0),
 runLoop(true),
 sectionsCreated(false),
@@ -36,7 +31,7 @@ ProcessTuner::~ProcessTuner() {
 		it = sectionParamsMap.find(*sectionsIt);
 		delete it->second;
 	}
-	list<struct opt_param_t*>* params = mcHandler->getParams();
+	list<struct opt_param_t*>* params = paramHandler->getParams();
 	list<struct opt_param_t*>::iterator paramsIt;
 	map<struct opt_param_t*, list<int>*>::iterator mapit;
 	for(paramsIt = params->begin(); paramsIt!=params->end(); paramsIt++) {
@@ -51,13 +46,12 @@ ProcessTuner::~ProcessTuner() {
 	}
 
 	delete udsComm;
-	delete mcHandler;
-	delete optimizer;
+	delete paramHandler;
 	delete pthread;
 }
 
-McHandler* ProcessTuner::getMcHandler() {
-	return mcHandler;
+ParamHandler* ProcessTuner::getParamHandler() {
+	return paramHandler;
 }
 
 void ProcessTuner::addProcessTunerListener(ProcessTunerListener* listener) {
@@ -132,7 +126,7 @@ void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 	//TODO it isn't checked if initial value is between min max
 	// if tunerClient doesn't get initialConfig that will and hasn't initial between min and max that will fail 
 	printf("add param: parameterpointer: %p from: %d to: %d step: %d type: %d\n",msg->parameter, msg->min, msg->max, msg->step, msg->type);
-	if(mcHandler->getParam(msg->parameter)==NULL) {
+	if(paramHandler->getParam(msg->parameter)==NULL) {
 		struct opt_param_t* newParam = new struct opt_param_t;
 		newParam->address = msg->parameter;
 		newParam->curval = msg->value;
@@ -144,12 +138,12 @@ void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
 		newParam->changed = false;
 		newParam->newHint = false;
 
-		mcHandler->addParam(newParam);
+		paramHandler->addParam(newParam);
 
 		list<int>* sectionsVec = new list<int>;
 		paramSectionsMap.insert(pair<struct opt_param_t*, list<int>*>(newParam, sectionsVec));
 
-		mcHandler->printCurrentConfig();
+		paramHandler->printCurrentConfig();
 
 		// notify listener
 		for(unsigned int i=0; i<this->processTunerListener.size(); i++) {
@@ -309,7 +303,7 @@ bool ProcessTuner::isSectionFinished(int sectionId) {
 }
 
 void ProcessTuner::sendAllChangedParams() {
-	list<struct opt_param_t*>* params = mcHandler->getParams();
+	list<struct opt_param_t*>* params = paramHandler->getParams();
 	list<struct opt_param_t*>::iterator param_iterator;
 	struct tmsgSetValue setMsg;
 
@@ -355,7 +349,7 @@ void ProcessTuner::addSectionIdIfNotExists(int sectionId) {
 }
 
 void ProcessTuner::addSectionParam(int sectionId, int* address) {
-	struct opt_param_t* param = mcHandler->getParam(address);
+	struct opt_param_t* param = paramHandler->getParam(address);
 	if(param==NULL) {
 		printf("ERROR param has to be added before registering for a section\n");
 	}

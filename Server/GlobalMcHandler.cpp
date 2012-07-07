@@ -22,7 +22,7 @@ void GlobalMcHandler::removeTuner(ProcessTuner* tuner) {
 void GlobalMcHandler::getAllParamsHavingType(ParameterType paramType, list<opt_param_t*>* oParams) {
 	list<ProcessTuner*>::iterator it;
 	for(it=tuners.begin(); it!=tuners.end(); it++) {
-		(*it)->getMcHandler()->getAllParamsHavingType(paramType, oParams);	
+		(*it)->getParamHandler()->getAllParamsHavingType(paramType, oParams);	
 	}
 }
 

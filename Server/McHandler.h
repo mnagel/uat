@@ -6,10 +6,11 @@
 #include <time.h>
 
 #include "tunerData.h"
+#include "ParamHandler.h"
 #include "Mc.h"
 #include "../utils.h"
 
-class McHandler {
+class McHandler : public ParamHandler {
 
 	public:
 		McHandler(std::vector<int>* sectionIds, std::map<int, list<struct opt_param_t*>*>* sectionParamsMap, std::map<struct opt_param_t*, list<int>*>* paramSectionsMap);
@@ -18,23 +19,13 @@ class McHandler {
 		Mc* getMcIfExists(Mc* mc);
 		Mc* addMcForCurrentConfig(unsigned long currentConfigHash);
 		void addMeasurementToMc(Mc* mc, pid_t tid, int sectionId, struct timespec ts);
-		void addParam(struct opt_param_t* param);
-		void printCurrentConfig();
 		void printAllMc(bool longVersion);
 		void printCurrentWorkload();
-		void changeAllParamsToValue(int value);
-		void setConfigToMin();
-		void raiseConfig();
-		void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*>* oParams);
-		std::list<struct opt_param_t*>* getParams();
-		struct opt_param_t* getParam(int* address);
-		int getNumParams();
 		Mc* getBestMc();
 		std::list<Mc*>* getBestMcs();
 		Mc* getWorstMc();
 		void setBestMcAsConfig();
 		void setMcAsConfig(Mc* mc);
-		int computeNumPossibleConfigs();
 		Mc* createMcInMid();
 		Mc* createRandomMc();
 		void setRandomValueForParam(struct opt_param_t* param);
@@ -47,16 +38,12 @@ class McHandler {
 		int getNumSections();
 		void getParamsInfluencingNSections(std::vector<struct opt_param_t*>* params, unsigned int n);
 		std::list<int>* getSectionsInfluencedByParam(struct opt_param_t* param);
-		int getParamIndexInConfig(struct opt_param_t* param);
 		void adjustWorkloadWithMc(Mc* mc);
 		double getWorkload(int sectionId, unsigned int workloadInPast);
 		std::map<int, double>* getWorkload(unsigned int workloadInPast);
 		bool differsFromCurrentWorkload(Mc* mc, double diffBorder);
 		bool differsPastWorkloadFromCurrent(unsigned int workloadInPast, double diffBorder);
 
-
-
-		static int sortedInsert(std::list<struct opt_param_t*>* l, struct opt_param_t* param);
 
 	private:
 		std::vector<int>* sectionIds;
@@ -67,7 +54,6 @@ class McHandler {
 		int workloadMcNeededMeasurements;
 		std::vector<Mc*> mcs;
 		std::list<Mc*> bestMcs;
-		std::list<struct opt_param_t*> currentConfig;
 		std::map<unsigned long, std::vector<Mc*>*> mcsMap;
 		//Mc* bestMc;
 		Mc* worstMc;
@@ -76,7 +62,6 @@ class McHandler {
 
 		bool matchesCurrentConfig(Mc* mc);
 		bool configsMatch(Mc* first, Mc* second);
-		unsigned long getHash(std::list<struct opt_param_t*>* paramList);
 		void insertMcIntoBestMcs(Mc* mc);
 
 

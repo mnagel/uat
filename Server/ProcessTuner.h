@@ -8,6 +8,7 @@
 #include "tunerData.h"
 #include "../protocolData.h"
 #include "../UDSCommunicator.h"
+#include "ParamHandler.h"
 #include "McHandler.h"
 #include "Optimizer.h"
 #include "HeuristicOptimizer.h"
@@ -25,7 +26,7 @@ class ProcessTuner {
 	void runInNewThread();
 	void addProcessTunerListener(ProcessTunerListener* listener);
 	void restartTuning();
-	McHandler* getMcHandler();
+	ParamHandler* getParamHandler();
 	static void* threadCreator(void* context);
 
 
@@ -52,8 +53,7 @@ class ProcessTuner {
 	void addParamsOfSection(int sectionId, SectionsTuner* secTuner);
 	void addSectionsOfParam(struct opt_param_t* param, SectionsTuner* secTuner);
 
-	McHandler* mcHandler;
-	Optimizer* optimizer;
+	ParamHandler* paramHandler;
 	std::vector<ProcessTunerListener*> processTunerListener;
 	bool runLoop;
 	sem_t sectionsTunersSem;
