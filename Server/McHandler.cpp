@@ -307,6 +307,7 @@ Mc* McHandler::copyMcWithoutMeasurements(Mc* mc) {
 //TODO O(#mcs^2 * #params) -> only method having such a bad bad runtime
 // tuner must be really fast not to produce tuning overhead
 // -> insert some fancy runtime improvements
+//TODO wenn param gar nicht eingetragen für diese sektion in der map dann 0 zurückgeben
 double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress) {
 	vector<Mc*>::iterator outerIt;
 	vector<Mc*>::iterator innerIt;

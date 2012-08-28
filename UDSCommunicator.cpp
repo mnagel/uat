@@ -32,6 +32,7 @@ UDSCommunicator::UDSCommunicator() {
 		errorExit("connect");
 	}
 
+	printf("Client connected succesful with filedescriptor: %d\n", this->fdConn);
 }
 
 /* construct UDSCommunicator by using already existing filedescriptor of connection */

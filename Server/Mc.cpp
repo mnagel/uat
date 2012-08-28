@@ -351,7 +351,12 @@ int Mc::differsOnlyInParamByDist(Mc* mc, int* paramAddress) {
 }
 
 bool Mc::isBetterThan(Mc* mc) {
-	return this->getRelativePerformance(mc, NULL) < 100;
+	return this->getRelativePerformance(mc) < 100;
+}
+
+
+int Mc::getRelativePerformance(Mc* mc) {
+	return this->getRelativePerformance(mc, NULL);
 }
 
 int Mc::getRelativePerformance(Mc* mc, map<int,double>* curWorkload) {

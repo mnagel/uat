@@ -38,10 +38,10 @@ int main(int argc, char *argv[]) {
 	myTuner = new Tuner();
 
 	// usleep(10*1000*1000);
-	string name = "testVariable";
-	const char* nameAsChar = name.c_str();
+	//string name = "testVariable";
+	//const char* nameAsChar = name.c_str();
 	for(int i=0; i<numParas; i++) {
-		myTuner->tRegisterParameter(nameAsChar, variables+i, minValue[i], maxValue[i], 1); 
+		myTuner->tRegisterParameter(variables+i, minValue[i], maxValue[i], 1); 
 	}
 
 	for(int i=0; i<numSections; i++) {

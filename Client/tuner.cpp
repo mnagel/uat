@@ -171,11 +171,11 @@ void Tuner::checkRestartTuningForSection(int sectionId) {
 }
 
 
-int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to, int step) {
-	return this->tRegisterParameter(name, parameter, from, to, step, TYPE_DEFAULT);
+int Tuner::tRegisterParameter(int *parameter, int from, int to, int step) {
+	return this->tRegisterParameter(parameter, from, to, step, TYPE_DEFAULT);
 }
 
-int Tuner::tRegisterParameter(const char *name, int *parameter, int from, int to, int step, ParameterType type) {
+int Tuner::tRegisterParameter(int *parameter, int from, int to, int step, ParameterType type) {
 	struct tmsgAddParam msg;
 	msg.parameter = parameter;
 	msg.value = *parameter;
@@ -273,7 +273,7 @@ int Tuner::tFinishTuning() {
 	return 0;
 }
 
-int Tuner::tStopW(int weight) {
+int Tuner::tStop(int sectionId, int weight) {
 	return 0;
 }
 

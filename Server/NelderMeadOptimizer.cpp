@@ -19,7 +19,7 @@ NelderMeadOptimizer::~NelderMeadOptimizer() {
 }
 
 void NelderMeadOptimizer::setInitialConfig() {
-	this->chooseNewValues();
+	this->chooseNewValues(); 
 }
 
 OptimizerMsg NelderMeadOptimizer::chooseNewValues() {

@@ -17,14 +17,14 @@ class Tuner {
 	public:
 	Tuner();
 	~Tuner();
-	int tRegisterParameter(const char *name, int *parameter, int from, int to, int step);
-	int tRegisterParameter(const char *name, int *parameter, int from, int to, int step, ParameterType type);
+	int tRegisterParameter(int *parameter, int from, int to, int step);
+	int tRegisterParameter(int *parameter, int from, int to, int step, ParameterType type);
 	int tGetInitialValues();
 	int tRegisterSectionParameter(int sectionId, int *parameter);
 	int tRequestStart(int sectionId);
 	int tStop(int sectionId);
+	int tStop(int sectionId, int weight);
 	int tFinishTuning();
-	int tStopW(int weight);
 	int tReset();
 	int tSetpersistence(int pers);
 	int tGetpersistence();
