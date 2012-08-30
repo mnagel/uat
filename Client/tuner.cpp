@@ -19,9 +19,12 @@
 using namespace std;
 
 Tuner::Tuner() 
-	:udsComm(new UDSCommunicator()) {
+	:udsComm(new UDSCommunicator()),
+	running(true) {
 		sem_init(&sendSem,1,1);
 		sem_init(&tcbMapProtector,1,1);
+		sem_init(&finishedSectionsProtector,1,1);
+		
 		// create receive thread
 		// pthread_create doesn't work with class methods, as the this pointer always is a hidden argument
 		// workaround with static threadCreator method instead
@@ -44,7 +47,7 @@ void* Tuner::threadCreator(void* context) {
 
 void Tuner::receiveLoop() {
 	tmsgHead msgHead;
-	while(1) {
+	while(running) {
 		udsComm->receiveMsgHead(&msgHead);
 		switch(msgHead.msgType) {
 			case TMSG_SET_VALUE:
@@ -76,6 +79,9 @@ void Tuner::receiveLoop() {
 					return;
 				}
 				this->handleRestartTuningMessage(&rmsg);
+				break;
+			case TMSG_CLOSE_CONNECTION:
+				running = false;
 				break;
 			default:
 				break;
@@ -136,6 +142,7 @@ void Tuner::handleDontSetValueMessage() {
 void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
 	printf("received finishedTuning for section %d\n", msg->sectionId);
 	if(!isSectionFinished(msg->sectionId)) {
+		sem_wait(&finishedSectionsProtector);
 		map<int, timespec>::iterator sectionIt;
 		sectionIt = finishedTuningAverageTime.find(msg->sectionId);
 		if(sectionIt != finishedTuningAverageTime.end()) {
@@ -149,23 +156,31 @@ void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
 		}
 		averageRunTime.insert(pair<int, timespec>(msg->sectionId, msg->finishedAverageTime));
 
+		
 		finishedSections.push_back(msg->sectionId);
+		sem_post(&finishedSectionsProtector);
 	}
 }
 
 void Tuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
 	printf("received restartTuning for section %d\n", msg->sectionId);
+	sem_wait(&finishedSectionsProtector);
 	finishedSections.remove(msg->sectionId);
+	sem_post(&finishedSectionsProtector);
 }
 
 bool Tuner::isSectionFinished(int sectionId) {
+	sem_wait(&finishedSectionsProtector);
+	bool returnVal = false;
 	list<int>::iterator sectionIt;
 	for(sectionIt = finishedSections.begin(); sectionIt != finishedSections.end(); sectionIt++) {
 		if(*sectionIt == sectionId) {
-			return true;
+			returnVal = true;
+			break;
 		}
 	}
-	return false;
+	sem_post(&finishedSectionsProtector);
+	return returnVal;
 }
 void Tuner::checkRestartTuningForSection(int sectionId) {
 	map<int, timespec>::iterator finishedIt;
@@ -265,6 +280,7 @@ int Tuner::tStop(int sectionId) {
 		udsComm->send((const char*) &msg, sizeof(tmsgStopMeas));
 		sem_post(&sendSem);
 	} else {
+		sem_wait(&finishedSectionsProtector);
 		timespec tsMeasureDiff;
 		tsMeasureDiff = diff(tcb->tsMeasureStart, tsMeasureStop);
 		map<int, timespec>::iterator runtimeIt;
@@ -278,6 +294,7 @@ int Tuner::tStop(int sectionId) {
 			// printf("check restart tuning for section %d\n", sectionId);
 			checkRestartTuningForSection(sectionId);
 		}
+		sem_post(&finishedSectionsProtector);
 
 	}
 

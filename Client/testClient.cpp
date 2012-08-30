@@ -74,7 +74,7 @@ void finished() {
 	//TODO needs to be atomic or synchronized
 	sem_wait(&finishSem);
 	finishCount++;
-	printf("finishCount %d\n", finishCount);
+	printf("finishCount %d numThreads %d\n", finishCount, numThreads);
 	if(finishCount == numThreads) {
 		printf("delete Tuner\n");
 		myTuner->tFinishTuning();
@@ -82,6 +82,7 @@ void finished() {
 		delete myTuner;
 	}
 	sem_post(&finishSem);
+	//usleep(30*1000*1000);
 }
 
 void* run(void* voidsection) {

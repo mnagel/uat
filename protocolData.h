@@ -14,7 +14,8 @@ enum MsgType {
 	//from client
 	TMSG_FINISH_TUNING,
 	//from server
-	TMSG_FINISHED_TUNING
+	TMSG_FINISHED_TUNING,
+	TMSG_CLOSE_CONNECTION
 };
 
 enum ParameterType {

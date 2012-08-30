@@ -261,11 +261,16 @@ void ProcessTuner::handleStopMeasurementMessage(struct tmsgStopMeas* msg) {
 }
 
 void ProcessTuner::handleFinishTuningMessage() {
+	udsComm->sendMsgHead(TMSG_CLOSE_CONNECTION);
 	this->runLoop = false;
 }
 
 void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
 	printf("restart Tuning called for section %d\n", msg->sectionId);
+	/*if(!isSectionFinished(msg->sectionId)) {
+		return;
+	}*/
+
 	SectionsTuner* newSectionsTuner = createNewSectionsTunerForSection(msg->sectionId);
 	vector<int>* sectionsBeingTuned = newSectionsTuner->getSectionsBeingTuned();
 	vector<int>::iterator newSectionsIt;
