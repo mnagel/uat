@@ -9,5 +9,5 @@ class GlobalConfigurator {
 		void createHintsForType(ParameterType type);
 
 	private:
-		GlobalParamHandler* glMcHandler;
+		GlobalParamHandler* globalParamHandler;
 };

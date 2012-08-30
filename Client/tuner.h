@@ -34,7 +34,7 @@ class Tuner {
 	UDSCommunicator* udsComm;
 	pthread_t receiveThread;
 	void receiveLoop();
-	void handleSetValueMessage(struct tmsgSetValue* msg);
+	int handleSetValueMessage(struct tmsgSetValue* msg);
 	void handleDontSetValueMessage();
 	void handleFinishedTuningMessage(struct tmsgFinishedTuning* msg);
 	void handleRestartTuningMessage(struct tmsgRestartTuning* msg);
@@ -47,6 +47,7 @@ class Tuner {
 	void postOnStartMutex(pid_t tid);
 
 	sem_t sendSem;
+	sem_t tcbMapProtector;
 	std::map<pid_t, threadControlBlock_t*> tcbMap;
 	std::map<int, timespec> finishedTuningAverageTime;
 	std::map<int, timespec> averageRunTime;

@@ -29,10 +29,12 @@ int parasUsedBySection[4][4] = {{true , true , true, false},
 						        {false, false, true , false},
 						        {false, true , true , false},
 								{false, false, false, true }};
+sem_t finishSem;
 
 void* run(void* section);
 
 int main(int argc, char *argv[]) {
+	sem_init(&finishSem,1,1);
 	pid_t pid = getpid();
 	printf("main pid: %d\n", pid);
 	myTuner = new Tuner();
@@ -70,12 +72,16 @@ int main(int argc, char *argv[]) {
 
 void finished() {
 	//TODO needs to be atomic or synchronized
+	sem_wait(&finishSem);
 	finishCount++;
+	printf("finishCount %d\n", finishCount);
 	if(finishCount == numThreads) {
+		printf("delete Tuner\n");
 		myTuner->tFinishTuning();
 		usleep(2000*1000);
 		delete myTuner;
 	}
+	sem_post(&finishSem);
 }
 
 void* run(void* voidsection) {
@@ -84,7 +90,7 @@ void* run(void* voidsection) {
 	//printf("T self: %lu\n", pthread_self()); 
 	//printf("T tid: %lu\n", syscall(SYS_gettid)); 
 	//printf("T pid: %u\n", getpid()); 
-	for(int i=0; i<1000; i++) {
+	for(int i=0; i<250; i++) {
 		myTuner->tRequestStart(section);
 		int sleep = 100;
 		for(int j=0; j<numParas; j++) {
@@ -92,7 +98,7 @@ void* run(void* voidsection) {
 				sleep += 50*abs(variables[j] - optimum[j]);
 			}
 		}
-		usleep(sleep*1000);
+		usleep(sleep*100);
 		myTuner->tStop(section);
 
 		/*if(i == 2 && section == 3) {
@@ -105,7 +111,7 @@ void* run(void* voidsection) {
 		}
 			
 		if(i>60 && section == 2) {
-			usleep(sleep*1000);
+			usleep(sleep*100);
 		}
 	}
 	finished();

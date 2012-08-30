@@ -20,7 +20,7 @@ UDSCommunicator::UDSCommunicator() {
 	socklen_t lenAddr;
 
 	if ((this->fdConn=socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-		errorExit("socket");
+		printf("ERROR: Socket creation\n");
 	}
 
 	/* Set Unix Domain socket parameter */
@@ -29,10 +29,10 @@ UDSCommunicator::UDSCommunicator() {
 	lenAddr=sizeof(strAddr.sun_family)+strlen(strAddr.sun_path);
 
 	if (connect(this->fdConn, (struct sockaddr*)&strAddr, lenAddr) !=0 ) {
-		errorExit("connect");
+		printf("ERROR: Client connection\n");
 	}
 
-	printf("Client connected succesful with filedescriptor: %d\n", this->fdConn);
+	printf("Client connection succesful\n");
 }
 
 /* construct UDSCommunicator by using already existing filedescriptor of connection */
@@ -44,101 +44,71 @@ UDSCommunicator::~UDSCommunicator() {
 	close(fdConn);
 }
 
-void UDSCommunicator::receiveSetValueMessage(struct tmsgSetValue* o_msg) {
+int UDSCommunicator::receiveMessage(void* o_msg, int size) {
 	int iCount;
-	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgSetValue));
-	if(iCount!=sizeof(struct tmsgSetValue))
-		errorExit("receiveSetValueMessage");
+	iCount=read(this->fdConn, o_msg, size);
+	if(iCount!=size) {
+		printf("ERROR: receiveMsgBody\n");
+		return -1;
+	}
+	return 0;
 }
 
-void UDSCommunicator::receiveAddParamMessage(struct tmsgAddParam* o_msg){
-	int iCount;
-	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgAddParam));
-	if(iCount!=sizeof(struct tmsgAddParam))
-		errorExit("receiveAddParamMessage");
-}
-
-void UDSCommunicator::receiveStopMeasMessage(struct tmsgStopMeas* o_msg){
-	int iCount;
-	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgStopMeas));
-	if(iCount!=sizeof(struct tmsgStopMeas))
-		errorExit("receiveStopMeasMessage");
-}
-
-void UDSCommunicator::receiveRequestStartMeasMessage(struct tmsgRequestStartMeas* o_msg) {
-	int iCount;
-	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgRequestStartMeas));
-	if(iCount!=sizeof(struct tmsgRequestStartMeas))
-		errorExit("receiveRequestStartMeasMessage");
-}
-
-void UDSCommunicator::receiveRegisterSectionParamMessage(struct tmsgRegisterSectionParam* o_msg) {
-	int iCount;
-	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgRegisterSectionParam));
-	if(iCount!=sizeof(struct tmsgRegisterSectionParam))
-		errorExit("receiveRegisterSectionParamMessage");
-}
-
-void UDSCommunicator::receiveFinishedTuningMessage(struct tmsgFinishedTuning* o_msg) {
-	int iCount;
-	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgFinishedTuning));
-	if(iCount!=sizeof(struct tmsgFinishedTuning))
-		errorExit("receiveFinishedTuningMessage");
-}
-
-void UDSCommunicator::receiveRestartTuningMessage(struct tmsgRestartTuning* o_msg) {
-	int iCount;
-	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgRestartTuning));
-	if(iCount!=sizeof(struct tmsgRestartTuning))
-		errorExit("receiveRestartTuningMessage");
-}
-
-
-void UDSCommunicator::receiveInt(int* o_msg) {
+int UDSCommunicator::receiveInt(int* o_msg) {
 	int iCount;
 	iCount=read(this->fdConn, o_msg, sizeof(int));
 	if(iCount!=sizeof(int)) {
-		errorExit("receiveInt");
+		printf("ERROR: receiveInt\n");
+		return -1;
 	}
+	return 0;
 }
 
-void UDSCommunicator::receiveMsgType(MsgType* o_msg) {
+int UDSCommunicator::receiveMsgType(MsgType* o_msg) {
 	int iCount;
 	iCount=read(this->fdConn, o_msg, sizeof(int));
 	if(iCount!=sizeof(MsgType)) {
-		errorExit("receiveMsgType");
+		printf("ERROR: receiveMsgType\n");
+		return -1;
 	}
+	return 0;
 }
 
-void UDSCommunicator::receiveMsgHead(tmsgHead* o_msg) {
+int UDSCommunicator::receiveMsgHead(tmsgHead* o_msg) {
 	int iCount;
 	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgHead));
 	if(iCount!=sizeof(struct tmsgHead)) {
-		errorExit("receiveMsgHead");
+		printf("ERROR: receiveMsgHead\n");
+		return -1;
 	}
+	return 0;
 }
 
-void UDSCommunicator::sendMsgHead(MsgType msgType) {
+int UDSCommunicator::sendMsgHead(MsgType msgType) {
 	pid_t tid = syscall(SYS_gettid);
-	this->sendMsgHead(msgType, tid);
+	return this->sendMsgHead(msgType, tid);
 }
 
-void UDSCommunicator::sendMsgHead(MsgType msgType, pid_t tid) {
+int UDSCommunicator::sendMsgHead(MsgType msgType, pid_t tid) {
 	struct tmsgHead head;
 	head.msgType = msgType;
 	head.tid = tid;
-	this->send((const char*) &head, sizeof(struct tmsgHead));
+	return this->send((const char*) &head, sizeof(struct tmsgHead));
 }
 
-void UDSCommunicator::send(const char* msg, int length) {
+int UDSCommunicator::send(const char* msg, int length) {
 	if (write(this->fdConn, msg, length)!=length) {
-		errorExit("send struct");
+		printf("ERROR: send struct\n");
+		return -1;
 	}
+	return 0;
 }
 
-void UDSCommunicator::send(int a) {
+int UDSCommunicator::send(int a) {
 	if (write(this->fdConn, &a, sizeof(int))!=sizeof(int)) {
-		errorExit("send int");
+		printf("ERROR: send int\n");
+		return -1;
 	}
+	return 0;
 }
 

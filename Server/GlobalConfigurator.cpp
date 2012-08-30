@@ -5,7 +5,7 @@
 using namespace std;
 
 GlobalConfigurator::GlobalConfigurator(GlobalParamHandler* handler):
-	glMcHandler(handler) {
+	globalParamHandler(handler) {
 }
 
 GlobalConfigurator::~GlobalConfigurator() {
@@ -22,7 +22,7 @@ void GlobalConfigurator::createHintsForType(ParameterType type) {
 			break;
 	}
 	list<opt_param_t*> params;
-	glMcHandler->getAllParamsHavingType(type, &params);
+	globalParamHandler->getAllParamsHavingType(type, &params);
 
 	int value = resourceSize/params.size(); 
 

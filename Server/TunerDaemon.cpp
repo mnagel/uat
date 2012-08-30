@@ -15,14 +15,14 @@
 using namespace std;
 
 TunerDaemon::TunerDaemon():
-	GlobalParamHandler(new GlobalParamHandler),
-	globalConfigurator(new GlobalConfigurator(GlobalParamHandler)) {
+	globalParamHandler(new GlobalParamHandler),
+	globalConfigurator(new GlobalConfigurator(globalParamHandler)) {
 
 }
 
 TunerDaemon::~TunerDaemon() {
 	delete globalConfigurator;
-	delete GlobalParamHandler;
+	delete globalParamHandler;
 }
 
 void TunerDaemon::start() {
@@ -51,9 +51,9 @@ void TunerDaemon::run() {
 	int fdConn;
 	while ((fdConn=accept(this->fdSock, (struct sockaddr*)&(this->strAddr), &(this->lenAddr))) >= 0) {
 		printf("\nConnection accepted - filedescriptor: %d\n", fdConn);
-		GlobalParamHandler->restartTuningForAllProcessTuners();
+		globalParamHandler->restartTuningForAllProcessTuners();
 		ProcessTuner* tuner = new ProcessTuner(fdConn);
-		GlobalParamHandler->addTuner(tuner);
+		globalParamHandler->addTuner(tuner);
 		tuner->addProcessTunerListener((ProcessTunerListener*) this);
 		tuner->runInNewThread();
 	}
@@ -66,7 +66,7 @@ void TunerDaemon::stop() {
 
 void TunerDaemon::tuningFinished(ProcessTuner* tuner) {
 	printf("thread finished in TunerDaemon has been called\n");
-	GlobalParamHandler->removeTuner(tuner);
+	globalParamHandler->removeTuner(tuner);
 	delete tuner;
 }
 

@@ -10,8 +10,6 @@
 
 using namespace std;
 
-//TODO delete this line
-int global = 0;
 
 ProcessTuner::ProcessTuner(int fdConn):
 udsComm(new UDSCommunicator(fdConn)),
@@ -76,7 +74,9 @@ void* ProcessTuner::threadCreator(void* context) {
 void ProcessTuner::run() {
 	tmsgHead msgHead;
 	while(this->runLoop) {
-		udsComm->receiveMsgHead(&msgHead);
+		if(udsComm->receiveMsgHead(&msgHead) == -1) {
+			return;
+		}
 
 		// lock needed as restartTuning is called async by TunerDaemon and shouldn't delete sectionsTuners while those are being used
 		sem_wait(&sectionsTunersSem);
@@ -84,39 +84,49 @@ void ProcessTuner::run() {
 		// printf("handle message of type: %d\n", msgHead.msgType);
 		switch(msgHead.msgType) {
 			case TMSG_ADD_PARAM:
-			struct tmsgAddParam msg;
-			udsComm->receiveAddParamMessage(&msg);
-			this->handleAddParamMessage(&msg);
-			break;
+				struct tmsgAddParam msg;
+				if(udsComm->receiveMessage((void*) &msg, sizeof(struct tmsgAddParam)) == -1) {
+					return;
+				}
+				this->handleAddParamMessage(&msg);
+				break;
 			case TMSG_REGISTER_SECTION_PARAM:
-			struct tmsgRegisterSectionParam remsg;
-			udsComm->receiveRegisterSectionParamMessage(&remsg);
-			this->handleRegisterSectionParamMessage(&remsg);
-			break;
+				struct tmsgRegisterSectionParam remsg;
+				if(udsComm->receiveMessage((void*) &remsg, sizeof(struct tmsgRegisterSectionParam)) == -1) {
+					return;
+				}
+				this->handleRegisterSectionParamMessage(&remsg);
+				break;
 			case TMSG_GET_INITIAL_VALUES:
-			this->handleGetInitialValuesMessage();
-			break;
+				this->handleGetInitialValuesMessage();
+				break;
 			case TMSG_REQUEST_START_MEASUREMENT:
-			struct tmsgRequestStartMeas rmsg;
-			udsComm->receiveRequestStartMeasMessage(&rmsg);
-			this->handleRequestStartMeasurementMessage(&rmsg);
-			break;
+				struct tmsgRequestStartMeas rmsg;
+				if(udsComm->receiveMessage((void*) &rmsg, sizeof(struct tmsgRequestStartMeas)) == -1) {
+					return;
+				}
+				this->handleRequestStartMeasurementMessage(&rmsg);
+				break;
 			case TMSG_STOP_MEASUREMENT:
-			struct tmsgStopMeas smsg;
-			udsComm->receiveStopMeasMessage(&smsg);
-			this->handleStopMeasurementMessage(&smsg);
-			break;
+				struct tmsgStopMeas smsg;
+				if(udsComm->receiveMessage((void*) &smsg, sizeof(struct tmsgStopMeas)) == -1) {
+					return;
+				}
+				this->handleStopMeasurementMessage(&smsg);
+				break;
 			case TMSG_FINISH_TUNING:
-			this->handleFinishTuningMessage();
-			break;
+				this->handleFinishTuningMessage();
+				break;
 			case TMSG_RESTART_TUNING:
-			struct tmsgRestartTuning restartMsg;
-			udsComm->receiveRestartTuningMessage(&restartMsg);
-			this->handleRestartTuningMessage(&restartMsg);
-			break;
+				struct tmsgRestartTuning restartMsg;
+				if(udsComm->receiveMessage((void*) &restartMsg, sizeof(struct tmsgRestartTuning)) == -1) {
+					return;
+				}
+				this->handleRestartTuningMessage(&restartMsg);
+				break;
 			default:
-			printf("default case shouldn't happen");
-			break;
+				printf("default case shouldn't happen");
+				break;
 		}
 		sem_post(&sectionsTunersSem);
 	}
@@ -198,6 +208,7 @@ void ProcessTuner::handleGetInitialValuesMessage() {
 }
 
 void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartMeas* msg) {
+	//printf("handleRequestStartMeasurementMessage for section %d\n", msg->sectionId);
 	if(!isSectionFinished(msg->sectionId)) {
 		if(!sectionsCreated) {
 			createSectionsTuners();
@@ -217,6 +228,7 @@ void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartM
 }
 
 void ProcessTuner::handleStopMeasurementMessage(struct tmsgStopMeas* msg) {
+	//printf("handleStopMeasurementMessage for section %d\n", msg->sectionId);
 	if(isSectionFinished(msg->sectionId)) {
 		return;
 	}

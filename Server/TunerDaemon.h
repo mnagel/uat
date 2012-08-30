@@ -23,7 +23,7 @@ class TunerDaemon : public ProcessTunerListener {
 		socklen_t lenAddr;
 		int fdSock;
 
-		GlobalParamHandler* GlobalParamHandler;
+		GlobalParamHandler* globalParamHandler;
 		GlobalConfigurator* globalConfigurator;
 
 		void run();

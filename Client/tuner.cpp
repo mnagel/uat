@@ -21,6 +21,7 @@ using namespace std;
 Tuner::Tuner() 
 	:udsComm(new UDSCommunicator()) {
 		sem_init(&sendSem,1,1);
+		sem_init(&tcbMapProtector,1,1);
 		// create receive thread
 		// pthread_create doesn't work with class methods, as the this pointer always is a hidden argument
 		// workaround with static threadCreator method instead
@@ -48,23 +49,32 @@ void Tuner::receiveLoop() {
 		switch(msgHead.msgType) {
 			case TMSG_SET_VALUE:
 				struct tmsgSetValue msg; 
-				udsComm->receiveSetValueMessage(&msg);
-				this->handleSetValueMessage(&msg);
+				if(udsComm->receiveMessage((void*) &msg, sizeof(struct tmsgSetValue)) == -1) {
+					return;
+				}
+				if(this->handleSetValueMessage(&msg) == -1) {
+					return;
+				}
 				break;
 			case TMSG_DONT_SET_VALUE:
 				this->handleDontSetValueMessage();
 				break;
 			case TMSG_GRANT_START_MEASUREMENT:
 				this->postOnStartMutex(msgHead.tid);
+				//printf("received grant start for tid %u\n", msgHead.tid);
 				break;
 			case TMSG_FINISHED_TUNING:
 				struct tmsgFinishedTuning fmsg; 
-				udsComm->receiveFinishedTuningMessage(&fmsg);
+				if(udsComm->receiveMessage((void*) &fmsg, sizeof(struct tmsgFinishedTuning)) == -1) {
+					return;
+				}
 				this->handleFinishedTuningMessage(&fmsg);
 				break;
 			case TMSG_RESTART_TUNING:
 				struct tmsgRestartTuning rmsg; 
-				udsComm->receiveRestartTuningMessage(&rmsg);
+				if(udsComm->receiveMessage((void*) &rmsg, sizeof(struct tmsgRestartTuning)) == -1) {
+					return;
+				}
 				this->handleRestartTuningMessage(&rmsg);
 				break;
 			default:
@@ -74,17 +84,20 @@ void Tuner::receiveLoop() {
 }
 
 threadControlBlock_t* Tuner::getOrCreateTcb(pid_t tid) {
+	sem_wait(&tcbMapProtector);
+	threadControlBlock_t* returnTcb;
 	map<pid_t, threadControlBlock_t*>::iterator mapit;
 	mapit = tcbMap.find(tid);
 	if(mapit != tcbMap.end()) {
-		return mapit->second;
+		returnTcb = mapit->second;
 	} else {
-		threadControlBlock_t* tcb = new threadControlBlock_t;
-		tcb->tid = tid;
-		sem_init(&(tcb->sem), 1, 0);
-		tcbMap.insert(pair<pid_t, threadControlBlock_t*>(tid, tcb));
-		return tcb;
+		returnTcb = new threadControlBlock_t;
+		returnTcb->tid = tid;
+		sem_init(&(returnTcb->sem), 1, 0);
+		tcbMap.insert(pair<pid_t, threadControlBlock_t*>(tid, returnTcb));
 	}
+	sem_post(&tcbMapProtector);
+	return returnTcb;
 }
 
 threadControlBlock_t* Tuner::getOrCreateTcb() {
@@ -99,7 +112,7 @@ void Tuner::postOnStartMutex(pid_t tid) {
 }
 
 
-void Tuner::handleSetValueMessage(struct tmsgSetValue* msg) {
+int Tuner::handleSetValueMessage(struct tmsgSetValue* msg) {
 	//printf("handleSetValueMessage: pointer: %p new value: %d\n", msg->parameter, msg->value);
 	if(msg->set) {
 		*(msg->parameter) = msg->value;
@@ -108,9 +121,12 @@ void Tuner::handleSetValueMessage(struct tmsgSetValue* msg) {
 	// more values to be changed
 	if(!msg->lastMsg) {
 		//CARE reusing msg struct, values will be overwritten!
-		udsComm->receiveSetValueMessage(msg);
-		this->handleSetValueMessage(msg);
+		if(udsComm->receiveMessage((void*) msg, sizeof(struct tmsgSetValue)) == -1) {
+			return -1;
+		}
+		return this->handleSetValueMessage(msg);
 	}
+	return 0;
 }
 
 void Tuner::handleDontSetValueMessage() {
@@ -138,7 +154,7 @@ void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
 }
 
 void Tuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
-	printf("received restartTuning for section %d", msg->sectionId);
+	printf("received restartTuning for section %d\n", msg->sectionId);
 	finishedSections.remove(msg->sectionId);
 }
 
@@ -209,6 +225,7 @@ int Tuner::tGetInitialValues() {
 }
 
 int Tuner::tRequestStart(int sectionId) {
+	//printf("start for section %d with tid %d\n", sectionId, (int) syscall(SYS_gettid));
 	threadControlBlock_t* tcb = getOrCreateTcb();
 
 
@@ -230,6 +247,7 @@ int Tuner::tRequestStart(int sectionId) {
 }
 
 int Tuner::tStop(int sectionId) {
+	//printf("stop for section %d with tid %d\n", sectionId, (int) syscall(SYS_gettid));
 	threadControlBlock_t* tcb = getOrCreateTcb();
 
 	timespec tsMeasureStop;
