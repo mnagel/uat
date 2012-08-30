@@ -3,10 +3,10 @@
 #include <list>
 #include "ProcessTuner.h"
 
-class GlobalMcHandler {
+class GlobalParamHandler {
 	public:
-		GlobalMcHandler();
-		~GlobalMcHandler();
+		GlobalParamHandler();
+		~GlobalParamHandler();
 		void addTuner(ProcessTuner* tuner);
 		void removeTuner(ProcessTuner* tuner);
 		void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*>* oParams);

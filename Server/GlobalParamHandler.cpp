@@ -1,32 +1,32 @@
 #include <stdio.h>
 
-#include "GlobalMcHandler.h"
+#include "GlobalParamHandler.h"
 
 using namespace std;
 
-GlobalMcHandler::GlobalMcHandler():
+GlobalParamHandler::GlobalParamHandler():
 	tuners(0) {
 }
 
-GlobalMcHandler::~GlobalMcHandler() {
+GlobalParamHandler::~GlobalParamHandler() {
 }
 
-void GlobalMcHandler::addTuner(ProcessTuner* tuner) {
+void GlobalParamHandler::addTuner(ProcessTuner* tuner) {
 	tuners.push_back(tuner);
 }
 
-void GlobalMcHandler::removeTuner(ProcessTuner* tuner) {
+void GlobalParamHandler::removeTuner(ProcessTuner* tuner) {
 	tuners.remove(tuner);
 }
 
-void GlobalMcHandler::getAllParamsHavingType(ParameterType paramType, list<opt_param_t*>* oParams) {
+void GlobalParamHandler::getAllParamsHavingType(ParameterType paramType, list<opt_param_t*>* oParams) {
 	list<ProcessTuner*>::iterator it;
 	for(it=tuners.begin(); it!=tuners.end(); it++) {
 		(*it)->getParamHandler()->getAllParamsHavingType(paramType, oParams);	
 	}
 }
 
-void GlobalMcHandler::restartTuningForAllProcessTuners() {
+void GlobalParamHandler::restartTuningForAllProcessTuners() {
 	list<ProcessTuner*>::iterator it;
 	for(it=tuners.begin(); it!=tuners.end(); it++) {
 		(*it)->restartTuning();
@@ -34,7 +34,7 @@ void GlobalMcHandler::restartTuningForAllProcessTuners() {
 }
 
 //TODO redundant with McHandler print function
-void GlobalMcHandler::printParamsList(list<opt_param_t*>* params) {
+void GlobalParamHandler::printParamsList(list<opt_param_t*>* params) {
 	printf("---------------------------------\n");
 	printf("-----printing params list -------\n");
 	printf("---------------------------------\n");

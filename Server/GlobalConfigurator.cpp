@@ -4,7 +4,7 @@
 
 using namespace std;
 
-GlobalConfigurator::GlobalConfigurator(GlobalMcHandler* handler):
+GlobalConfigurator::GlobalConfigurator(GlobalParamHandler* handler):
 	glMcHandler(handler) {
 }
 

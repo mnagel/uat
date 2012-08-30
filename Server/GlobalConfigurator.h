@@ -1,13 +1,13 @@
 #pragma once
 
-#include "GlobalMcHandler.h"
+#include "GlobalParamHandler.h"
 
 class GlobalConfigurator {
 	public:
-		GlobalConfigurator(GlobalMcHandler* handler);
+		GlobalConfigurator(GlobalParamHandler* handler);
 		~GlobalConfigurator();
 		void createHintsForType(ParameterType type);
 
 	private:
-		GlobalMcHandler* glMcHandler;
+		GlobalParamHandler* glMcHandler;
 };

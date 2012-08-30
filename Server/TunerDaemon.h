@@ -6,7 +6,7 @@
 
 #include "ProcessTuner.h"
 #include "ProcessTunerListener.h"
-#include "GlobalMcHandler.h"
+#include "GlobalParamHandler.h"
 #include "GlobalConfigurator.h"
 
 class TunerDaemon : public ProcessTunerListener {
@@ -23,7 +23,7 @@ class TunerDaemon : public ProcessTunerListener {
 		socklen_t lenAddr;
 		int fdSock;
 
-		GlobalMcHandler* globalMcHandler;
+		GlobalParamHandler* GlobalParamHandler;
 		GlobalConfigurator* globalConfigurator;
 
 		void run();
