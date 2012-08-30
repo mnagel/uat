@@ -62,6 +62,7 @@ struct tmsgSetValue {
 struct tmsgStopMeas {
 	timespec tsMeasureStart;
 	timespec tsMeasureStop;
+	double weight;
 	int sectionId;
 };
 

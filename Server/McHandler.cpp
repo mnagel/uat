@@ -104,8 +104,8 @@ Mc* McHandler::addMcForCurrentConfig(unsigned long currentConfigHash) {
 	return newMc;
 }
 
-void McHandler::addMeasurementToMc(Mc* mc, pid_t tid, int sectionId, struct timespec ts) {
-	mc->addMeasurement(tid, sectionId, ts);
+void McHandler::addMeasurementToMc(Mc* mc, pid_t tid, int sectionId, struct timespec ts, double weight) {
+	mc->addMeasurement(tid, sectionId, ts, weight);
 	lastMc = mc;
 	lastTs = ts;
 	//short evaluation important here

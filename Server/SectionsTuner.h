@@ -20,7 +20,7 @@ class SectionsTuner {
 		void printInfo();
 		void chooseInitialConfig();
 		void startMeasurement(pid_t tid, int sectionId);
-		OptimizerMsg stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop);
+		OptimizerMsg stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop, double weight);
 		bool paramsChanged();
 		void storeRuntimeForThreadsAndSections(Mc* mc);
 		void invalidateAllRunningMeasurements();

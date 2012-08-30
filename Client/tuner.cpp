@@ -262,6 +262,17 @@ int Tuner::tRequestStart(int sectionId) {
 }
 
 int Tuner::tStop(int sectionId) {
+	return tStop(sectionId, 1.0);
+}
+
+int Tuner::tFinishTuning() {
+	sem_wait(&sendSem);
+	udsComm->sendMsgHead(TMSG_FINISH_TUNING);
+	sem_post(&sendSem);
+	return 0;
+}
+
+int Tuner::tStop(int sectionId, double weight) {
 	//printf("stop for section %d with tid %d\n", sectionId, (int) syscall(SYS_gettid));
 	threadControlBlock_t* tcb = getOrCreateTcb();
 
@@ -274,6 +285,7 @@ int Tuner::tStop(int sectionId) {
 		msg.tsMeasureStart = tcb->tsMeasureStart;
 		msg.tsMeasureStop = tsMeasureStop;
 		msg.sectionId = sectionId;
+		msg.weight = weight;
 
 		sem_wait(&sendSem);
 		udsComm->sendMsgHead(TMSG_STOP_MEASUREMENT);
@@ -298,17 +310,6 @@ int Tuner::tStop(int sectionId) {
 
 	}
 
-	return 0;
-}
-
-int Tuner::tFinishTuning() {
-	sem_wait(&sendSem);
-	udsComm->sendMsgHead(TMSG_FINISH_TUNING);
-	sem_post(&sendSem);
-	return 0;
-}
-
-int Tuner::tStop(int sectionId, int weight) {
 	return 0;
 }
 

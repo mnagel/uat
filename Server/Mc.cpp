@@ -136,7 +136,7 @@ void Mc::addParam(struct opt_param_t* param) {
 	this->config.push_back(*param);
 }
 
-void Mc::addMeasurement(pid_t tid, int sectionId, struct timespec ts) {
+void Mc::addMeasurement(pid_t tid, int sectionId, struct timespec ts, double weight) {
 	vector<struct optThreadMeas>* specs;
 	map<int, vector<struct optThreadMeas>*>::iterator mapIt;
 	mapIt = measurements.find(sectionId);
@@ -146,6 +146,14 @@ void Mc::addMeasurement(pid_t tid, int sectionId, struct timespec ts) {
 		measurements.insert(pair<int, vector<struct optThreadMeas>*>(sectionId, specs));
 	} else {
 		specs = mapIt->second;
+	}
+
+	map<int, double>::iterator numRunsMapIt;
+	numRunsMapIt = numRunsMap.find(sectionId);
+	if(numRunsMapIt == numRunsMap.end()) {
+		numRunsMap.insert(pair<int, double>(sectionId, weight));
+	} else {
+		numRunsMapIt->second += weight;
 	}
 
 	struct optThreadMeas threadMeas;
@@ -370,27 +378,29 @@ int Mc::getRelativePerformance(Mc* mc, map<int,double>* curWorkload) {
 	vector<int>::iterator it;
 	map<int, std::vector<struct optThreadMeas>*>::iterator mapIt;
 
-	int numTotalMeas = 0;
+	/*int numTotalMeas = 0;
 	for(it=measuredSections.begin(); it != measuredSections.end(); it++) {
 		mapIt = measurements.find(*it);
 		numTotalMeas += mapIt->second->size();
-	}
+	}*/
 
 	for(it=measuredSections.begin(); it != measuredSections.end(); it++) {
 		mapIt = measurements.find(*it);
-		int numMeas = mapIt->second->size();
-		long long thisAverage = getAverage(mapIt->second); 
+		//int numMeas = mapIt->second->size();
+		double numRuns = numRunsMap.find(*it)->second;
+
+		long long thisAverage = getAverage(mapIt->second, numRuns); 
 		long long otherAverage = mc->getAverage(*it);
 
 		if(curWorkload != NULL) {
 			map<int, double>::iterator workloadIt;
 			workloadIt = curWorkload->find(*it);
-			double workloadAdjusted = numMeas * workloadIt->second / getRelativeRuntimeForSection(*it);
+			double workloadAdjusted = numRuns * workloadIt->second / getRelativeRuntimeForSection(*it);
 			thisSum += workloadAdjusted * thisAverage;
 			otherSum += workloadAdjusted * otherAverage;
 		} else {
-			thisSum += numMeas * thisAverage;
-			otherSum += numMeas * otherAverage;
+			thisSum += numRuns * thisAverage;
+			otherSum += numRuns * otherAverage;
 		}
 
 		//long long difference = thisAverage - otherAverage;
@@ -438,12 +448,12 @@ long long Mc::getAverage(int sectionId) {
 	map<int, vector<struct optThreadMeas>*>::iterator mapIt;
 	mapIt = measurements.find(sectionId);
 	if(mapIt != measurements.end()) {
-		average = getAverage(mapIt->second);
+		average = getAverage(mapIt->second, numRunsMap.find(sectionId)->second);
 	}
 	return average;
 }
 
-long long Mc::getAverage(vector<struct optThreadMeas>* meas) {
+long long Mc::getAverage(vector<struct optThreadMeas>* meas, double numRuns) {
 	long long average;
 	long long sum = 0;
 
@@ -451,7 +461,7 @@ long long Mc::getAverage(vector<struct optThreadMeas>* meas) {
 	for(it = meas->begin(); it != meas->end(); it++) {
 		sum += timespecToLongLong(it->ts);
 	}
-	average = sum/meas->size();
+	average = sum/numRuns;
 	return average;
 }
 
@@ -517,6 +527,7 @@ void Mc::resetAllMeasurements() {
 	}
 
 	measurements.clear();
+	numRunsMap.clear();
 	runtimes.clear();
 	runtimeInsertedTill.clear();
 	measuredSections.clear();

@@ -72,7 +72,7 @@ void SectionsTuner::startMeasurement(pid_t tid, int sectionId) {
 	runningThreads.push_back(tid);
 }
 
-OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop) {
+OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct timespec measurementStart, struct timespec measurementStop, double weight) {
 	OptimizerMsg returnMsg;
 	//default value
 	returnMsg = RUNNING;
@@ -93,7 +93,7 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 		//struct opt_mc_t* mc = mcHandler->getMcForCurrentConfigOrCreate();
 		struct timespec tsDiff;
 		tsDiff = diff(measurementStart, measurementStop); 
-		mcHandler->addMeasurementToMc(mc, tid, sectionId, tsDiff);
+		mcHandler->addMeasurementToMc(mc, tid, sectionId, tsDiff, weight);
 		mc->addRuntimeForThreadAndSection(tid, sectionId, measurementStart, measurementStop, false);
 
 		// TODO what to do, if one section stops being measured, or is never measured at all?

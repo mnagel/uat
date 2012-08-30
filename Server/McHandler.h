@@ -18,7 +18,7 @@ class McHandler : public ParamHandler {
 		Mc* getMcForCurrentConfigOrCreate();
 		Mc* getMcIfExists(Mc* mc);
 		Mc* addMcForCurrentConfig(unsigned long currentConfigHash);
-		void addMeasurementToMc(Mc* mc, pid_t tid, int sectionId, struct timespec ts);
+		void addMeasurementToMc(Mc* mc, pid_t tid, int sectionId, struct timespec ts, double weight);
 		void printAllMc(bool longVersion);
 		void printCurrentWorkload();
 		Mc* getBestMc();

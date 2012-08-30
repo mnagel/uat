@@ -238,7 +238,7 @@ void ProcessTuner::handleStopMeasurementMessage(struct tmsgStopMeas* msg) {
 	if(it != sectionsTunersMap.end()) {
 		SectionsTuner* tuner = it->second;
 		OptimizerMsg optMsg;
-		optMsg = tuner->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureStart, msg->tsMeasureStop);
+		optMsg = tuner->stopMeasurement(currentTid, msg->sectionId, msg->tsMeasureStart, msg->tsMeasureStop, msg->weight);
 		/* params are global and exist only once -> if sectionsTuner changes them in stopMeasurement they will be also changed for this ProcessTuner */
 		this->sendAllChangedParams();
 

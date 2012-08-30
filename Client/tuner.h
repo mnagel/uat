@@ -23,7 +23,7 @@ class Tuner {
 	int tRegisterSectionParameter(int sectionId, int *parameter);
 	int tRequestStart(int sectionId);
 	int tStop(int sectionId);
-	int tStop(int sectionId, int weight);
+	int tStop(int sectionId, double weight);
 	int tFinishTuning();
 	int tReset();
 	int tSetpersistence(int pers);

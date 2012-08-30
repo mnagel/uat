@@ -27,7 +27,7 @@ class Mc {
 		void print(bool longVersion);
 		void printRelativeRuntimes();
 		void addParam(struct opt_param_t* param);
-		void addMeasurement(pid_t tid, int sectionId, struct timespec ts);
+		void addMeasurement(pid_t tid, int sectionId, struct timespec ts, double weight);
 		void addRuntimeForThreadAndSection(pid_t tid, int sectionId, struct timespec tsStart, struct timespec tsStop, bool stillRunning);
 		bool isMeasured();
 		void copyConfigIntoList(list<struct opt_param_t*>* params);
@@ -46,7 +46,7 @@ class Mc {
 		int getMinNumMeasurementsOfSectionsMeasured();
 		int getMinNumMeasurementsOfSections(std::vector<int>* sections);
 		long long getAverage(int sectionId);
-		long long getAverage(vector<struct optThreadMeas>* meas);
+		long long getAverage(vector<struct optThreadMeas>* meas, double numRuns);
 		void startMeasurements();
 		void storeRuntimeOfMeasurements();
 		void stopMeasurements();
@@ -65,6 +65,11 @@ class Mc {
 		 * There can be more than one tuple per tid
 		 */
 		std::map<int, std::vector<struct optThreadMeas>*> measurements;
+
+		/**
+		 * Maps sectionIds on the weighted number of runs
+		 */
+		std::map<int, double> numRunsMap;
 
 		/**
 		 * Maps sectionIds on a vector holding <tid, runtime> tuples
