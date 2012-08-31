@@ -186,6 +186,8 @@ void McHandler::setBestMcAsConfig() {
 	Mc* bestMc = getBestMc();
 	if(bestMc == NULL) return;
 	setMcAsConfig(bestMc);
+	printf("bestmc: ");
+	bestMc->print(false);
 }
 
 /**
