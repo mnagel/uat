@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <semaphore.h>
 #include <pthread.h>
 #include <map>
