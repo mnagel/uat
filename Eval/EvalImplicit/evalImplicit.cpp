@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 	
 	
 	myTuner = new Tuner();
-	myTuner->tRegisterParameter(&numThreads, 1, 8, 1); 
+	myTuner->tRegisterParameter(&numThreads, 1, 10, 1); 
 	myTuner->tRegisterSectionParameter(1, &numThreads); 
 	
 	while(true) {

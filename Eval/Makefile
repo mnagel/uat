@@ -2,7 +2,7 @@ GCC = g++
 CFLAGS = -Wall
 LIBS = -pthread -lrt
 
-DIRS = EvalFunctional EvalImplicit EvalOverhead EvalMultipleShared
+DIRS = EvalFunctional EvalImplicit EvalOverhead EvalMultipleShared EvalManyClients
 
 #EVALIMPLICITSRC = evalImplicit.cpp tuner.cpp
 #EVALIMPLICITOBJ =$(EVALIMPLICITSRC:.cpp=.o)  

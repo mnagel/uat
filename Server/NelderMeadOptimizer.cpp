@@ -6,7 +6,7 @@ NelderMeadOptimizer::NelderMeadOptimizer(McHandler* handler):
 	neldSearch(new NelderMeadSearch(handler)), 
 	sensSearch(new SensitivitySearch(handler)),
 	locSearch(new LocalSearch(handler, 101, 2)),
-	optState(NELD_RANDOM_SEARCH) {
+	optState(NELD_LOCAL_SEARCH) {
 
 }
 
