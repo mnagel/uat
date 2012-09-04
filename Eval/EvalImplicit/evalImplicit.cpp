@@ -1,21 +1,27 @@
 #include <stdio.h>
 #include "tuner.h"
+#include <sys/types.h>
+#include <unistd.h>
+
 
 using namespace std;
 
 Tuner* myTuner;
 
 int numThreads = 2;
+bool printedResult = false;
 
 void *doWork (void *dummy)
 {
-	int sum = 0;
+	double sum = 100000;
 	int workamount = 1000000/numThreads;
 	for(int i=0; i<workamount; i++) {
-		for(int j=0; j<10000; j++) {
-			sum += 1;	
+		for(int j=0; j<500; j++) {
+			sum /= 2;	
 		}
 	}
+
+	//printf("finished partial job pid: %d\n", (int) getpid());
 	return NULL;
 }
 
@@ -37,7 +43,11 @@ int main(int argc, char *argv[]) {
 		for(int t = 0; t<numThreads; t++) {
 			pthread_join (threads[t], NULL);
 		}
-		myTuner->tStop(1);
+		if(myTuner->tStop(1) == 1 && !printedResult) {
+			printf("\nfinished tuning, numThreads: %d\n", numThreads);
+			printedResult = true;
+		}
+
 		
 	}
 }

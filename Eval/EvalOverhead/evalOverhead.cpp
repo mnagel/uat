@@ -22,37 +22,91 @@ void* run(void* section);
 void registerParams();
 
 int main(int argc, char *argv[]) {
-	struct timespec timeStart;
-	struct timespec timeStop;
-	struct timespec timeDiff;
 
-	// measuring time needed for initialisation of tuner and registration of parameters
-	clock_gettime(CLOCK_MONOTONIC, &timeStart);
-	myTuner = new Tuner();
-	registerParams();
-	clock_gettime(CLOCK_MONOTONIC, &timeStop);
-	timeDiff = diff(timeStart, timeStop); 
-	printf("Time needed for initialisation: %ld.%09lds\n", timeDiff.tv_sec, timeDiff.tv_nsec);
 
-	// measuring time needed without tuning overhead
-	clock_gettime(CLOCK_MONOTONIC, &timeStart);
-	for(int i=0; i<100; i++) {
-		usleep(10000);
+	float sleep;
+	for(int s = 0; s<10; s++) {
+		switch(s) {
+			case 0:
+				sleep = 0.1;
+				break;
+			case 1:
+				sleep = 0.25;
+				break;
+			case 2:
+				sleep = 0.5;
+				break;
+			case 3:
+				sleep = 1;
+				break;
+			case 4:
+				sleep = 2.5;
+				break;
+			case 5:
+				sleep = 5;
+				break;
+			case 6:
+				sleep = 10;
+				break;
+			case 7:
+				sleep = 25;
+				break;
+			case 8:
+				sleep = 50;
+				break;
+			case 9:
+				sleep = 100;
+				break;
+			default:
+				sleep = 1;
+				break;
+		}
+		struct timespec timeStart;
+		struct timespec timeStop;
+		struct timespec timeDiff;
+		long long sumWithoutTuning = 0;
+		long long sumWithTuning = 0;
+		for(int r = 0; r<10; r++) {	
+			// measuring time needed for initialisation of tuner and registration of parameters
+			clock_gettime(CLOCK_MONOTONIC, &timeStart);
+			myTuner = new Tuner();
+			registerParams();
+			clock_gettime(CLOCK_MONOTONIC, &timeStop);
+			timeDiff = diff(timeStart, timeStop); 
+			printf("Time needed for initialisation: %ld.%09lds\n", timeDiff.tv_sec, timeDiff.tv_nsec);
+
+			// measuring time needed without tuning overhead
+			clock_gettime(CLOCK_MONOTONIC, &timeStart);
+			for(int i=0; i<100; i++) {
+				usleep(sleep * 1000);
+			}
+			clock_gettime(CLOCK_MONOTONIC, &timeStop);
+			timeDiff = diff(timeStart, timeStop); 
+			sumWithoutTuning += timespecToLongLong(timeDiff);
+			printf("Time needed without tuning overhead: %ld.%09lds\n", timeDiff.tv_sec, timeDiff.tv_nsec);
+			
+			// measuring time needed with tuning overhead
+			clock_gettime(CLOCK_MONOTONIC, &timeStart);
+			for(int i=0; i<100; i++) {
+				myTuner->tRequestStart(1);
+				usleep(sleep * 1000);
+				myTuner->tStop(1);
+			}
+			clock_gettime(CLOCK_MONOTONIC, &timeStop);
+			timeDiff = diff(timeStart, timeStop);
+			sumWithTuning += timespecToLongLong(timeDiff);
+
+			printf("Time needed with tuning overhead: %ld.%09lds\n", timeDiff.tv_sec, timeDiff.tv_nsec);
+
+			myTuner->tFinishTuning();
+			usleep(1000000);
+			delete myTuner;
+		}
+		//printf("Sleeptime: %ums", sleep)
+		//printf("Meantime needed without tuning overhead: %lldms\n", sumWithoutTuning/10000.0);
+		//printf("Meantime needed with tuning overhead: %lldms\n", sumWithTuning/10000.0);
+		printf("%fms &  %lldms &  %lldms & %lldms\n", sleep, sumWithoutTuning, sumWithTuning, sumWithTuning-sumWithoutTuning);
 	}
-	clock_gettime(CLOCK_MONOTONIC, &timeStop);
-	timeDiff = diff(timeStart, timeStop); 
-	printf("Time needed without tuning overhead: %ld.%09lds\n", timeDiff.tv_sec, timeDiff.tv_nsec);
-	
-	// measuring time needed with tuning overhead
-	clock_gettime(CLOCK_MONOTONIC, &timeStart);
-	for(int i=0; i<100; i++) {
-		myTuner->tRequestStart(1);
-		usleep(10000);
-		myTuner->tStop(1);
-	}
-	clock_gettime(CLOCK_MONOTONIC, &timeStop);
-	timeDiff = diff(timeStart, timeStop); 
-	printf("Time needed with tuning overhead: %ld.%09lds\n", timeDiff.tv_sec, timeDiff.tv_nsec);
 }
 
 void registerParams() {

@@ -32,7 +32,7 @@ UDSCommunicator::UDSCommunicator() {
 		printf("ERROR: Client connection\n");
 	}
 
-	printf("Client connection succesful\n");
+	//printf("Client connection succesful\n");
 }
 
 /* construct UDSCommunicator by using already existing filedescriptor of connection */

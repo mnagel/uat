@@ -29,7 +29,6 @@ Tuner::Tuner()
 		// pthread_create doesn't work with class methods, as the this pointer always is a hidden argument
 		// workaround with static threadCreator method instead
 		pthread_create (&(this->receiveThread), NULL, &Tuner::threadCreator, (void*) this);
-		printf("Socket creation successful.\n");
 	}
 
 Tuner::~Tuner() {
@@ -81,8 +80,7 @@ void Tuner::receiveLoop() {
 				this->handleRestartTuningMessage(&rmsg);
 				break;
 			case TMSG_CLOSE_CONNECTION:
-				running = false;
-				break;
+				return;
 			default:
 				break;
 		}
@@ -140,7 +138,7 @@ void Tuner::handleDontSetValueMessage() {
 }
 
 void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
-	printf("received finishedTuning for section %d\n", msg->sectionId);
+	//printf("received finishedTuning for section %d\n", msg->sectionId);
 	if(!isSectionFinished(msg->sectionId)) {
 		sem_wait(&finishedSectionsProtector);
 		map<int, timespec>::iterator sectionIt;
@@ -257,6 +255,7 @@ int Tuner::tRequestStart(int sectionId) {
 		clock_gettime(CLOCK_MONOTONIC, &(tcb->tsMeasureStart));
 	} else {
 		clock_gettime(CLOCK_MONOTONIC, &(tcb->tsMeasureStart));
+		return 1;
 	}
 	return 0;
 }
@@ -307,7 +306,7 @@ int Tuner::tStop(int sectionId, double weight) {
 			checkRestartTuningForSection(sectionId);
 		}
 		sem_post(&finishedSectionsProtector);
-
+		return 1;
 	}
 
 	return 0;
