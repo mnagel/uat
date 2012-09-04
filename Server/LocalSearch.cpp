@@ -37,19 +37,19 @@ int LocalSearch::doLocalSearch() {
 	if(bestMc == curMc) {
 		goOn = true;
 	} else if(isCurrentConfigBetter()) {
-		printf("found new best mc\n");
+		//printf("found new best mc\n");
 		bestMc = curMc;
 		bestMcHistory.push_back(bestMc);
 		setAllDirectionsExceptCurrent();
 		goOn = true;
 	} else if(isCurrentConfigSimilar()) {
-		printf("found similar config\n");
+		//printf("found similar config\n");
 		goOn = true;
 	} else {
-		printf("found worse config\n");
+		//printf("found worse config\n");
 		int numExecutions = curMc->getMinNumMeasurementsOfSectionsMeasured();
 		if(numExecutions < retryCount) {
-			printf("retry worse config\n");
+			//printf("retry worse config\n");
 			//try that config again
 			goOn = false;
 		} else {
@@ -84,7 +84,7 @@ int LocalSearch::doLocalSearch() {
 			mcHandler->setMcAsConfig(nextMc);
 			curMc = nextMc;
 		} else {
-			printf("tried all directions\n");
+			//printf("tried all directions\n");
 			return 1;
 		}
 	}

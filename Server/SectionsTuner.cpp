@@ -109,7 +109,7 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 			mcHandler->adjustWorkloadWithMc(mc);
 
 			//mc->printRelativeRuntimes();
-			mcHandler->printAllMc(false);
+			//mcHandler->printAllMc(false);
 			//mcHandler->printCurrentWorkload();
 			returnMsg = optimizer->chooseNewValues();
 
