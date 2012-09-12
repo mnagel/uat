@@ -22,11 +22,11 @@ Mc::~Mc() {
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		mapit = measurements.find(*it);
 		if(mapit != measurements.end()) {
-			delete mapit->second;	
+			delete mapit->second;
 		}
 		runtimesMapit = runtimes.find(*it);
 		if(runtimesMapit != runtimes.end()) {
-			delete runtimesMapit->second;	
+			delete runtimesMapit->second;
 		}
 	}
 }
@@ -37,10 +37,10 @@ bool Mc::matchesConfig(list<opt_param_t*>* params) {
 
 	vector<struct opt_param_t>::iterator config_iterator;
 	list<struct opt_param_t*>::iterator param_iterator;
-	for(config_iterator = this->config.begin(), param_iterator = params->begin(); 
-			config_iterator < this->config.end(); 
+	for(config_iterator = this->config.begin(), param_iterator = params->begin();
+			config_iterator < this->config.end();
 			config_iterator++, param_iterator++) {
-		if(config_iterator->address != (*param_iterator)->address 
+		if(config_iterator->address != (*param_iterator)->address
 				|| config_iterator->curval != (*param_iterator)->curval) {
 			return false;
 		}
@@ -55,10 +55,10 @@ bool Mc::matchesMc(Mc* mc) {
 
 	vector<struct opt_param_t>::iterator thisIt;
 	vector<struct opt_param_t>::iterator mcIt;
-	for(thisIt = this->config.begin(), mcIt = mc->config.begin(); 
-			thisIt != this->config.end(); 
+	for(thisIt = this->config.begin(), mcIt = mc->config.begin();
+			thisIt != this->config.end();
 			thisIt++, mcIt++) {
-		if(thisIt->address != mcIt->address 
+		if(thisIt->address != mcIt->address
 				|| thisIt->curval != mcIt->curval) {
 			return false;
 		}
@@ -299,7 +299,7 @@ int Mc::getParamsMaxDistance(std::vector<struct opt_param_t>* params1, std::vect
 			params1It != params1->end(), params2It != params2->end();) {
 		if(params1It->address == params2It->address) {
 			if(abs(params1It->curval - params2It->curval) > maxDist) {
-				maxDist = abs(params1It->curval - params2It->curval); 
+				maxDist = abs(params1It->curval - params2It->curval);
 			}
 			params1It++;
 			params2It++;
@@ -332,9 +332,6 @@ bool Mc::areParamsInRegion(vector<struct opt_param_t>* params1, vector<struct op
 	return false;
 }
 
-/*
- * returns -1 if also differs in other param
- */
 int Mc::differsOnlyInParamByDist(Mc* mc, int* paramAddress) {
 	vector<struct opt_param_t>::iterator params1It;
 	vector<struct opt_param_t>::iterator params2It;
@@ -343,7 +340,7 @@ int Mc::differsOnlyInParamByDist(Mc* mc, int* paramAddress) {
 	for(params1It = this->config.begin(), params2It = mc->config.begin();
 			params1It != this->config.end(), params2It != mc->config.end();) {
 		if(params1It->address == params2It->address) {
-			if(params1It->address == paramAddress) {					
+			if(params1It->address == paramAddress) {
 				distInSteps = abs(params1It->curval - params2It->curval)/params1It->step;
 			} else {
 				if(abs(params1It->curval - params2It->curval) > 0) {
@@ -397,7 +394,7 @@ int Mc::getRelativePerformance(Mc* mc, map<int,double>* curWorkload) {
 		//int numMeas = mapIt->second->size();
 		double numRuns = numRunsMap.find(*it)->second;
 
-		long long thisAverage = getAverage(mapIt->second, numRuns); 
+		long long thisAverage = getAverage(mapIt->second, numRuns);
 		long long otherAverage = mc->getAverage(*it);
 
 		if(curWorkload != NULL) {
@@ -484,7 +481,7 @@ void Mc::storeRuntimeOfMeasurements() {
 	if(measurementsRunning) {
 		timespec stopOfMeasurements;
 		timespec tsDiff;
-		clock_gettime(CLOCK_MONOTONIC, &stopOfMeasurements); 
+		clock_gettime(CLOCK_MONOTONIC, &stopOfMeasurements);
 		tsDiff = diff(startOfMeasurements, stopOfMeasurements);
 		this->runtimeOfMeasurements = tsAdd(tsDiff, this->runtimeOfMeasurements);
 		startOfMeasurements = stopOfMeasurements;
@@ -495,7 +492,7 @@ void Mc::stopMeasurements() {
 	if(measurementsRunning) {
 		timespec stopOfMeasurements;
 		timespec tsDiff;
-		clock_gettime(CLOCK_MONOTONIC, &stopOfMeasurements); 
+		clock_gettime(CLOCK_MONOTONIC, &stopOfMeasurements);
 		tsDiff = diff(startOfMeasurements, stopOfMeasurements);
 		this->runtimeOfMeasurements = tsAdd(tsDiff, this->runtimeOfMeasurements);
 		measurementsRunning = false;
@@ -526,11 +523,11 @@ void Mc::resetAllMeasurements() {
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		mapit = measurements.find(*it);
 		if(mapit != measurements.end()) {
-			delete mapit->second;	
+			delete mapit->second;
 		}
 		runtimesMapit = runtimes.find(*it);
 		if(runtimesMapit != runtimes.end()) {
-			delete runtimesMapit->second;	
+			delete runtimesMapit->second;
 		}
 	}
 
