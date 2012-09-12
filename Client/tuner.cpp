@@ -138,7 +138,7 @@ void Tuner::handleDontSetValueMessage() {
 }
 
 void Tuner::handleFinishedTuningMessage(struct tmsgFinishedTuning* msg) {
-	//printf("received finishedTuning for section %d\n", msg->sectionId);
+	printf("received finishedTuning for section %d\n", msg->sectionId);
 	if(!isSectionFinished(msg->sectionId)) {
 		sem_wait(&finishedSectionsProtector);
 		map<int, timespec>::iterator sectionIt;

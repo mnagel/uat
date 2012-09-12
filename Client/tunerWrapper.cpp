@@ -18,6 +18,11 @@ int ctuner_register_section_parameter(const CTuner* tuner, int sectionId, int *p
     return t->tRegisterSectionParameter(sectionId, parameter);
 }
 
+int ctuner_get_initial_values(const CTuner* tuner) {
+    Tuner* t = (Tuner*) tuner;
+    return t->tGetInitialValues();
+}
+
 int ctuner_request_start(const CTuner* tuner, int sectionId) {
 	Tuner* t = (Tuner*) tuner;
     return t->tRequestStart(sectionId);

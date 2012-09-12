@@ -455,19 +455,19 @@ bool McHandler::differsPastWorkloadFromCurrent(unsigned int workloadInPast, doub
 
 void McHandler::insertMcIntoBestMcs(Mc* mc) {
 	list<Mc*>::iterator it;
+	bool inserted = false;
 	for(it = bestMcs.begin(); it!=bestMcs.end(); it++) {
 		if(*it == mc) 
 			return;
 	}
 
-	for(it = bestMcs.begin(); it!=bestMcs.end(); it++) {
+	for(it = bestMcs.begin(); it!=bestMcs.end() && !inserted; it++) {
 		if(mc->getRelativePerformance(*it, NULL) < 100) {
 			bestMcs.insert(it, mc);
-			return;
 		}
 	}
 
-	if(it == bestMcs.end()) {
+	if(!inserted) {
 		bestMcs.push_back(mc);
 	}
 

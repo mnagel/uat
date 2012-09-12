@@ -22,11 +22,12 @@ NelderMeadSearch::~NelderMeadSearch() {
 }
 
 int NelderMeadSearch::doNelderMeadSearch() {
+	this->print();
 	switch(this->optState) {
 		case NELD_FIRST_RUN:
 			simplex = *(mcHandler->getBestMcs());
 			if(simplex.size() != (unsigned) mcHandler->getNumParams() + 1) {
-				printf("ERROR: simplex has wrong size\n");
+				printf("ERROR: simplex should have size %d but has size %d\n",mcHandler->getNumParams()+1,simplex.size());
 			}
 			this->optState = NELD_LATER_RUN;
 			//no break wanted
@@ -284,6 +285,7 @@ void NelderMeadSearch::reduceSimplex() {
 }
 
 void NelderMeadSearch::print() {
+	printf("Current Simplex:\n");
 	list<Mc*>::iterator it;
 	for(it = simplex.begin(); it != simplex.end(); it++) {
 		(*it)->print(false);
