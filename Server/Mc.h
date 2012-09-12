@@ -160,94 +160,114 @@ class Mc {
 		bool areParamsInRegion(std::vector<struct opt_param_t>* params1, std::vector<struct opt_param_t>* params2, int len);
 		
 		/**
+		 * Calculates the distance of the values of the tuning parameter defined by 
+		 * the paramAddress in the other mc and in this mc.
 		 * 
-		 * @param  mc           [description]
-		 * @param  paramAddress [description]
-		 * @return
+		 * @param  mc           the other mc
+		 * @param  paramAddress the address defining the tuning parameter
+		 * @return -1 iff there is a parameter except the one defined by the paramAddress that differ from each other
+		 *         the distance between the parameters defined by the paramAddress
 		 */
 		int differsOnlyInParamByDist(Mc* mc, int* paramAddress);
 		
 		/**
-		 * [isBetterThan description]
-		 * @param  mc [description]
-		 * @return
+		 * Calculates if the measured performance of the sections of this mc is better than the performance of the other mc.
+		 * 
+		 * @param  mc the other mc
+		 * @return true, iff the measured performance of this mc is better
 		 */
 		bool isBetterThan(Mc* mc);
 		
 		/**
-		 * [getRelativePerformance description]
-		 * @param  mc [description]
-		 * @return
+		 * Calculates the relative performance of the measured runtimes of this mc compared to the other mc.
+		 * 
+		 * @param  mc the other mc
+		 * @return 100, iff the performance is the same
+		 *         less than 100, iff the performance of this mc is better
+		 *         more than 100, else
 		 */
 		int getRelativePerformance(Mc* mc);
 		
 		/**
-		 * [getRelativePerformance description]
-		 * @param  mc          [description]
-		 * @param  int         [description]
-		 * @param  curWorkload [description]
-		 * @return
+		 * Calculates the relative performance of the measured runtimes of this mc compared to the other mc.
+		 * 
+		 * @param  mc          the other mc
+		 * @param  curWorkload if curWorkload is not NULL, the measurements of both mcs 
+		 *                     are adjusted by that workload
+		 * @return 100, iff the performance is the same
+		 *         less than 100, iff the performance of this mc is better
+		 *         more than 100, else
 		 */
 		int getRelativePerformance(Mc* mc, map<int,double>* curWorkload);
 		
 		/**
-		 * [getMinNumMeasurementsOfAllSection description]
-		 * @return
+		 * Counts the number of measurements per tuning section of all tuning sections 
+		 * and returns the minimum.
+		 * 
+		 * @return the minimum of the number of measurements
 		 */
 		int getMinNumMeasurementsOfAllSection(); 
 		
 		/**
-		 * [getMinNumMeasurementsOfSectionsMeasured description]
-		 * @return
+		 * Counts the number of measurements per tuning section of tuning sections 
+		 * that have at least one measurement and returns the minimum.
+		 * 
+		 * @return the minimum of the number of measurements
 		 */
 		int getMinNumMeasurementsOfSectionsMeasured();
 		
 		/**
-		 * [getMinNumMeasurementsOfSections description]
-		 * @param  sections [description]
-		 * @return
+		 * Counts the number of measurements per tuning section of tuning sections 
+		 * given in the sections vector and returns the minimum.
+		 *
+		 * @param  sections the sections whose measurements shall be counted
+		 * @return the minimum of the number of measurements
 		 */
 		int getMinNumMeasurementsOfSections(std::vector<int>* sections);
 		
 		/**
-		 * [getAverage description]
-		 * @param  sectionId [description]
-		 * @return
+		 * Calculates the average of the measured runtimes of the given tuning section.
+		 * 
+		 * @param  sectionId id of the tuning section
+		 * @return the average runtime
 		 */
 		long long getAverage(int sectionId);
 		
 		/**
-		 * [getAverage description]
-		 * @param  meas    [description]
-		 * @param  numRuns [description]
-		 * @return
+		 * Calculates the average of the measured runtimes given in the meas vector by 
+		 * dividing the runtime sum by the numRuns.
+		 * 
+		 * @param  meas    the measurements whose average is to be calculated
+		 * @param  numRuns the divisor the sum is divided by
+		 * @return the average runtime
 		 */
 		long long getAverage(vector<struct optThreadMeas>* meas, double numRuns);
 		
 		/**
-		 * [startMeasurements description]
+		 * Signals that this configuration is tested and measured by the client from now on.
 		 */
 		void startMeasurements();
 		
 		/**
-		 * [storeRuntimeOfMeasurements description]
+		 * Updates the runtime of measurement values.
 		 */
 		void storeRuntimeOfMeasurements();
-		
+
 		/**
-		 * 
+		 * Signals that this configuration is no longer tested and measured by the client.
 		 */
 		void stopMeasurements();
 		
 		/**
-		 * [getRelativeRuntimeForSection description]
-		 * @param  sectionId [description]
-		 * @return
+		 * Calculates the workload of the given section.
+		 * 
+		 * @param  sectionId id of the tuning section, whose workload is calculated
+		 * @return the workload of the given section
 		 */
 		double getRelativeRuntimeForSection(int sectionId);
 		
 		/**
-		 * [resetAllMeasurements description]
+		 * Deletes all runtime measurements.
 		 */
 		void resetAllMeasurements();
 
@@ -288,7 +308,18 @@ class Mc {
 		 */
 		std::vector<int> measuredSections;
 
+		/**
+		 * True, iff this measurement configuration is tested by the client in that moment.
+		 */
 		bool measurementsRunning;
+
+		/**
+		 * The timestamp that measurement configuration has been set as configuration to be tested by the client. 
+		 */
 		timespec startOfMeasurements;
+
+		/**
+		 * The time this measurement configuration has been tested by the client.
+		 */
 		timespec runtimeOfMeasurements;
 };
