@@ -39,6 +39,15 @@ void ParamHandler::addParam(struct opt_param_t* param) {
 	sortedInsert(&currentConfig, param);
 }
 
+void ParamHandler::printParams() {
+	list<struct opt_param_t*>::iterator param_iterator;
+	printf("Tuningparameter-Adressen: ");
+	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
+		printf("%p, ", (*param_iterator)->address);
+	}
+	printf("\n");
+}
+
 void ParamHandler::printCurrentConfig() {
 	printf("------------------------------------\n");
 	printf("-----printing current config -------\n");

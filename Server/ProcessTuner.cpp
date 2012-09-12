@@ -398,6 +398,7 @@ void ProcessTuner::deleteAllSectionsTuners() {
 }
 
 void ProcessTuner::createSectionsTuners() {
+	printf("Tuninggruppen: \n");
 	list<int>::iterator sectionIdsIt;
 	map<int, SectionsTuner*>::iterator sectionsTunersMapIt; 
 
@@ -426,6 +427,8 @@ SectionsTuner* ProcessTuner::createNewSectionsTunerForSection(int sectionId) {
 	sectionsTuners.push_back(newSectionsTuner);
 	newSectionsTuner->addSectionId(sectionId);
 	addParamsOfSection(sectionId, newSectionsTuner);
+
+	newSectionsTuner->printInfo();
 
 	vector<int>* sectionsBeingTuned = newSectionsTuner->getSectionsBeingTuned();
 	vector<int>::iterator newSectionsIt;

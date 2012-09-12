@@ -44,11 +44,14 @@ int SectionsTuner::addSectionId(int sectionId) {
 }
 
 void SectionsTuner::printInfo() {
-	printf("SectionTuner Info:\n");
+	printf("Tuningbereiche-IDs:");
 	vector<int>::iterator it;
 	for(it = sectionIds.begin(); it!=sectionIds.end(); it++) {
-		printf("\t Tuning Section: %d\n", *it);
+		printf("%d, ", *it);
 	}
+	printf("\n");
+	mcHandler->printParams();
+	printf("\n");
 }
 
 void SectionsTuner::chooseInitialConfig() {
@@ -109,7 +112,7 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 			mcHandler->adjustWorkloadWithMc(mc);
 
 			//mc->printRelativeRuntimes();
-			//mcHandler->printAllMc(false);
+			mcHandler->printAllMc(false);
 			//mcHandler->printCurrentWorkload();
 			returnMsg = optimizer->chooseNewValues();
 

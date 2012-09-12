@@ -68,15 +68,19 @@ bool Mc::matchesMc(Mc* mc) {
 
 void Mc::print(bool longVersion) {
 	vector<struct opt_param_t>::iterator param_iterator;
+	if(longVersion) {
+		printf("Parameterwerte an Adressen:\n");
+	}
 	for ( param_iterator=this->config.begin() ; param_iterator < this->config.end(); param_iterator++ ) {
 		if(longVersion) {
-			printf("\t\tparameter value: %d\n", param_iterator->curval);
+			printf("\t%p: %d\n", param_iterator->address, param_iterator->curval);
 		} else {
 			printf("\t\t%d ", param_iterator->curval);
 		}
 	}
 	if(longVersion) {
-		printf("\n\t\truntime: %ld.%09d\n ", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
+		//printf("\n\t\truntime: %ld.%09d\n ", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
+		printf("\nAuslastung der Tuningbereiche:\n");
 	} else {
 		printf("\truntime: %ld.%09d ", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
 	}
@@ -86,11 +90,15 @@ void Mc::print(bool longVersion) {
 	map<int, vector<struct optThreadMeas>*>::iterator mapit;
 
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
-		printf("s%d rel:%lf ", *it, getRelativeRuntimeForSection(*it));
+		if(longVersion) {
+			printf("\tBereich %d: %lf\n", *it, getRelativeRuntimeForSection(*it));
+		} else {
+			printf("s%d: %lf", *it, getRelativeRuntimeForSection(*it));
+		}
 	}
 
 	if(longVersion) {
-		printf("\n\t\tmeasurements:\n");
+		printf("\nLaufzeiten:");
 	} else {
 		printf("\tmeas: ");
 	}
@@ -98,7 +106,7 @@ void Mc::print(bool longVersion) {
 	int counter = 0;
 	for(it = measuredSections.begin(); it != measuredSections.end(); it++) {
 		if(longVersion) {
-			printf("\t\t section %d\n", *it);
+			printf("\n\t Bereich %d: ", *it);
 		} else {
 			if(counter%3 == 0) {
 				printf("\033[1;31m");
@@ -113,7 +121,7 @@ void Mc::print(bool longVersion) {
 		mapit = measurements.find(*it);
 		for(tsIt = mapit->second->begin(); tsIt != mapit->second->end(); tsIt++) {
 			if(longVersion) {
-				printf("\t\tmeasurement value: sec: %ld nsec: %d\n", tsIt->ts.tv_sec, (int) tsIt->ts.tv_nsec);
+				printf("%ld.%09d, ", tsIt->ts.tv_sec, (int) tsIt->ts.tv_nsec);
 			} else {
 				printf("%ld.%09d ", tsIt->ts.tv_sec, (int) tsIt->ts.tv_nsec);
 			}

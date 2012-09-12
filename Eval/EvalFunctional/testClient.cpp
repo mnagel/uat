@@ -25,10 +25,10 @@ int optimum[] = {10, 5, 3, 46};
 pthread_t pthreads[numThreads-1];
 int finishCount = 0;
 int sections[] = {1,2,3,4,5,6,7,8,9,10};
-int parasUsedBySection[4][4] = {{true , true , true, false},
-						        {false, false, true , false},
-						        {false, true , true , false},
-								{false, false, false, true }};
+int parasUsedBySection[4][4] = {{1, 1, 0, 0},
+						        {0, 0, 1, 0},
+						        {0, 1, 1, 0},
+								{0, 0, 0, 1 }};
 sem_t finishSem;
 
 void* run(void* section);
@@ -99,7 +99,7 @@ void* run(void* voidsection) {
 				sleep += 50*abs(variables[j] - optimum[j]);
 			}
 		}
-		usleep(sleep*100);
+		usleep(sleep*1000);
 		myTuner->tStop(section);
 
 		/*if(i == 2 && section == 3) {

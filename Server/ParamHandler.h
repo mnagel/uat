@@ -15,6 +15,7 @@ class ParamHandler {
 		ParamHandler();
 		~ParamHandler();
 		virtual void addParam(struct opt_param_t* param);
+		virtual void printParams();
 		virtual void printCurrentConfig();
 		virtual void changeAllParamsToValue(int value);
 		virtual void setConfigToMin();
