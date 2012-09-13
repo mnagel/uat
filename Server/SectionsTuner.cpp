@@ -128,8 +128,6 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 		// even insert runtime, if measurement can't be used
 		Mc* mc = mcHandler->getMcForCurrentConfigOrCreate();
 		mc->addRuntimeForThreadAndSection(tid, sectionId, measurementStart, measurementStop, false);
-		//TODO maybe fix that tiny runtime error here as only the guessedStartTime has been used in old mcMeasured (not really important)
-		
 	}
 	return returnMsg;
 }

@@ -17,16 +17,52 @@
 
 class ProcessTunerListener;
 
+/**
+ * An instance of that class handles the tuning of one client. It handles all messages
+ * received from the client and defined by the protocol. It creates SectionsTuner instances
+ * for each tuning section group. Tuning sections in such a group have to be tuned together,
+ * as tuning parameters are shared among sections in this group.
+ */
 class ProcessTuner {
 	public:
 	int fdConn;
 	ProcessTuner(int fdConn);
 	~ProcessTuner();
+
+	/**
+	 * Receives messages from the client and calls the appropriate handler methods.
+	 */
 	void run();
+
+	/**
+	 * Creates a new thread that runs this ProcessTuner instance.
+	 */
 	void runInNewThread();
+
+	/**
+	 * Adds a ProcessTunerListener instance that is called as a result of 
+	 * specific events.
+	 * 
+	 * @param listener the ProcessTunerListener instance that shall be added
+	 */
 	void addProcessTunerListener(ProcessTunerListener* listener);
+
+	/**
+	 * Restarts tuning for all tuning sections.
+	 */
 	void restartTuning();
+
+	/**
+	 * Returns the ParamHandler instance storing the tuning parameters registered
+	 * by the client.
+	 * 
+	 * @return the ParamHandler instance
+	 */
 	ParamHandler* getParamHandler();
+
+	/**
+	 * Static helper method needed in C++ to run a new thread.
+	 */
 	static void* threadCreator(void* context);
 
 
