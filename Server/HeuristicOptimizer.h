@@ -11,11 +11,25 @@ enum HEU_OPT_STATE {
 	FULLY_OPTIMIZED
 };
 
+/**
+ * An instance of that class uses the following search modules to
+ * search for new tuning parameter values:
+ * 1. RandomSearch: generates enough configurations to build a simplex
+ * 2. LocalSearch: change tuning parameter values one by one to optimize performance
+ */
 class HeuristicOptimizer : public Optimizer {
 	public:
 		HeuristicOptimizer(McHandler* handler);
 		~HeuristicOptimizer();
+
+		/**
+		 * {@inheritDoc}
+		 */
 		void setInitialConfig();
+
+		/**
+		 * {@inheritDoc}
+		 */
 		OptimizerMsg chooseNewValues();
 
 	private:

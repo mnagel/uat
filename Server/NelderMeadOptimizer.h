@@ -15,11 +15,26 @@ enum NEL_OPT_STATE {
 	NELD_FULLY_OPTIMIZED
 };
 
+/**
+ * An instance of that class uses the following search modules to
+ * search for new tuning parameter values:
+ * 1. RandomSearch: generates enough configurations to build a simplex
+ * 2. NelderMeadSearch: builds a simplex and runs the nelder mead algorithm
+ * 3. SensitivitySearch: generates configurations to calculate parameter priorities
+ * 4. LocalSearch: change tuning parameter values one by one to optimize performance
+ */
 class NelderMeadOptimizer : public Optimizer{
 	public:
 		NelderMeadOptimizer(McHandler* handler);
 		~NelderMeadOptimizer();
+		/**
+		 * {@inheritDoc}
+		 */
 		void setInitialConfig();
+		
+		/**
+		 * {@inheritDoc}
+		 */
 		OptimizerMsg chooseNewValues();
 
 	private:
