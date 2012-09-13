@@ -18,14 +18,17 @@ enum NELD_ACTION {
 };
 
 /**
- * An instance of this class is a search module that can be used by an 
- * optimizer to calculate new tuning parameter values that might improve 
- * the performance. This module runs the nelder mead algorithm to do so.
+ * This search module runs the nelder mead algorithm to calculate new
+ * tuning parameter values.
  */
 class NelderMeadSearch : public SearchModule {
 	public:
 		NelderMeadSearch(McHandler* handler);
 		~NelderMeadSearch();
+
+		/**
+		 * {@inheritDoc}
+		 */
 		int doSearch();
 	
 	private:

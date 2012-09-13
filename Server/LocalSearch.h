@@ -6,14 +6,17 @@
 #include "SearchModule.h"
 
 /**
- * An instance of this class is a search module that can be used by an 
- * optimizer to calculate new tuning parameter values that might improve 
- * the performance. This module runs the nelder mead algorithm to do so.
+ * This search module tries to improve the client performance by changing 
+ * tuning parameters one by one as long as a better performance is measured.
  */
 class LocalSearch : public SearchModule {
 	public:
 		LocalSearch(McHandler* handler, int threshold, int retryCount);
 		~LocalSearch();
+
+		/**
+		 * {@inheritDoc}
+		 */
 		int doSearch();
 
 	private:

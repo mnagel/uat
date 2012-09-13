@@ -9,10 +9,17 @@ enum RAND_OPT_STATE {
 	FINISHED
 };
 
+/**
+ * This search module generates a specific number of random paramter configurations
+ * dependend on the parameter intervals and the searchspace dimension.
+ */
 class RandomSearch : public SearchModule {
 	public:
 		RandomSearch(McHandler* handler, double relCov, int nHopNH, bool nelderMead);
 		~RandomSearch();
+		/**
+		 * {@inheritDoc}
+		 */
 		int doSearch();
 
 	private:
