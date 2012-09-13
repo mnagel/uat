@@ -1,6 +1,7 @@
 #pragma once
 
 #include "McHandler.h"
+#include "SearchModule.h"
 
 enum RAND_OPT_STATE {
 	FIRST_RUN,
@@ -8,11 +9,11 @@ enum RAND_OPT_STATE {
 	FINISHED
 };
 
-class RandomSearch {
+class RandomSearch : public SearchModule {
 	public:
 		RandomSearch(McHandler* handler, double relCov, int nHopNH, bool nelderMead);
 		~RandomSearch();
-		int doRandSearch();
+		int doSearch();
 
 	private:
 		void calcNumNeededConfigs();

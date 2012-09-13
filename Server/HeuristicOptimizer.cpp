@@ -23,13 +23,13 @@ void HeuristicOptimizer::setInitialConfig() {
 OptimizerMsg HeuristicOptimizer::chooseNewValues() {
 	switch(optState) {
 		case RANDOM_SEARCH:
-			if(randSearch->doRandSearch()>0) {
+			if(randSearch->doSearch()>0) {
 				this->optState = LOCAL_SEARCH;
 				this->chooseNewValues();
 			}
 			break;
 		case LOCAL_SEARCH:
-			if(locSearch->doLocalSearch()>0) {
+			if(locSearch->doSearch()>0) {
 				this->optState = FULLY_OPTIMIZED;
 				this->chooseNewValues();
 			}

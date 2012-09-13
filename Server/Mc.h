@@ -98,7 +98,7 @@ class Mc {
 		void copyConfigIntoList(list<struct opt_param_t*>* params);
 
 		/**
-		 * Easy hash value calculation depending of the config vector.
+		 * Easy hash value calculation depending on the config vector.
 		 * 
 		 * @return a hash value for that mc
 		 */

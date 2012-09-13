@@ -21,7 +21,7 @@ NelderMeadSearch::~NelderMeadSearch() {
 
 }
 
-int NelderMeadSearch::doNelderMeadSearch() {
+int NelderMeadSearch::doSearch() {
 	this->print();
 	switch(this->optState) {
 		case NELD_FIRST_RUN:
@@ -65,7 +65,7 @@ int NelderMeadSearch::doNelderMeadSearch() {
 						if((existingMc = mcHandler->getMcIfExists(reflectedMc)) != NULL) {
 							delete reflectedMc;
 							reflectedMc = existingMc;
-							this->doNelderMeadSearch();	
+							this->doSearch();	
 						} else {
 							mcHandler->addMc(reflectedMc);
 							mcHandler->setMcAsConfig(reflectedMc);
@@ -77,7 +77,7 @@ int NelderMeadSearch::doNelderMeadSearch() {
 							if((existingMc = mcHandler->getMcIfExists(contractedMc)) != NULL) {
 								delete contractedMc;
 								contractedMc = existingMc;
-								this->doNelderMeadSearch();	
+								this->doSearch();	
 							} else {
 								mcHandler->addMc(contractedMc);
 								mcHandler->setMcAsConfig(contractedMc);
@@ -96,7 +96,7 @@ int NelderMeadSearch::doNelderMeadSearch() {
 							if((existingMc = mcHandler->getMcIfExists(expandedMc)) != NULL) {
 								delete expandedMc;
 								expandedMc = existingMc;
-								this->doNelderMeadSearch();	
+								this->doSearch();	
 							} else {
 								mcHandler->addMc(expandedMc);
 								mcHandler->setMcAsConfig(expandedMc);
@@ -121,7 +121,7 @@ int NelderMeadSearch::doNelderMeadSearch() {
 								if((existingMc = mcHandler->getMcIfExists(contractedMc)) != NULL) {
 									delete contractedMc;
 									contractedMc = existingMc;
-									this->doNelderMeadSearch();	
+									this->doSearch();	
 								} else {
 									mcHandler->addMc(contractedMc);
 									mcHandler->setMcAsConfig(contractedMc);
@@ -187,7 +187,7 @@ int NelderMeadSearch::doNelderMeadSearch() {
 	}
 
 	if(action == START) {
-		doNelderMeadSearch();
+		doSearch();
 	}
 	return 0;
 }

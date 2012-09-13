@@ -3,12 +3,18 @@
 #include <vector>
 
 #include "McHandler.h"
+#include "SearchModule.h"
 
-class LocalSearch {
+/**
+ * An instance of this class is a search module that can be used by an 
+ * optimizer to calculate new tuning parameter values that might improve 
+ * the performance. This module runs the nelder mead algorithm to do so.
+ */
+class LocalSearch : public SearchModule {
 	public:
 		LocalSearch(McHandler* handler, int threshold, int retryCount);
 		~LocalSearch();
-		int doLocalSearch();
+		int doSearch();
 
 	private:
 		McHandler* mcHandler;

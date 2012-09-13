@@ -1,6 +1,7 @@
 #pragma once
 
 #include "McHandler.h"
+#include "SearchModule.h"
 
 enum SENS_OPT_STATE {
 	SENS_FIRST_RUN,
@@ -8,11 +9,11 @@ enum SENS_OPT_STATE {
 	SENS_FINISHED
 };
 
-class SensitivitySearch {
+class SensitivitySearch : public SearchModule {
 	public:
 		SensitivitySearch(McHandler* handler);
 		~SensitivitySearch();
-		int doSensSearch();
+		int doSearch();
 
 	private:
 		void generateSensitivityConfigs();

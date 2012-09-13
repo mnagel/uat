@@ -10,7 +10,7 @@ SensitivitySearch::~SensitivitySearch() {
 
 }
 
-int SensitivitySearch::doSensSearch() {
+int SensitivitySearch::doSearch() {
 	switch(this->optState) {
 		case SENS_FIRST_RUN:
 			generateSensitivityConfigs();

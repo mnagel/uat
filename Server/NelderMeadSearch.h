@@ -1,6 +1,8 @@
 #pragma once
 
 #include "McHandler.h"
+#include "SearchModule.h"
+
 enum NELD_OPT_STATE {
 	NELD_FIRST_RUN,
 	NELD_LATER_RUN,
@@ -15,11 +17,16 @@ enum NELD_ACTION {
 	REDUCTION
 };
 
-class NelderMeadSearch {
+/**
+ * An instance of this class is a search module that can be used by an 
+ * optimizer to calculate new tuning parameter values that might improve 
+ * the performance. This module runs the nelder mead algorithm to do so.
+ */
+class NelderMeadSearch : public SearchModule {
 	public:
 		NelderMeadSearch(McHandler* handler);
 		~NelderMeadSearch();
-		int doNelderMeadSearch();
+		int doSearch();
 	
 	private:
 		McHandler* mcHandler;

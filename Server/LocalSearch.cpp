@@ -15,7 +15,7 @@ LocalSearch::~LocalSearch() {
 	delete[] directions;
 }
 
-int LocalSearch::doLocalSearch() {
+int LocalSearch::doSearch() {
 	//directions used to indicate, if it's the first run
 	if(directions == NULL) {
 		initLocalSearch();

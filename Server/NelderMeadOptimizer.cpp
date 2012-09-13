@@ -25,26 +25,26 @@ void NelderMeadOptimizer::setInitialConfig() {
 OptimizerMsg NelderMeadOptimizer::chooseNewValues() {
 	switch(optState) {
 		case NELD_RANDOM_SEARCH:
-			if(randSearch->doRandSearch()>0) {
+			if(randSearch->doSearch()>0) {
 				this->optState = NELD_NELDER_MEAD_SEARCH;
 				//this->optState = NELD_LOCAL_SEARCH;
 				this->chooseNewValues();
 			}
 			break;
 		case NELD_NELDER_MEAD_SEARCH:
-			if(neldSearch->doNelderMeadSearch()>0) {
+			if(neldSearch->doSearch()>0) {
 				this->optState = NELD_SENS_SEARCH;
 				this->chooseNewValues();
 			}
 			break;
 		case NELD_SENS_SEARCH:
-			if(sensSearch->doSensSearch()>0) {
+			if(sensSearch->doSearch()>0) {
 				this->optState = NELD_LOCAL_SEARCH;
 				this->chooseNewValues();
 			}
 			break;
 		case NELD_LOCAL_SEARCH:
-			if(locSearch->doLocalSearch()>0) {
+			if(locSearch->doSearch()>0) {
 				this->optState = NELD_FULLY_OPTIMIZED;
 				this->chooseNewValues();
 			}

@@ -165,7 +165,7 @@ class McHandler : public ParamHandler {
 		Mc* copyMcWithoutMeasurements(Mc* mc);
 
 		/**
-		 * Calculates a priority value depending of the importance of a tuning parameter for a given tuning section.
+		 * Calculates a priority value depending on the importance of a tuning parameter for a given tuning section.
 		 * 
 		 * @param  sectionId    id of the tuning section 
 		 * @param  paramAddress address identifying the tuning parameter

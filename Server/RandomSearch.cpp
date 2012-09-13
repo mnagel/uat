@@ -17,7 +17,7 @@ RandomSearch::~RandomSearch() {
 }
 
 
-int RandomSearch::doRandSearch() {
+int RandomSearch::doSearch() {
 	switch(this->optState) {
 		case FIRST_RUN:
 			if(nelderMead) {
