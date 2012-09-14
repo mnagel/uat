@@ -7,7 +7,6 @@
 #include "NelderMeadOptimizer.h"
 
 using namespace std;
-// TODO it would be better to copy the two maps but lists being pointed at would also have to be copied
 SectionsTuner::SectionsTuner(map<int, list<struct opt_param_t*>*>* sectionParamsMap, map<struct opt_param_t*, list<int>*>* paramSectionsMap): 
 	markedForDeletion(false),
 	sectionIds(0), 
@@ -24,9 +23,6 @@ SectionsTuner::~SectionsTuner() {
 
 }
 
-/**
-  *	returns -1 if param already exists
-  */
 int SectionsTuner::addParam(struct opt_param_t* param) {
 	if(mcHandler->getParam(param->address) != NULL) {
 		return -1;
@@ -36,9 +32,6 @@ int SectionsTuner::addParam(struct opt_param_t* param) {
 	return 0;
 }
 
-/**
-  *	returns -1 if sectionId already exists
-  */
 int SectionsTuner::addSectionId(int sectionId) {
 	return sortedInsert(&sectionIds, sectionId);
 }
@@ -99,8 +92,8 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 		mcHandler->addMeasurementToMc(mc, tid, sectionId, tsDiff, weight);
 		mc->addRuntimeForThreadAndSection(tid, sectionId, measurementStart, measurementStop, false);
 
-		// TODO what to do, if one section stops being measured, or is never measured at all?
-		// IDEA exponential border reduction, if there is a section being measured ten times and another not at all
+		// IMPR what to do, if one section stops being measured, or is never measured at all?
+		// IDEA some kind of exponential backoff, if there is a section being measured ten times and another not at all
 		// choosenewvalues anyway, next time choosenewvalues after 5 times being measured and so on
 		// create exception rules, if a measurement for a section has already started
 

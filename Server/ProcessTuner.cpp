@@ -133,8 +133,7 @@ void ProcessTuner::run() {
 }
 
 void ProcessTuner::handleAddParamMessage(struct tmsgAddParam* msg) {
-	//TODO it isn't checked if initial value is between min max
-	// if tunerClient doesn't get initialConfig that will and hasn't initial between min and max that will fail 
+	//IMPR add error checks
 	printf("add param: parameterpointer: %p from: %d to: %d step: %d type: %d\n",msg->parameter, msg->min, msg->max, msg->step, msg->type);
 	if(paramHandler->getParam(msg->parameter)==NULL) {
 		struct opt_param_t* newParam = new struct opt_param_t;
@@ -215,7 +214,7 @@ void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartM
 			sectionsCreated = true;
 		}
 
-		// TODO add an error check if sectionId in stopMeas msg is the same
+		//IMPR add an error check if sectionId in stopMeas msg is the same
 		map<int, SectionsTuner*>::iterator it;
 		it = sectionsTunersMap.find(msg->sectionId);
 		if(it != sectionsTunersMap.end()) {
@@ -228,7 +227,6 @@ void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartM
 }
 
 void ProcessTuner::handleStopMeasurementMessage(struct tmsgStopMeas* msg) {
-	//printf("handleStopMeasurementMessage for section %d\n", msg->sectionId);
 	if(isSectionFinished(msg->sectionId)) {
 		return;
 	}
@@ -308,7 +306,7 @@ void ProcessTuner::restartTuning() {
 	sem_post(&sectionsTunersSem);
 }
 
-//TODO hashset would improve performance
+//IMPR hashset would improve performance
 bool ProcessTuner::isSectionFinished(int sectionId) {
 	list<int>::iterator sectionIdIt;
 	for(sectionIdIt = finishedSections.begin(); sectionIdIt != finishedSections.end(); sectionIdIt++) {

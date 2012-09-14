@@ -229,9 +229,17 @@ Mc* NelderMeadSearch::getReflectedMc(Mc* mc, list<double>* center, double factor
 			paramIt != refMc->config.end(), centerIt != center->end();
 			paramIt++, centerIt++) {
 		paramIt->curval = iround(*centerIt + factor * (*centerIt - paramIt->curval));
-		//TODO round on next step
 		paramIt->curval = (paramIt->curval < paramIt->min) ? paramIt->min : paramIt->curval;
 		paramIt->curval = (paramIt->curval > paramIt->max) ? paramIt->max : paramIt->curval;
+
+		int modulo = (paramIt->curval - paramIt->min) % paramIt->step;
+		if(modulo!=0) {
+			if(modulo > paramIt->step/2) {
+				paramIt->curval = paramIt->curval - modulo + paramIt->step;
+			} else {
+				paramIt->curval = paramIt->curval - modulo;
+			}
+		}
 		/*if(paramIt->curval < paramIt->min || paramIt->curval > paramIt->max) {
 			delete refMc;	
 			return NULL;
@@ -268,7 +276,14 @@ void NelderMeadSearch::reduceSimplex() {
 				bestParamIt++, paramIt++) {
 			// can't be out of bounds
 			paramIt->curval = iround((bestParamIt->curval + paramIt->curval)/2.0d);
-			//TODO round on next step
+			int modulo = (paramIt->curval - paramIt->min) % paramIt->step;
+			if(modulo!=0) {
+				if(modulo > paramIt->step/2) {
+					paramIt->curval = paramIt->curval - modulo + paramIt->step;
+				} else {
+					paramIt->curval = paramIt->curval - modulo;
+				}
+			}
 		}
 		if((existingMc = mcHandler->getMcIfExists(copy))==NULL) {
 			mcHandler->addMc(copy);

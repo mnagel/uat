@@ -311,8 +311,25 @@ Mc* McHandler::copyMcWithoutMeasurements(Mc* mc) {
 //IMPR O(#mcs^2 * #params) -> only method having such a bad runtime
 // tuner should be fast not to produce tuning overhead
 // -> improve runtime
-//IMPR wenn param gar nicht eingetragen für diese sektion in der map dann 0 zurückgeben
 double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress) {
+	map<int, list<struct opt_param_t*>*>::iterator sectionParamsMapIt;
+	sectionParamsMapIt = sectionParamsMap->find(sectionId);
+	if(sectionParamsMapIt != sectionParamsMap->end()) {
+		list<struct opt_param_t*>::iterator paramListIt;
+		bool contains = false;
+		for(paramListIt = sectionParamsMapIt->second->begin(); 
+			paramListIt != sectionParamsMapIt->second->end() && !contains; 
+			paramListIt++) {
+			if((*paramListIt)->address == paramAddress) {
+				contains = true;
+			}
+		}
+		if(!contains) {
+			return 0.0;
+		}
+	}
+	
+
 	vector<Mc*>::iterator outerIt;
 	vector<Mc*>::iterator innerIt;
 	int numComparisons = 0;

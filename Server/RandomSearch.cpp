@@ -74,20 +74,6 @@ void RandomSearch::generateRandomConfigs() {
 	for (int i = 0; i < this->numConfigs; i++) {
 		Mc* randomMc = mcHandler->createRandomMc();
 
-		/* 
-		 * heuristic: get very different random cfgs
-		 * create at maximum four new random cfgs:
-		 * 1) take the new cfg only when not in 3*nHopNH neighborhood
-		 * 2) take the new cfg only when not in 2*nHopNH neighborhood
-		 * 3) take the new cfg only when not in 1*nHopNH neighborhood
-		 * 4) take the generated cfg at all costs!
-		 *
-		 * TODO: alternativ könnte man auch mittels get_min_params_distance()
-		 * die Abstandsmetrik nutzen um zu bestimmen, wann eine Cfg in
-		 * der Nachbarschaft liegt und wann nicht; Semantik wäre dann
-		 * leicht anders, wenn man z.B. sagt, dass der Abstand
-		 * mindestens num_params*nHopNH betragen muss!
-		 */
 		vector<struct opt_param_t>::iterator it;
 		for(it = randomMc->config.begin(); it != randomMc->config.end(); it++) {
 			int nhopFactor = 3;
