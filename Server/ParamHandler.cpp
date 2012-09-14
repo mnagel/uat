@@ -78,7 +78,6 @@ void ParamHandler::setConfigToMin() {
 void ParamHandler::raiseConfig() {
 	list<struct opt_param_t*>::iterator param_iterator;
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
-		// TODO param is not always changed, exception is the intervall [a,b] and a==b or stepsize > b-a
 		(*param_iterator)->changed = true;
 		if(((*param_iterator)->curval + (*param_iterator)->step) <= (*param_iterator)->max) {
 			(*param_iterator)->curval += (*param_iterator)->step;
@@ -148,7 +147,7 @@ int ParamHandler::getParamIndexInConfig(struct opt_param_t* param) {
 unsigned long ParamHandler::getHash(list<struct opt_param_t*>* paramList) {
 	list<struct opt_param_t*>::iterator paramIterator;
 	unsigned long hash = 0;
-	// TODO replace hashing algorithm, that one is far away from being collision resistant
+	//IMPR replace hashing algorithm, that one is not collision resistant
 	for(paramIterator = paramList->begin(); paramIterator!=paramList->end(); paramIterator++) {
 		hash += (*paramIterator)->curval + (unsigned long) (*paramIterator)->address;
 	}

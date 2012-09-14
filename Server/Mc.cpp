@@ -260,7 +260,7 @@ void Mc::copyConfigIntoList(list<struct opt_param_t*>* params) {
 unsigned long Mc::getHash() {
 	vector<struct opt_param_t>::iterator paramIterator;
 	unsigned long hash = 0;
-	// TODO replace hashing algorithm, that one is far away from being collision resistant
+	// IMPR replace hashing algorithm, that one is not collision resistant
 	for(paramIterator = config.begin(); paramIterator!=config.end(); paramIterator++) {
 		hash += paramIterator->curval + (unsigned long) paramIterator->address;
 	}

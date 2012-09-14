@@ -33,7 +33,6 @@ void GlobalParamHandler::restartTuningForAllProcessTuners() {
 	}
 }
 
-//TODO redundant with McHandler print function
 void GlobalParamHandler::printParamsList(list<opt_param_t*>* params) {
 	printf("---------------------------------\n");
 	printf("-----printing params list -------\n");

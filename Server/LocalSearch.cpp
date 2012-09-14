@@ -215,7 +215,6 @@ Mc* LocalSearch::getNextCfgForCurrentDirection() {
 
 Mc* LocalSearch::changeCurrentParamOfCurrentMc(int factor) {
 	Mc* changedMc = mcHandler->copyMcWithoutMeasurements(curMc);
-	//TODO direkter Zugriff auf config liste unschön
 	opt_param_t* param = &(changedMc->config[curParam]);
 
 	param->curval += factor * param->step;
@@ -227,9 +226,9 @@ Mc* LocalSearch::changeCurrentParamOfCurrentMc(int factor) {
 }
 
 void LocalSearch::setNextCurParamValue() {
-	// TODO importance is the average relative runtime improvement, but a lower value may be absolutely better for a higher average runtime and/or higher run frequency
+	// IMPR importance is the average relative runtime improvement, but a lower value may be absolutely better for a higher average runtime and/or higher run frequency
 	// maybe use frequency and runtime from bestMc to decide importance
-	// TODO if importance is too low, don't select param influencing most sections
+	// IMPR if importance is too low, don't select param influencing most sections
 	for(int n=mcHandler->getNumSections(); n>0; n--) {
 		vector<struct opt_param_t*> paramsInfluencingNSections;
 		mcHandler->getParamsInfluencingNSections(&paramsInfluencingNSections, n);
@@ -287,7 +286,6 @@ bool LocalSearch::adjustBestMcAccordingWorkload() {
 		//check if history would be the same with other workload and if not set bestMc on mc where it first fails
 		//has to be only similar to be accepted
 		if(lastMc != NULL) {
-			//TODO create testclient to check that case, bestMcHist cutting couldn't be tested so far
 			if((*bestMcHistIt)->getRelativePerformance(lastMc, currentWorkload) > threshold) {
 				bestMc = lastMc;
 				bestMc->resetAllMeasurements();

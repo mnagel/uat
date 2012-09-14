@@ -34,9 +34,12 @@ Tuner::Tuner()
 Tuner::~Tuner() {
 	delete udsComm;
 	sem_destroy(&sendSem);
-
-	//TODO iterate over semMap and destroy and delete semaphores
-	//sem_destroy(&(this->startMutex));
+	sem_destroy(&tcbMapProtector);
+	sem_destroy(&finishedSectionsProtector);
+	map<pid_t, threadControlBlock_t*>::iterator tcbMapIterator;
+	for(tcbMapIterator = tcbMap.begin(); tcbMapIterator != tcbMap.end(); tcbMapIterator++) {
+    	sem_destroy(&(tcbMapIterator->second->sem));
+	}
 }
 
 void* Tuner::threadCreator(void* context) {

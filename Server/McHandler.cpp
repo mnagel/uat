@@ -39,7 +39,10 @@ McHandler::~McHandler() {
 		delete *paramsit;
 	}
 	*/
-	//TODO delete vectors in mcsMap
+	map<unsigned long, std::vector<Mc*>*>::iterator mcsMapIterator;
+	for(mcsMapIterator = mcsMap.begin(); mcsMapIterator!=mcsMap.end(); mcsMapIterator++) {
+		delete mcsMapIterator->second;
+	}
 }
 
 Mc* McHandler::getMcForCurrentConfigOrCreate() {
@@ -191,7 +194,6 @@ void McHandler::setBestMcAsConfig() {
 }
 
 /**
-  * TODO !!WARNING!!
   * setMcAsConfig tries to merge the given mc into the currentConfig list, if they are not identical 
   * the not measured mc won't be retrieved by getMcForCurrentConfigOrCreate and WILL NEVER GET A MEASURE.
   * DANGER of an endless loop, for example in RandomSearch, as there will always be a not measured config
@@ -306,10 +308,10 @@ Mc* McHandler::copyMcWithoutMeasurements(Mc* mc) {
 	return mc->getCopyWithoutMeasurements();
 }
 
-//TODO O(#mcs^2 * #params) -> only method having such a bad bad runtime
-// tuner must be really fast not to produce tuning overhead
-// -> insert some fancy runtime improvements
-//TODO wenn param gar nicht eingetragen für diese sektion in der map dann 0 zurückgeben
+//IMPR O(#mcs^2 * #params) -> only method having such a bad runtime
+// tuner should be fast not to produce tuning overhead
+// -> improve runtime
+//IMPR wenn param gar nicht eingetragen für diese sektion in der map dann 0 zurückgeben
 double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress) {
 	vector<Mc*>::iterator outerIt;
 	vector<Mc*>::iterator innerIt;
@@ -319,7 +321,7 @@ double McHandler::getParamImportanceForSection(int sectionId, int* paramAddress)
 		for(innerIt = outerIt + 1; innerIt != mcs.end(); innerIt++) {
 			int distInSteps;
 			if((distInSteps = (*outerIt)->differsOnlyInParamByDist(*innerIt, paramAddress)) != -1) {
-				//TODO if distInSteps is too high, runtimes shouldn't be compared maybe, as a min could lie between them
+				//IMPR if distInSteps is too high, runtimes shouldn't be compared maybe, as a min could lie between them
 				// improvement might be very very low, as it's also divided by distInSteps
 				numComparisons++;
 				long long outerAverage = (*outerIt)->getAverage(sectionId);	

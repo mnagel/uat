@@ -71,7 +71,6 @@ int main(int argc, char *argv[]) {
 }
 
 void finished() {
-	//TODO needs to be atomic or synchronized
 	sem_wait(&finishSem);
 	finishCount++;
 	printf("finishCount %d numThreads %d\n", finishCount, numThreads);
