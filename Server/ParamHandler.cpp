@@ -75,8 +75,19 @@ void ParamHandler::setConfigToMin() {
 	}
 }
 
-void ParamHandler::raiseConfig() {
+bool ParamHandler::raiseConfig() {
 	list<struct opt_param_t*>::iterator param_iterator;
+	bool allMax = true;
+	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
+		if(((*param_iterator)->curval + (*param_iterator)->step) <= (*param_iterator)->max) {
+			allMax = false;
+			break;
+		}
+	}
+	if(allMax) {
+		return false;
+	}
+
 	for(param_iterator = currentConfig.begin(); param_iterator!=currentConfig.end(); param_iterator++) {
 		(*param_iterator)->changed = true;
 		if(((*param_iterator)->curval + (*param_iterator)->step) <= (*param_iterator)->max) {
@@ -86,6 +97,7 @@ void ParamHandler::raiseConfig() {
 			(*param_iterator)->curval = (*param_iterator)->min;
 		}
 	}
+	return true;
 }
 
 void ParamHandler::getAllParamsHavingType(ParameterType type, list<opt_param_t*>* oParams) {

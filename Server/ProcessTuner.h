@@ -67,6 +67,7 @@ class ProcessTuner {
 
 
 	private:
+	bool toBeDeleted;
 	UDSCommunicator* udsComm;
 	pthread_t* pthread;
 

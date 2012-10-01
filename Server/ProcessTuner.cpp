@@ -12,6 +12,7 @@ using namespace std;
 
 
 ProcessTuner::ProcessTuner(int fdConn):
+toBeDeleted(false),
 udsComm(new UDSCommunicator(fdConn)),
 paramHandler(new ParamHandler()),
 processTunerListener(0),
@@ -46,6 +47,7 @@ ProcessTuner::~ProcessTuner() {
 	delete udsComm;
 	delete paramHandler;
 	delete pthread;
+	sem_destroy(&sectionsTunersSem);
 }
 
 ParamHandler* ProcessTuner::getParamHandler() {
@@ -75,6 +77,7 @@ void ProcessTuner::run() {
 	tmsgHead msgHead;
 	while(this->runLoop) {
 		if(udsComm->receiveMsgHead(&msgHead) == -1) {
+			toBeDeleted = true;
 			return;
 		}
 
@@ -264,6 +267,7 @@ void ProcessTuner::handleStopMeasurementMessage(struct tmsgStopMeas* msg) {
 void ProcessTuner::handleFinishTuningMessage() {
 	udsComm->sendMsgHead(TMSG_CLOSE_CONNECTION);
 	this->runLoop = false;
+	toBeDeleted = true;
 }
 
 void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
@@ -296,8 +300,13 @@ void ProcessTuner::handleResetTuningMessage() {
 }
 
 void ProcessTuner::restartTuning(bool needSync) {
+
 	if(needSync) {
 		sem_wait(&sectionsTunersSem);
+	}
+
+	if(toBeDeleted) {
+		return;
 	}
 
 	deleteAllSectionsTuners();

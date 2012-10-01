@@ -281,6 +281,8 @@ void McHandler::addMc(Mc* newMc) {
 			hashedMcs = it->second;
 		}
 		hashedMcs->push_back(newMc);
+	} else {
+		delete newMc;
 	}
 }
 

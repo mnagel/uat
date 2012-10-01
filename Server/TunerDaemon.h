@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <vector>
+#include <semaphore.h>
 
 #include "ProcessTuner.h"
 #include "ProcessTunerListener.h"
@@ -50,9 +51,11 @@ class TunerDaemon : public ProcessTunerListener {
 		socklen_t lenAddr;
 		int fdSock;
 
+		int numTotalConnections;
 		GlobalParamHandler* globalParamHandler;
 		GlobalConfigurator* globalConfigurator;
-
+		std::list<ProcessTuner*> tunersToDelete;
+		sem_t tunersToDeleteSem;
 		void run();
 
 

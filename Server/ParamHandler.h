@@ -19,7 +19,7 @@ class ParamHandler {
 		virtual void printCurrentConfig();
 		virtual void changeAllParamsToValue(int value);
 		virtual void setConfigToMin();
-		virtual void raiseConfig();
+		virtual bool raiseConfig();
 		virtual void getAllParamsHavingType(ParameterType type, std::list<opt_param_t*>* oParams);
 		virtual std::list<struct opt_param_t*>* getParams();
 		virtual struct opt_param_t* getParam(int* address);

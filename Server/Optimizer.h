@@ -14,20 +14,21 @@ enum OptimizerMsg {
  */
 class Optimizer {
 	public:
-		Optimizer(McHandler* mcHandler);
+		Optimizer(McHandler* handler);
 		~Optimizer();
-
 		/**
 		 * Sets initial values for all tuning parameters. Doesn't depend on runtime measurements.
 		 */
-		virtual void setInitialConfig();
+		virtual void setInitialConfig() = 0;
 
 		/**
 		 * Sets new values for tuning parameters depending on runtime measurements done so far.
 		 * 
 		 * @return a message that displays if the tuning is finished
 		 */
-		virtual OptimizerMsg chooseNewValues();
+		virtual OptimizerMsg chooseNewValues() = 0;
 
 		McHandler* mcHandler;
+
+		
 };
