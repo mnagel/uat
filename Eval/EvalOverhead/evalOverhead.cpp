@@ -73,6 +73,7 @@ int main(int argc, char *argv[]) {
 			registerParams();
 			clock_gettime(CLOCK_MONOTONIC, &timeStop);
 			timeDiff = diff(timeStart, timeStop); 
+			printf("r=%d s=%d\n",r,s);
 			printf("Time needed for initialisation: %ld.%09lds\n", timeDiff.tv_sec, timeDiff.tv_nsec);
 
 			// measuring time needed without tuning overhead

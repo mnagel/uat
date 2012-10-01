@@ -29,7 +29,7 @@ void GlobalParamHandler::getAllParamsHavingType(ParameterType paramType, list<op
 void GlobalParamHandler::restartTuningForAllProcessTuners() {
 	list<ProcessTuner*>::iterator it;
 	for(it=tuners.begin(); it!=tuners.end(); it++) {
-		(*it)->restartTuning();
+		(*it)->restartTuning(true);
 	}
 }
 

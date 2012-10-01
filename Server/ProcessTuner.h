@@ -50,7 +50,7 @@ class ProcessTuner {
 	/**
 	 * Restarts tuning for all tuning sections.
 	 */
-	void restartTuning();
+	void restartTuning(bool needSync);
 
 	/**
 	 * Returns the ParamHandler instance storing the tuning parameters registered
@@ -77,6 +77,7 @@ class ProcessTuner {
 	void handleStopMeasurementMessage(struct tmsgStopMeas* msg);
 	void handleFinishTuningMessage();
 	void handleRestartTuningMessage(struct tmsgRestartTuning* msg);
+	void handleResetTuningMessage();
 
 	void checkRestartTuning();
 	bool isSectionFinished(int sectionId);

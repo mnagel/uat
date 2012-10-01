@@ -124,6 +124,9 @@ void ProcessTuner::run() {
 				}
 				this->handleRestartTuningMessage(&restartMsg);
 				break;
+			case TMSG_RESET_TUNING:
+				this->handleResetTuningMessage();
+				break;
 			default:
 				printf("default case shouldn't happen");
 				break;
@@ -288,10 +291,18 @@ void ProcessTuner::handleRestartTuningMessage(struct tmsgRestartTuning* msg) {
 	}
 }
 
-void ProcessTuner::restartTuning() {
-	sem_wait(&sectionsTunersSem);
+void ProcessTuner::handleResetTuningMessage() {
+	restartTuning(false);
+}
+
+void ProcessTuner::restartTuning(bool needSync) {
+	if(needSync) {
+		sem_wait(&sectionsTunersSem);
+	}
+
 	deleteAllSectionsTuners();
 	createSectionsTuners();
+	sectionsCreated = true;
 
 
 	list<int>::iterator sectionIdIt;
@@ -303,7 +314,9 @@ void ProcessTuner::restartTuning() {
 		printf("restart tuning for all: send restart tuning for section: %d\n", *sectionIdIt);
 	}
 	finishedSections.clear();
-	sem_post(&sectionsTunersSem);
+	if(needSync) {
+		sem_post(&sectionsTunersSem);
+	}
 }
 
 //IMPR hashset would improve performance
@@ -393,10 +406,11 @@ void ProcessTuner::deleteAllSectionsTuners() {
 		delete *tunersIt;
 	}
 	sectionsTuners.clear();
+	sectionsTunersMap.clear();
 }
 
 void ProcessTuner::createSectionsTuners() {
-	printf("Tuninggruppen: \n");
+	printf("Tuninggruppen: %d\n", sectionIds.size());
 	list<int>::iterator sectionIdsIt;
 	map<int, SectionsTuner*>::iterator sectionsTunersMapIt; 
 

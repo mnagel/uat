@@ -316,6 +316,9 @@ int Tuner::tStop(int sectionId, double weight) {
 }
 
 int Tuner::tReset() {
+	sem_wait(&sendSem);
+	udsComm->sendMsgHead(TMSG_RESET_TUNING);
+	sem_post(&sendSem);
 	return 0;
 }
 
