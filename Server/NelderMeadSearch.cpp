@@ -57,7 +57,6 @@ int NelderMeadSearch::doSearch() {
 			list<double>* center; 
 			center = NULL;
 			Mc* existingMc;
-			bool isB;
 
 			switch(this->action) {
 				case START:

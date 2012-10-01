@@ -26,8 +26,8 @@ OptimizerMsg NelderMeadOptimizer::chooseNewValues() {
 	switch(optState) {
 		case NELD_RANDOM_SEARCH:
 			if(randSearch->doSearch()>0) {
-				this->optState = NELD_NELDER_MEAD_SEARCH;
-				//this->optState = NELD_LOCAL_SEARCH;
+				//this->optState = NELD_NELDER_MEAD_SEARCH;
+				this->optState = NELD_LOCAL_SEARCH;
 				this->chooseNewValues();
 			}
 			break;

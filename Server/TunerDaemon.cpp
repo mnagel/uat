@@ -51,7 +51,7 @@ void TunerDaemon::run() {
 	int fdConn;
 	while ((fdConn=accept(this->fdSock, (struct sockaddr*)&(this->strAddr), &(this->lenAddr))) >= 0) {
 		printf("\nConnection accepted - filedescriptor: %d\n", fdConn);
-		globalParamHandler->restartTuningForAllProcessTuners();
+		//globalParamHandler->restartTuningForAllProcessTuners();
 		ProcessTuner* tuner = new ProcessTuner(fdConn);
 		globalParamHandler->addTuner(tuner);
 		tuner->addProcessTunerListener((ProcessTunerListener*) this);
@@ -71,5 +71,5 @@ void TunerDaemon::tuningFinished(ProcessTuner* tuner) {
 }
 
 void TunerDaemon::tuningParamAdded(opt_param_t* param) {
-	globalConfigurator->createHintsForType(param->type);
+	//globalConfigurator->createHintsForType(param->type);
 }
