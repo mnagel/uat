@@ -7,6 +7,7 @@ using namespace std;
 NelderMeadSearch::NelderMeadSearch(McHandler* handler):
 	mcHandler(handler),
 	simplex(0),
+	reducedMcs(0),
 	reducedMc(NULL),
 	reflectedMc(NULL),
 	expandedMc(NULL),
@@ -33,6 +34,9 @@ int NelderMeadSearch::doSearch() {
 			//no break wanted
 		case NELD_LATER_RUN:
 			//this->print();
+			/*if(mcHandler->setNextNotMeasuredConfig() != NULL) {
+				return 0;
+			}*/
 
 			if(action != REDUCTION) {
 				//when reducted there may be only one point in simplex
@@ -53,6 +57,7 @@ int NelderMeadSearch::doSearch() {
 			list<double>* center; 
 			center = NULL;
 			Mc* existingMc;
+			bool isB;
 
 			switch(this->action) {
 				case START:
@@ -152,7 +157,7 @@ int NelderMeadSearch::doSearch() {
 						action = START;
 					} else {
 						reduceSimplex();	
-						if((reducedMc = mcHandler->setNextNotMeasuredConfig()) == NULL) {
+						if((reducedMc = setNextNotMeasuredOfReduced()) == NULL) {
 							action = START;
 						} else {
 							action = REDUCTION;
@@ -160,13 +165,7 @@ int NelderMeadSearch::doSearch() {
 					}
 					break;
 				case REDUCTION:
-					printf("NelderMeadSearch REDUCTION\n");
-					if(reducedMc != NULL) {
-						printf("before inserting\n");
-						insertIntoSimplex(reducedMc);
-						printf("after inserting\n");
-					}
-					if((reducedMc = mcHandler->setNextNotMeasuredConfig()) == NULL) {
+					if((reducedMc = setNextNotMeasuredOfReduced()) == NULL) {
 						action = START;
 					}
 					break;
@@ -261,6 +260,23 @@ void NelderMeadSearch::insertIntoSimplex(Mc* mc) {
 	}
 }
 
+Mc* NelderMeadSearch::setNextNotMeasuredOfReduced() {
+	list<Mc*>::iterator mcIt;
+	for(mcIt = reducedMcs.begin(); mcIt != reducedMcs.end(); mcIt++) {
+		if(!(*mcIt)->isMeasured()) {
+			mcHandler->setMcAsConfig(*mcIt);
+			return *mcIt;
+		} else {
+			insertIntoSimplex(*mcIt);
+			reducedMcs.erase(mcIt);
+			mcIt = reducedMcs.begin();
+			mcIt--;
+		}
+		
+	}
+	return NULL;
+}
+
 void NelderMeadSearch::reduceSimplex() {
 	Mc* existingMc;
 	list<Mc*> addList;
@@ -287,15 +303,11 @@ void NelderMeadSearch::reduceSimplex() {
 		}
 		if((existingMc = mcHandler->getMcIfExists(copy))==NULL) {
 			mcHandler->addMc(copy);
+			reducedMcs.push_back(copy);
 		} else {
 			delete copy;
-			addList.push_back(existingMc);
+			reducedMcs.push_back(existingMc);
 		}
-	}
-
-	list<Mc*>::iterator mcIt;
-	for(mcIt = addList.begin(); mcIt != addList.end(); mcIt++) {
-		insertIntoSimplex(*mcIt);
 	}
 }
 

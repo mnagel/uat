@@ -34,6 +34,7 @@ class NelderMeadSearch : public SearchModule {
 	private:
 		McHandler* mcHandler;
 		list<Mc*> simplex;
+		list<Mc*> reducedMcs;
 		Mc* reducedMc;
 		Mc* reflectedMc;
 		Mc* expandedMc;
@@ -45,6 +46,7 @@ class NelderMeadSearch : public SearchModule {
 		Mc* getReflectedMc(Mc* mc, list<double>* center, double factor); 
 		void reduceSimplex();
 		void insertIntoSimplex(Mc* mc); 
+		Mc* setNextNotMeasuredOfReduced();
 		NELD_OPT_STATE optState;
 		NELD_ACTION action;
 
