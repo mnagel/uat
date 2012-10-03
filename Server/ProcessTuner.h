@@ -14,6 +14,7 @@
 #include "HeuristicOptimizer.h"
 #include "ProcessTunerListener.h"
 #include "SectionsTuner.h"
+#include "PersistenceHandler.h"
 
 class ProcessTunerListener;
 
@@ -74,6 +75,7 @@ class ProcessTuner {
 	void handleAddParamMessage(struct tmsgAddParam* msg);
 	void handleRegisterSectionParamMessage(struct tmsgRegisterSectionParam* msg);
 	void handleGetInitialValuesMessage();
+	void handleGetInitialValuesMessage(struct tmsgGetInitialValuesPersistence* msg);
 	void handleRequestStartMeasurementMessage(struct tmsgRequestStartMeas* msg);
 	void handleStopMeasurementMessage(struct tmsgStopMeas* msg);
 	void handleFinishTuningMessage();
@@ -92,6 +94,7 @@ class ProcessTuner {
 	void addSectionsOfParam(struct opt_param_t* param, SectionsTuner* secTuner);
 
 	ParamHandler* paramHandler;
+	PersistenceHandler* persistenceHandler;
 	std::vector<ProcessTunerListener*> processTunerListener;
 	bool runLoop;
 	sem_t sectionsTunersSem;

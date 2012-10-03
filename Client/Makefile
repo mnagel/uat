@@ -2,7 +2,7 @@ GCC = g++
 CFLAGS = -Wall
 LIBS = -pthread -lrt
 
-LIBSRC = tuner.cpp
+LIBSRC = tuner.cpp SHA1.cpp
 LIBOBJ = $(LIBSRC:.cpp=.o)  
 
 WRAPPERSRC = tunerWrapper.cpp

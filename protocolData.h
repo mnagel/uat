@@ -10,6 +10,7 @@ enum MsgType {
 	TMSG_SET_VALUE,
 	TMSG_DONT_SET_VALUE,
 	TMSG_GET_INITIAL_VALUES,
+	TMSG_GET_INITIAL_VALUES_PERSISTENCE,
 	TMSG_RESTART_TUNING,
 	//from client
 	TMSG_FINISH_TUNING,
@@ -58,6 +59,10 @@ struct tmsgSetValue {
 	int *parameter; 
 	int value; 
 	bool lastMsg;
+};
+
+struct tmsgGetInitialValuesPersistence{
+	char sha1path[40];
 };
 
 struct tmsgStopMeas {

@@ -19,6 +19,7 @@ class Tuner {
 	int tRegisterParameter(int *parameter, int from, int to, int step);
 	int tRegisterParameter(int *parameter, int from, int to, int step, ParameterType type);
 	int tGetInitialValues();
+	int tGetInitialValues(char* path);
 	int tRegisterSectionParameter(int sectionId, int *parameter);
 	int tRequestStart(int sectionId);
 	int tStop(int sectionId);

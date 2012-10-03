@@ -12,6 +12,7 @@
 #include <time.h>
 
 #include "tuner.h"
+#include "SHA1.h"
 #include "../protocolData.h"
 #include "../utils.h"
 #include "../UDSCommunicator.h"
@@ -232,11 +233,28 @@ int Tuner::tRegisterSectionParameter(int sectionId, int *parameter) {
 	sem_post(&sendSem);
 	return 0;
 }
-
 int Tuner::tGetInitialValues() {
 	sem_wait(&sendSem);
 	udsComm->sendMsgHead(TMSG_GET_INITIAL_VALUES);
 	sem_post(&sendSem);
+	return 0;
+}
+
+int Tuner::tGetInitialValues(char* path) {
+	if(path!=NULL) {
+		CSHA1 sha1;
+		sha1.HashFile(path);
+		sha1.Final();
+		string strReport;
+		sha1.ReportHashStl(strReport, CSHA1::REPORT_HEX_SHORT);
+		struct tmsgGetInitialValuesPersistence msg;
+		memcpy(msg.sha1path, strReport.c_str(), 40);
+
+		sem_wait(&sendSem);
+		udsComm->sendMsgHead(TMSG_GET_INITIAL_VALUES_PERSISTENCE);
+		udsComm->send((const char*) &msg, sizeof(tmsgGetInitialValuesPersistence));
+		sem_post(&sendSem);
+	}
 	return 0;
 }
 

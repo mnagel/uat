@@ -1,4 +1,4 @@
-#include <string>
+#include <string.h>
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,6 +47,9 @@ ProcessTuner::~ProcessTuner() {
 	delete udsComm;
 	delete paramHandler;
 	delete pthread;
+	if(persistenceHandler!=NULL) {
+		delete persistenceHandler;
+	}
 	sem_destroy(&sectionsTunersSem);
 }
 
@@ -67,6 +70,10 @@ void ProcessTuner::runInNewThread() {
 void* ProcessTuner::threadCreator(void* context) {
 	ProcessTuner* thisTuner = (ProcessTuner*) context;
 	thisTuner->run();
+
+	if(thisTuner->persistenceHandler!=NULL) {
+		thisTuner->persistenceHandler->writeParamsToFile();
+	}
 	for(unsigned int i=0; i<thisTuner->processTunerListener.size(); i++) {
 		((thisTuner->processTunerListener)[i])->tuningFinished(thisTuner);
 	}
@@ -102,6 +109,13 @@ void ProcessTuner::run() {
 				break;
 			case TMSG_GET_INITIAL_VALUES:
 				this->handleGetInitialValuesMessage();
+				break;
+			case TMSG_GET_INITIAL_VALUES_PERSISTENCE:
+				struct tmsgGetInitialValuesPersistence permsg;
+				if(udsComm->receiveMessage((void*) &permsg, sizeof(struct tmsgGetInitialValuesPersistence)) == -1) {
+					return;
+				}
+				this->handleGetInitialValuesMessage(&permsg);
 				break;
 			case TMSG_REQUEST_START_MEASUREMENT:
 				struct tmsgRequestStartMeas rmsg;
@@ -210,6 +224,15 @@ void ProcessTuner::handleGetInitialValuesMessage() {
 	}
 
 	this->sendAllChangedParams();
+}
+
+void ProcessTuner::handleGetInitialValuesMessage(struct tmsgGetInitialValuesPersistence* msg) {
+	persistenceHandler = new PersistenceHandler(paramHandler, msg->sha1path);
+	if(persistenceHandler->readParamsFromFile() == 0) {
+		this->sendAllChangedParams();
+	} else {
+		this->handleGetInitialValuesMessage();
+	}
 }
 
 void ProcessTuner::handleRequestStartMeasurementMessage(struct tmsgRequestStartMeas* msg) {

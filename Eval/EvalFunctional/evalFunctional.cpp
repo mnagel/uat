@@ -54,7 +54,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	
-	//myTuner->tGetInitialValues();
+	printf("path %s\n",argv[0]);
+	myTuner->tGetInitialValues(argv[0]);
 
 	for(int i=0; i<numThreads-1; i++) {
 		if(i==0) {
