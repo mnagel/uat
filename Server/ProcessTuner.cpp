@@ -77,6 +77,8 @@ void* ProcessTuner::threadCreator(void* context) {
 	for(unsigned int i=0; i<thisTuner->processTunerListener.size(); i++) {
 		((thisTuner->processTunerListener)[i])->tuningFinished(thisTuner);
 	}
+	pthread_detach(*(thisTuner->pthread));
+	pthread_exit(NULL);
 	return NULL;
 }
 
