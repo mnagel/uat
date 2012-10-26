@@ -21,15 +21,13 @@ int minValue[] = {1, 1, 1, 1};
 int maxValue[] = {20, 20, 20, 20};
 int optimum[] = {1, 5, 	10, 15};
 
-
-
 int main(int argc, char *argv[]) {
 
 	myTuner = new Tuner();
 
 	for(int i=0; i<numParas; i++) {
 		myTuner->tRegisterParameter(variables+i, minValue[i], maxValue[i], 1);
-		myTuner->tRegisterSectionParameter(1, variables+j); 
+		myTuner->tRegisterSectionParameter(1, variables+i); 
 	}
 
 	for(int i=0; i<250; i++) {
@@ -39,7 +37,7 @@ int main(int argc, char *argv[]) {
 			sleep += 50*abs(variables[j] - optimum[j]);
 		}
 		usleep(sleep*1000);
-		myTuner->tStop(section);
+		myTuner->tStop(1);
 	}
 }
 
