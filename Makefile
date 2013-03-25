@@ -3,7 +3,7 @@ CLIENT_DIR = Client
 EVAL_DIR = Eval
 
 GCC = g++
-CFLAGS = -Wall
+CFLAGS = -Wall -fPIC
 
 SRC = $(wildcard *.cpp)
 OBJ = $(SRC:.cpp=.o) 

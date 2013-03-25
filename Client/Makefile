@@ -1,5 +1,5 @@
 GCC = g++
-CFLAGS = -Wall
+CFLAGS = -Wall -fPIC
 LIBS = -pthread -lrt
 
 LIBSRC = tuner.cpp SHA1.cpp
