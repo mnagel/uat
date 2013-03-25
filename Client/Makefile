@@ -25,4 +25,4 @@ ctunerlib: $(WRAPPEROBJ) $(PARENTOBJ) $(LIBOBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o *a
+	rm -rf *.o *.a
