@@ -1,5 +1,5 @@
 #pragma once
-#define SOCKET_PATH "/home/markus/mysocket"
+#define SOCKET_PATH "/home/michael/autotunersocket"
 
 enum MsgType {
 	TMSG_ADD_PARAM,
