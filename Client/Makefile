@@ -21,7 +21,7 @@ tunerlib: $(LIBOBJ) $(PARENTOBJ)
 	ar rcs libtuner.a $(LIBOBJ) $(PARENTOBJ)
 
 ctunerlib: $(WRAPPEROBJ) $(PARENTOBJ) $(LIBOBJ)
-	ar rcs libctuner.a $(WRAPPEROBJ) $(LIBOBJ) $(PARENTOBJ)
+	$(GCC) -shared -o libctuner.so $(WRAPPEROBJ) $(LIBOBJ) $(PARENTOBJ)
 
 .PHONY: clean
 clean:
