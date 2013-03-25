@@ -33,4 +33,4 @@ clean:
 	$(MAKE) -C $(SERVER_DIR) clean
 	$(MAKE) -C $(CLIENT_DIR) clean
 	$(MAKE) -C $(EVAL_DIR) clean
-	rm -rf *o
+	rm -rf *.o
