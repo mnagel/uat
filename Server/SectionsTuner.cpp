@@ -9,6 +9,7 @@
 using namespace std;
 SectionsTuner::SectionsTuner(map<int, list<struct opt_param_t*>*>* sectionParamsMap, map<struct opt_param_t*, list<int>*>* paramSectionsMap): 
 	markedForDeletion(false),
+	iteration(0),
 	sectionIds(0), 
 	sectionParamsMap(sectionParamsMap),
 	paramSectionsMap(paramSectionsMap),
@@ -99,7 +100,8 @@ OptimizerMsg SectionsTuner::stopMeasurement(pid_t tid, int sectionId, struct tim
 
 		// all sections have been measured in that mc?
 		if(mc->getMinNumMeasurementsOfSections(&sectionIds) > 0) {
-			
+			iteration++;
+			printf("search iteration: %d\n", iteration);
 			storeRuntimeForThreadsAndSections(mc);
 			mc->storeRuntimeOfMeasurements();
 			mcHandler->adjustWorkloadWithMc(mc);

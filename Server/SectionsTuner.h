@@ -115,6 +115,7 @@ class SectionsTuner {
 		bool markedForDeletion;
 
 	private:
+		int iteration;
 		std::vector<int> sectionIds;
 		std::map<int, list<struct opt_param_t*>*>* sectionParamsMap;
 		std::map<struct opt_param_t*, list<int>*>* paramSectionsMap;
