@@ -90,7 +90,7 @@ int NelderMeadSearch::doSearch() {
 					}
 					break;
 				case REFLECTION:
-					printf("NelderMeadSearch REFLECTION ");
+					printf("NelderMeadSearch REFLECTION\n");
 					reflectedMc->print(false);
 					if(reflectedMc->isBetterThan(simplex.front())) {
 						center = getCenter(&simplex, worstMc);
@@ -135,7 +135,7 @@ int NelderMeadSearch::doSearch() {
 					}
 					break;
 				case EXPANSION:
-					printf("NelderMeadSearch EXPANSION ");
+					printf("NelderMeadSearch EXPANSION\n");
 					expandedMc->print(false);
 					simplex.pop_back();
 					if(expandedMc->isBetterThan(reflectedMc)) {
@@ -148,7 +148,7 @@ int NelderMeadSearch::doSearch() {
 					action = START;
 					break;
 				case CONTRACTION:
-					printf("NelderMeadSearch CONTRACTION ");
+					printf("NelderMeadSearch CONTRACTION\n");
 					contractedMc->print(false);
 					if(contractedMc->isBetterThan(worstMc)) {
 						simplex.pop_back();
