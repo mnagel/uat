@@ -75,10 +75,18 @@ int UDSCommunicator::receiveMsgType(MsgType* o_msg) {
 }
 
 int UDSCommunicator::receiveMsgHead(tmsgHead* o_msg) {
+	static int errorCount = 0;
 	int iCount;
 	iCount=read(this->fdConn, o_msg, sizeof(struct tmsgHead));
 	if(iCount!=sizeof(struct tmsgHead)) {
-		printf("ERROR: receiveMsgHead\n");
+		errorCount++;
+		if (errorCount <= 10) {
+			printf("ERROR: receiveMsgHead\n");
+			if (errorCount == 10) {
+				printf("ERROR: Server seems to be down...\n");
+				printf("ERROR: However, we suppress receiveMsgHead spam now.\n");
+			}
+		}
 		return -1;
 	}
 	return 0;
