@@ -68,21 +68,19 @@ bool Mc::matchesMc(Mc* mc) {
 
 void Mc::print(bool longVersion) {
 	vector<struct opt_param_t>::iterator param_iterator;
-	if(longVersion) {
-		printf("Parameterwerte an Adressen:\n");
-	}
+	printf("values: ");
 	for ( param_iterator=this->config.begin() ; param_iterator < this->config.end(); param_iterator++ ) {
 		if(longVersion) {
 			printf("\t%p: %d\n", param_iterator->address, param_iterator->curval);
 		} else {
-			printf("\t\t%d ", param_iterator->curval);
+			printf("%3d ", param_iterator->curval);
 		}
 	}
 	if(longVersion) {
 		//printf("\n\t\truntime: %ld.%09d\n ", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
 		printf("\nAuslastung der Tuningbereiche:\n");
 	} else {
-		printf("\truntime: %ld.%09d ", runtimeOfMeasurements.tv_sec, (int) runtimeOfMeasurements.tv_nsec);
+		printf("runtime:%8ldms ", (runtimeOfMeasurements.tv_sec * 1000) + ((int) runtimeOfMeasurements.tv_nsec) / 1000);
 	}
 
 	vector<int>::iterator it;
@@ -93,14 +91,14 @@ void Mc::print(bool longVersion) {
 		if(longVersion) {
 			printf("\tBereich %d: %lf\n", *it, getRelativeRuntimeForSection(*it));
 		} else {
-			printf("s%d: %lf", *it, getRelativeRuntimeForSection(*it));
+			printf("s%d: %3d%%", *it, (int) (100 * getRelativeRuntimeForSection(*it)));
 		}
 	}
 
 	if(longVersion) {
 		printf("\nLaufzeiten:");
 	} else {
-		printf("\tmeas: ");
+		printf(" meas:");
 	}
 
 	int counter = 0;
@@ -116,14 +114,14 @@ void Mc::print(bool longVersion) {
 				printf("\033[1;35m");
 			}
 			counter++;
-			printf(" section %d: ", *it);
+			printf(" s%d: ", *it);
 		}
 		mapit = measurements.find(*it);
 		for(tsIt = mapit->second->begin(); tsIt != mapit->second->end(); tsIt++) {
 			if(longVersion) {
 				printf("%ld.%09d, ", tsIt->ts.tv_sec, (int) tsIt->ts.tv_nsec);
 			} else {
-				printf("%ld.%09d ", tsIt->ts.tv_sec, (int) tsIt->ts.tv_nsec);
+				printf("%8ldms ", (tsIt->ts.tv_sec * 1000) + ((int) tsIt->ts.tv_nsec / 1000));
 			}
 
 		}
