@@ -19,4 +19,4 @@ evaloverhead: $(OBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o evaloverhead
+	rm -rf *.o evaloverhead

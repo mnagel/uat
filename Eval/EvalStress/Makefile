@@ -19,4 +19,4 @@ evalstress: $(OBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o evalstress
+	rm -rf *.o evalstress

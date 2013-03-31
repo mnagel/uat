@@ -19,4 +19,4 @@ evalimplicit: $(OBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o evalimplicit
+	rm -rf *.o evalimplicit

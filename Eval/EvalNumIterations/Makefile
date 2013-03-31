@@ -19,4 +19,4 @@ evalnumiterations: $(OBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o evalnumiterations
+	rm -rf *.o evalnumiterations
