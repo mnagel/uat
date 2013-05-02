@@ -83,8 +83,7 @@ int UDSCommunicator::receiveMsgHead(tmsgHead* o_msg) {
 		if (errorCount <= 10) {
 			printf("ERROR: receiveMsgHead\n");
 			if (errorCount == 10) {
-				printf("ERROR: Server seems to be down...\n");
-				printf("ERROR: However, we suppress receiveMsgHead spam now.\n");
+				errorExit("ERROR: Server seems to be down...");
 			}
 		}
 		return -1;
