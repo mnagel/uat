@@ -5,6 +5,9 @@
 #include "../utils.h"
 #include "HeuristicOptimizer.h"
 #include "NelderMeadOptimizer.h"
+#include "FullOptimizer.h"
+
+#define DEFINEDOPTIMIZER FullOptimizer
 
 using namespace std;
 SectionsTuner::SectionsTuner(map<int, list<struct opt_param_t*>*>* sectionParamsMap, map<struct opt_param_t*, list<int>*>* paramSectionsMap): 
@@ -14,7 +17,7 @@ SectionsTuner::SectionsTuner(map<int, list<struct opt_param_t*>*>* sectionParams
 	sectionParamsMap(sectionParamsMap),
 	paramSectionsMap(paramSectionsMap),
 	mcHandler(new McHandler(&sectionIds, sectionParamsMap, paramSectionsMap)), 
-	optimizer((Optimizer*) new NelderMeadOptimizer(mcHandler)) {
+	optimizer((Optimizer*) new DEFINEDOPTIMIZER(mcHandler)) {
 
 }
 
