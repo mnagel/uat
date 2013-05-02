@@ -19,4 +19,4 @@ evalmultipleshared: $(OBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o evalmultipleshared
+	rm -rf *.o evalmultipleshared

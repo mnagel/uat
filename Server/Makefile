@@ -18,4 +18,4 @@ server: $(OBJ) $(PARENTOBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o server
+	rm -rf *.o server

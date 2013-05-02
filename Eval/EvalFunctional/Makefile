@@ -19,4 +19,4 @@ evalfunctional: $(OBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o evalfunctional
+	rm -rf *.o evalfunctional

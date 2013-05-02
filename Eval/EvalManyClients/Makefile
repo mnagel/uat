@@ -19,4 +19,4 @@ evalmanyclients: $(OBJ)
 
 .PHONY: clean
 clean:
-	rm -rf *o evalmanyclients
+	rm -rf *.o evalmanyclients
