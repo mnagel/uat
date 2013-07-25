@@ -192,7 +192,15 @@ void Tuner::checkRestartTuningForSection(int sectionId) {
 	if(finishedIt != finishedTuningAverageTime.end() && averageIt != averageRunTime.end()) {
 		long long finished = timespecToLongLong(finishedIt->second);
 		long long average = timespecToLongLong(averageIt->second);
+		printf(
+			"client-side tuner.cpp heuristic: finished: %f average: %f magic: %f limit: %f\n",
+			(double) finished,
+			(double) average,
+			(abs(finished-average)/(double) finished),
+			0.3
+			);
 		if((abs(finished-average)/(double) finished) > 0.3) {
+			printf("client-side tuner.cpp heuristic demands tuning restart\n");
 			tmsgRestartTuning msg;
 			msg.sectionId = sectionId;
 			sem_wait(&sendSem);
