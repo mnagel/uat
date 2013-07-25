@@ -7,7 +7,7 @@
 #include "NelderMeadOptimizer.h"
 #include "FullOptimizer.h"
 
-#define DEFINEDOPTIMIZER FullOptimizer
+#define DEFINEDOPTIMIZER NelderMeadOptimizer
 
 using namespace std;
 SectionsTuner::SectionsTuner(map<int, list<struct opt_param_t*>*>* sectionParamsMap, map<struct opt_param_t*, list<int>*>* paramSectionsMap): 
