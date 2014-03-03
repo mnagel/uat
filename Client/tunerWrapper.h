@@ -10,6 +10,7 @@ int ctuner_register_section_parameter(const CTuner* tuner, int sectionId, int *p
 int ctuner_get_initial_values(const CTuner* tuner);
 int ctuner_request_start(const CTuner* tuner, int sectionId);
 int ctuner_stop(const CTuner* tuner, int sectionId);
+int ctuner_stop_weighted(const CTuner* tuner, int sectionId, int weight);
 void ctuner_delete(CTuner* t);
 #ifdef __cplusplus
 }

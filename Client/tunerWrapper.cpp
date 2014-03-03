@@ -33,6 +33,11 @@ int ctuner_stop(const CTuner* tuner, int sectionId) {
     return t->tStop(sectionId);
 }
 
+int ctuner_stop_weighted(const CTuner* tuner, int sectionId, int weight) {
+    Tuner* t = (Tuner*) tuner;
+    return t->tStop(sectionId, weight);
+}
+
 void ctuner_delete(CTuner* tuner) {
     Tuner* t = (Tuner*) tuner;
     delete t;
